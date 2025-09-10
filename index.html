@@ -10,8 +10,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header>
@@ -106,56 +106,4 @@
           </tr>
         </thead>
         <tbody></tbody>
-      </table>
-      <p class="total">Total Geral: <span id="totalGeral">R$ 0,00</span></p>
-    </section>
-
-    <!-- Registros -->
-    <section id="registrosVendas" class="view">
-      <h2>Registros de Vendas</h2>
-      <table id="tabelaRegistros">
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Cliente</th>
-            <th>Produto</th>
-            <th>Qtd</th>
-            <th>Preço</th>
-            <th>Total</th>
-            <th>Pagamento</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <p class="total">Total Geral: <span id="totalGeralRegistros">R$ 0,00</span></p>
-      <button id="btnExportarRelatorio">Exportar PDF</button>
-    </section>
-  </main>
-
-  <!-- Modais -->
-  <div id="modalEditar" class="modal">
-    <div class="modal-content">
-      <h3 id="modalEditarTitulo">Editar</h3>
-      <input type="text" id="modalEditarNome" placeholder="Nome">
-      <input type="text" id="modalEditarTelefone" placeholder="Telefone">
-      <input type="number" id="modalEditarQuantidade" placeholder="Quantidade">
-      <input type="number" id="modalEditarCompra" placeholder="Valor de Compra" step="0.01">
-      <input type="number" id="modalEditarVenda" placeholder="Valor de Venda" step="0.01">
-      <button id="btnSalvarEdicao">Salvar</button>
-      <button id="btnCancelarEdicao">Cancelar</button>
-    </div>
-  </div>
-
-  <div id="modalExcluir" class="modal">
-    <div class="modal-content">
-      <p>Deseja realmente excluir?</p>
-      <button id="btnConfirmarExcluir">Sim</button>
-      <button id="btnCancelarExcluir">Não</button>
-    </div>
-  </div>
-
-  <!-- Programa JS -->
-  <script src="programa.js"></script>
-</body>
-</html>
+      <
