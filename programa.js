@@ -6,30 +6,42 @@ document.addEventListener("DOMContentLoaded", () => {
     apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
     authDomain: "personalizados-2eb5f.firebaseapp.com",
     projectId: "personalizados-2eb5f",
-    storageBucket: "personalizados-2eb5f.firebasestorage.app",
+    storageBucket: "personalizados-2eb5f.appspot.com",
     messagingSenderId: "498226923096",
     appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
   };
-  const app = firebase.initializeApp(firebaseConfig);
+
+  firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
   // ----------------------
-  // Navegação
+  // Navegação de menus
   // ----------------------
-  function mostrar(viewId) {
-    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-    document.getElementById(viewId).classList.add("active");
-  }
+  const menuBtns = document.querySelectorAll("header nav button");
+  const views = document.querySelectorAll(".view");
 
-  document.getElementById("btnMenuClientes").addEventListener("click", () => mostrar("clientes"));
-  document.getElementById("btnMenuProdutos").addEventListener("click", () => mostrar("produtos"));
-  document.getElementById("btnMenuVendas").addEventListener("click", () => mostrar("vendas"));
-  document.getElementById("btnMenuRegistros").addEventListener("click", () => {
-    mostrar("registrosVendas");
-    carregarRegistros();
+  menuBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      // remover classe active de todos os menus
+      menuBtns.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // mostrar view correspondente
+      const idMap = {
+        btnMenuClientes: "clientes",
+        btnMenuProdutos: "produtos",
+        btnMenuVendas: "vendas",
+        btnMenuRegistros: "registrosVendas"
+      };
+      views.forEach(v => v.classList.remove("active"));
+      document.getElementById(idMap[btn.id]).classList.add("active");
+
+      if (btn.id === "btnMenuRegistros") carregarRegistros();
+    });
   });
 
-  mostrar("vendas"); // View inicial
+  // view inicial
+  document.getElementById("btnMenuVendas").click();
 
   // ----------------------
   // Elementos
@@ -61,12 +73,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const totalGeralRegistros = document.getElementById("totalGeralRegistros");
   const btnExportarRelatorio = document.getElementById("btnExportarRelatorio");
 
-  const modalEditar = document.getElementById("modalEditar");
-  const modalExcluir = document.getElementById("modalExcluir");
-
-  let itemEdicao = null;
-  let tipoEdicao = null;
-
+  // ----------------------
+  // Função utilitária
+  // ----------------------
   function gerarID() {
     return Date.now().toString() + Math.floor(Math.random() * 1000);
   }
@@ -96,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     snapshot.forEach(doc => {
       const c = doc.data();
 
-      // Tabela
+      // tabela
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${c.nome}</td>
@@ -105,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       tabelaClientes.appendChild(tr);
 
-      // Select
+      // select
       const option = document.createElement("option");
       option.value = c.id;
       option.textContent = c.nome;
@@ -144,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
       totalCompra += p.quantidade * p.valorCompra;
       totalVenda += p.quantidade * p.valorVenda;
 
-      // Tabela
+      // tabela
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${p.nome}</td>
@@ -155,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       tabelaProdutos.appendChild(tr);
 
-      // Select
+      // select
       const option = document.createElement("option");
       option.value = p.id;
       option.textContent = `${p.nome} (Estoque: ${p.quantidade})`;
@@ -226,11 +235,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>R$ ${v.preco.toFixed(2)}</td>
         <td>R$ ${v.total.toFixed(2)}</td>
         <td>${v.pagamento}</td>
-        <td>
-          <button class="acao-btn" onclick='gerarRecibo(${JSON.stringify(v)})'>Recibo</button>
-        </td>
+        <td><button class="acao-btn">Recibo</button></td>
       `;
       tabelaVendas.appendChild(tr);
+
+      // adicionar listener para gerar recibo
+      tr.querySelector("button").addEventListener("click", () => gerarRecibo(v));
     });
 
     totalGeralEl.textContent = "R$ " + totalGeral.toFixed(2);
@@ -254,11 +264,11 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>R$ ${v.preco.toFixed(2)}</td>
         <td>R$ ${v.total.toFixed(2)}</td>
         <td>${v.pagamento}</td>
-        <td>
-          <button class="acao-btn" onclick='gerarRecibo(${JSON.stringify(v)})'>Recibo</button>
-        </td>
+        <td><button class="acao-btn">Recibo</button></td>
       `;
       tabelaRegistros.appendChild(tr);
+
+      tr.querySelector("button").addEventListener("click", () => gerarRecibo(v));
     });
 
     totalGeralRegistros.textContent = "R$ " + totalGeral.toFixed(2);
@@ -267,7 +277,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ----------------------
   // PDF Recibo
   // ----------------------
-  window.gerarRecibo = (venda) => {
+  function gerarRecibo(venda) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
@@ -289,7 +299,7 @@ document.addEventListener("DOMContentLoaded", () => {
     doc.text("Obrigado pela preferência!", 105, 280, { align: "center" });
 
     doc.save(`recibo_${venda.cliente}.pdf`);
-  };
+  }
 
   // ----------------------
   // PDF Relatório
