@@ -10,24 +10,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
-      authDomain: "personalizados-2eb5f.firebaseapp.com",
-      projectId: "personalizados-2eb5f",
-      storageBucket: "personalizados-2eb5f.firebasestorage.app",
-      messagingSenderId: "498226923096",
-      appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    window.db = getFirestore(app);
-
-    import "./programa.js";
-  </script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 </head>
 <body>
   <header>
@@ -170,5 +154,8 @@
       <button id="btnCancelarExcluir">Não</button>
     </div>
   </div>
+
+  <!-- Programa JS -->
+  <script src="programa.js"></script>
 </body>
 </html>
