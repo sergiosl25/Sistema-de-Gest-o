@@ -10,6 +10,26 @@ import {
   updateDoc, deleteDoc, onSnapshot, query, where, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, user => {
+  if(user){
+    // Usuário logado → mostrar telas principais
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    mostrar('vendas'); // ou a tela inicial que preferir
+  } else {
+    // Usuário deslogado → mostrar login
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('login').classList.add('active');
+  }
+});
+
+window.logout = () => {
+  signOut(auth).then(() => mostrar('login'));
+};
+
 // === Cole suas configs aqui ===
 const firebaseConfig = {
   apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
@@ -44,15 +64,65 @@ let orcamentoAtual = {
   data: null
 };
 
+document.getElementById("btnLogin").addEventListener("click", () => {
+  const email = document.getElementById("email").value;
+  const senha = document.getElementById("senha").value;
+  signInWithEmailAndPassword(auth, email, senha)
+    .then(userCredential => {
+      console.log("Logado:", userCredential.user.email);
+      mostrar('vendas'); // mostra tela principal
+    })
+    .catch(error => alert(error.message));
+});
+
 /* =========================
    Helpers / Elementos DOM
    ========================= */
 // Navegação
-function mostrar(viewId) {
+// =======================
+// Login
+// =======================
+const emailInput = document.getElementById("email");
+const senhaInput = document.getElementById("senha");
+const btnLogin = document.getElementById("btnLogin");
+
+btnLogin.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  const senha = senhaInput.value.trim();
+  if(!email || !senha) return alert("Informe email e senha");
+  
+  signInWithEmailAndPassword(auth, email, senha)
+    .then(userCredential => {
+      console.log("Usuário logado:", userCredential.user.email);
+      mostrar('vendas'); // mostra tela principal
+    })
+    .catch(error => alert(error.message));
+});
+
+// =======================
+// Verifica autenticação
+// =======================
+onAuthStateChanged(auth, user => {
+  if(user){
+    // Usuário logado → mostra telas principais
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    mostrar('vendas'); // ou tela inicial desejada
+  } else {
+    // Usuário deslogado → mostra login
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('login').classList.add('active');
+  }
+});
+
+function mostrar(viewId){
+  if(!auth.currentUser && viewId !== 'login') {
+    alert("Você precisa estar logado para acessar esta tela");
+    return;
+  }
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(viewId).classList.add('active');
 }
-mostrar('vendas');
+
 
 // Elementos (mesmos ids do HTML)
 const tabelaClientes = document.querySelector("#tabelaClientes tbody");
@@ -676,6 +746,7 @@ window.excluirVenda = excluirVenda;
 window.excluirOrcamento = excluirOrcamento;
 window.exportarRelatorio = exportarRelatorio;
 window.reimprimirOrcamento = reimprimirOrcamento;
+window.logout = logout;
 /* =========================
    Inicialização UI
    ========================= */
