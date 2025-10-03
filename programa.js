@@ -12,12 +12,12 @@ import {
 
 // === Cole suas configs aqui ===
 const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_PROJECT.firebaseapp.com",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_PROJECT.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
+  apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
+  authDomain: "personalizados-2eb5f.firebaseapp.com",
+  projectId: "personalizados-2eb5f",
+  storageBucket: "personalizados-2eb5f.firebasestorage.ap",
+  messagingSenderId: "498226923096",
+  appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
 };
 // ===============================
 
@@ -672,5 +672,7 @@ function exportarRelatorio(){
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
+
 
 
