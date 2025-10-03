@@ -665,6 +665,15 @@ function exportarRelatorio(){
   doc.text("Total Geral: R$ "+Number(totalGeral).toFixed(2),10,y);
   doc.save("relatorio_vendas.pdf");
 }
+// Expor funções globais para o HTML
+window.mostrar = mostrar;
+window.abrirModal = abrirModal;
+window.abrirModalExclusao = abrirModalExclusao;
+window.excluirCliente = excluirCliente;
+window.excluirProduto = excluirProduto;
+window.excluirVenda = excluirVenda;
+window.excluirOrcamento = excluirOrcamento;
+window.exportarRelatorio = exportarRelatorio;
 
 /* =========================
    Inicialização UI
@@ -672,7 +681,3 @@ function exportarRelatorio(){
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
-
-
-
-
