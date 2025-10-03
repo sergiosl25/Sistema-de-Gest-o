@@ -334,7 +334,7 @@ async function excluirVenda(vendaId){
     await runTransaction(db, async (tx) => {
       const produtoRef = doc(db, "produtos", venda.produtoId);
       const produtoSnap = await tx.get(produtoRef);
-      if(productoSnap.exists()){
+      if(produtoSnap.exists()){
         const atual = produtoSnap.data().quantidade || 0;
         tx.update(produtoRef, { quantidade: atual + (venda.quantidade || 0) });
       }
@@ -667,6 +667,7 @@ function exportarRelatorio(){
 }
 // Expor funções globais para o HTML
 window.mostrar = mostrar;
+window.gerarRecibo = gerarRecibo;
 window.abrirModal = abrirModal;
 window.abrirModalExclusao = abrirModalExclusao;
 window.excluirCliente = excluirCliente;
@@ -674,7 +675,7 @@ window.excluirProduto = excluirProduto;
 window.excluirVenda = excluirVenda;
 window.excluirOrcamento = excluirOrcamento;
 window.exportarRelatorio = exportarRelatorio;
-
+window.reimprimirOrcamento = reimprimirOrcamento;
 /* =========================
    Inicialização UI
    ========================= */
