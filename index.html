@@ -20,11 +20,19 @@
       <button onclick="mostrar('vendas')">Vendas</button>
       <button onclick="mostrar('registrosVendas')">Registros</button>
       <button onclick="mostrar('orcamento')">Orçamento</button>
+      <button onclick="logout()">Sair</button>
     </nav>
   </div>
 </header>
 
 <main>
+  <section id="login" class="view active">
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="senha" placeholder="Senha">
+  <button id="btnLogin">Entrar</button>
+</section>
+
   <!-- Clientes -->
   <section id="clientes" class="view">
     <h2>Cadastro de Clientes</h2>
@@ -205,4 +213,3 @@
 <script type="module" src="programa.js"></script>
 </body>
 </html>
-
