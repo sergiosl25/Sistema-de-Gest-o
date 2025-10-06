@@ -91,11 +91,11 @@ nav button:hover {
 
 /* ===== Main ===== */
 main {
+  margin-top: 70px; /* para o conteúdo não ficar embaixo do header */
+  min-height: calc(100vh - 70px);
   padding: 20px;
-  display: flex;
-  justify-content: center;
+  overflow-y: auto;
 }
-
 .view {
   display: none;
   width: 100%;
@@ -280,6 +280,7 @@ table tr:hover {
     padding: 8px;
   }
 }
+
 
 
 
