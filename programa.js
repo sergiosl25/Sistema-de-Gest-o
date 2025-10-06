@@ -27,18 +27,6 @@ window.logout = async () => {
   window.location.href = "login.html";
 };
 
-/* =========================
-   Inicialização Firebase
-   ========================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
-  authDomain: "personalizados-2eb5f.firebaseapp.com",
-  projectId: "personalizados-2eb5f",
-  storageBucket: "personalizados-2eb5f.firebasestorage.app",
-  messagingSenderId: "498226923096",
-  appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
-};
-
 // Coleções
 const clientesCol = collection(db, "clientes");
 const produtosCol = collection(db, "produtos");
@@ -704,3 +692,4 @@ window.logout = logout;
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
