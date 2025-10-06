@@ -37,6 +37,21 @@ header h1 {
   margin-bottom: 5px;
 }
 
+.logout-btn {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: #c0392b;
+}
+
 header nav button {
   background: #fff;
   color: #007BFF;
@@ -215,3 +230,4 @@ table td button {
 .modal-content button:hover {
   opacity: 0.9;
 }
+
