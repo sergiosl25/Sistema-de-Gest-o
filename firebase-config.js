@@ -13,9 +13,10 @@ const firebaseConfig = {
 };
 
 // Evita criar app duplicado
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app = !getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 
 const db = getFirestore(app);
 const auth = getAuth(app);
 
 export { db, auth };
+
