@@ -27,12 +27,6 @@ window.logout = async () => {
   window.location.href = "login.html";
 };
 
-// Coleções
-const clientesCol = collection(db, "clientes");
-const produtosCol = collection(db, "produtos");
-const vendasCol = collection(db, "vendas");
-const orcamentosCol = collection(db, "orcamentos");
-
 /* =========================
    Estado local (cache)
    ========================= */
@@ -47,16 +41,10 @@ let orcamentoAtual = {
   data: null
 };
 
-document.getElementById("btnLogin").addEventListener("click", () => {
-  const email = document.getElementById("email").value;
-  const senha = document.getElementById("senha").value;
-  signInWithEmailAndPassword(auth, email, senha)
-    .then(userCredential => {
-      console.log("Logado:", userCredential.user.email);
-      mostrar('vendas'); // mostra tela principal
-    })
-    .catch(error => alert(error.message));
-});
+window.mostrar = function (secao) {
+  document.querySelectorAll(".secao").forEach(s => s.style.display = "none");
+  document.getElementById(secao).style.display = "block";
+};
 
 /* =========================
    Helpers / Elementos DOM
@@ -120,6 +108,11 @@ function telephoneOrEmpty(t){ return t ? t.trim() : ""; }
 function sanitizeFileName(name) {
   return name ? name.replace(/[\/\\?%*:|"<>]/g, "_") : "cliente";
 }
+
+const clientesCol = collection(db, "clientes");
+const produtosCol = collection(db, "produtos");
+const vendasCol = collection(db, "vendas");
+const orcamentosCol = collection(db, "orcamentos");
 
 /* =========================
    Real-time listeners (Firestore)
@@ -675,7 +668,6 @@ function exportarRelatorio(){
   doc.save("relatorio_vendas.pdf");
 }
 // Expor funções globais para o HTML
-window.mostrar = mostrar;
 window.gerarRecibo = gerarRecibo;
 window.abrirModal = abrirModal;
 window.abrirModalExclusao = abrirModalExclusao;
@@ -692,4 +684,3 @@ window.logout = logout;
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
-
