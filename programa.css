@@ -7,7 +7,7 @@
 }
 
 body {
-  background: #f4f6f9;
+  background: inear-gradient(135deg, #2c3e50, #3498db);
   color: #333;
   min-height: 100vh;
 }
@@ -231,3 +231,4 @@ table tr:hover {
     padding: 8px;
   }
 }
+
