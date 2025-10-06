@@ -7,6 +7,13 @@
 }
 
 /* ===== Estrutura Geral ===== */
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background: linear-gradient(135deg, #2c3e50, #3498db);
   color: #333;
@@ -273,5 +280,6 @@ table tr:hover {
     padding: 8px;
   }
 }
+
 
 
