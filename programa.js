@@ -679,10 +679,27 @@ window.excluirOrcamento = excluirOrcamento;
 window.exportarRelatorio = exportarRelatorio;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.logout = logout;
+
+// ---- Controle de navegação ----
+window.mostrar = function (viewId) {
+  // Seleciona todas as seções com a classe .view
+  const views = document.querySelectorAll(".view");
+
+  // Esconde todas as views
+  views.forEach(v => v.style.display = "none");
+
+  // Mostra somente a view selecionada
+  const viewAtiva = document.getElementById(viewId);
+  if (viewAtiva) {
+    viewAtiva.style.display = "block";
+  }
+};
+
 /* =========================
    Inicialização UI
    ========================= */
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
