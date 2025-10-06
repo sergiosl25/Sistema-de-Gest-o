@@ -8,14 +8,14 @@
 
 /* ===== Estrutura Geral ===== */
 body {
-  background: #294774;
+  background: linear-gradient(135deg, #2c3e50, #3498db);
   color: #333;
   min-height: 100vh;
 }
 
 /* ===== Header ===== */
 header {
-  background: #264599;
+  background: linear-gradient(135deg, #2c3e50, #3498db);
   color: #2c3e50;
   padding: 15px 25px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -54,7 +54,7 @@ header h1 {
 
 /* ===== Menu de Navegação ===== */
 nav {
-  background: #242daa;
+  background: linear-gradient(135deg, #2c3e50, #3498db);
   margin: 20px auto;
   padding: 10px;
   display: flex;
@@ -273,4 +273,5 @@ table tr:hover {
     padding: 8px;
   }
 }
+
 
