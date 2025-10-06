@@ -1,0 +1,117 @@
+/* ===== Estilo da Tela de Login Moderna ===== */
+
+body {
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  color: #fff;
+  margin: 0;
+}
+
+/* ===== Container Principal ===== */
+.login-container {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+/* ===== Título ===== */
+.login-container h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+/* ===== Inputs ===== */
+.login-container input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.85);
+  color: #333;
+  transition: all 0.3s ease;
+}
+
+.login-container input:focus {
+  background: #fff;
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.8);
+}
+
+/* ===== Botão de Login ===== */
+.login-container button {
+  width: 100%;
+  background: #27ae60;
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.login-container button:hover {
+  background: #219150;
+}
+
+/* ===== Mensagem de Erro ===== */
+#mensagemErro {
+  margin-top: 15px;
+  font-size: 0.9rem;
+  color: #ffbaba;
+  min-height: 20px;
+}
+
+/* ===== Rodapé ===== */
+.footer {
+  margin-top: 25px;
+  font-size: 0.85rem;
+  color: #ddd;
+}
+
+.footer a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.footer a:hover {
+  text-decoration: none;
+}
+
+/* ===== Animação ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 30px 20px;
+  }
+
+  .login-container h2 {
+    font-size: 1.6rem;
+  }
+}
