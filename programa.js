@@ -79,49 +79,6 @@ document.getElementById("btnLogin").addEventListener("click", () => {
    ========================= */
 // Navegação
 // =======================
-// Login
-// =======================
-const emailInput = document.getElementById("email");
-const senhaInput = document.getElementById("senha");
-const btnLogin = document.getElementById("btnLogin");
-
-btnLogin.addEventListener("click", () => {
-  const email = emailInput.value.trim();
-  const senha = senhaInput.value.trim();
-  if(!email || !senha) return alert("Informe email e senha");
-  
-  signInWithEmailAndPassword(auth, email, senha)
-    .then(userCredential => {
-      console.log("Usuário logado:", userCredential.user.email);
-      mostrar('vendas'); // mostra tela principal
-    })
-    .catch(error => alert(error.message));
-});
-
-// =======================
-// Verifica autenticação
-// =======================
-onAuthStateChanged(auth, user => {
-  if(user){
-    // Usuário logado → mostra telas principais
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    mostrar('vendas'); // ou tela inicial desejada
-  } else {
-    // Usuário deslogado → mostra login
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('login').classList.add('active');
-  }
-});
-
-function mostrar(viewId){
-  if(!auth.currentUser && viewId !== 'login') {
-    alert("Você precisa estar logado para acessar esta tela");
-    return;
-  }
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById(viewId).classList.add('active');
-}
-
 
 // Elementos (mesmos ids do HTML)
 const tabelaClientes = document.querySelector("#tabelaClientes tbody");
@@ -752,4 +709,5 @@ window.logout = logout;
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
