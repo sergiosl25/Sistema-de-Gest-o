@@ -1,5 +1,9 @@
 // programa.js
 // incluir com: <script type="module" src="programa.js"></script>
+window.mostrar = function (secao) {
+  document.querySelectorAll(".secao").forEach(s => s.style.display = "none");
+  document.getElementById(secao).style.display = "block";
+};
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
@@ -79,7 +83,6 @@ document.getElementById("btnLogin").addEventListener("click", () => {
    ========================= */
 // Navegação
 // =======================
-
 // Elementos (mesmos ids do HTML)
 const tabelaClientes = document.querySelector("#tabelaClientes tbody");
 const nomeCliente = document.getElementById("nomeCliente");
@@ -710,4 +713,19 @@ window.logout = logout;
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
 
+import { auth } from "./firebase-config.js";
+import { onAuthStateChanged, signOut } 
+from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
+// Bloquear acesso se não estiver logado
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+  }
+});
+
+// 🔹 Torna a função acessível no HTML
+window.logout = async function () {
+  await signOut(auth);
+  window.location.href = "login.html";
+};
