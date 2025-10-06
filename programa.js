@@ -1,45 +1,44 @@
 // programa.js
-// ATENÇÃO: script deve ser incluído com: <script type="module" src="programa.js"></script>
+// incluir com: <script type="module" src="programa.js"></script>
 
-/* =========================
-   Inicialização Firebase
-   ========================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {
   getFirestore, collection, addDoc, doc, getDoc, getDocs,
   updateDoc, deleteDoc, onSnapshot, query, where, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { auth } from "./firebase-config.js";
 
-const auth = getAuth();
-
-onAuthStateChanged(auth, user => {
-  if(user){
-    // Usuário logado → mostrar telas principais
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    mostrar('vendas'); // ou a tela inicial que preferir
-  } else {
-    // Usuário deslogado → mostrar login
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('login').classList.add('active');
+/* =========================
+   Proteção de acesso
+   ========================= */
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
   }
 });
 
-window.logout = () => {
-  signOut(auth).then(() => mostrar('login'));
+// Logout
+window.logout = async function () {
+  await signOut(auth);
+  window.location.href = "login.html";
 };
 
-// === Cole suas configs aqui ===
+/* =========================
+   Inicialização Firebase
+   ========================= */
 const firebaseConfig = {
   apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
   authDomain: "personalizados-2eb5f.firebaseapp.com",
   projectId: "personalizados-2eb5f",
-  storageBucket: "personalizados-2eb5f.firebasestorage.ap",
+  storageBucket: "personalizados-2eb5f.firebasestorage.app",
   messagingSenderId: "498226923096",
   appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
 };
-// ===============================
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -753,3 +752,4 @@ window.logout = logout;
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
