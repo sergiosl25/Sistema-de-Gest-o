@@ -1,5 +1,5 @@
 // firebase-config.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
@@ -12,7 +12,9 @@ const firebaseConfig = {
   appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
 };
 
-const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+// Evita criar app duplicado
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
 const db = getFirestore(app);
 const auth = getAuth(app);
 
