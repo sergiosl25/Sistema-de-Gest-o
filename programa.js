@@ -668,6 +668,7 @@ function exportarRelatorio(){
   doc.save("relatorio_vendas.pdf");
 }
 // Expor funções globais para o HTML
+window.mostrar = mostrar;
 window.gerarRecibo = gerarRecibo;
 window.abrirModal = abrirModal;
 window.abrirModalExclusao = abrirModalExclusao;
@@ -684,3 +685,4 @@ window.logout = logout;
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
