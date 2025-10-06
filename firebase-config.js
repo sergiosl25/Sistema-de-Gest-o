@@ -7,7 +7,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQ",
   authDomain: "personalizados-2eb5f.firebaseapp.com",
   projectId: "personalizados-2eb5f",
-  storageBucket: "personalizados-2eb5f.appspot.com",
+  storageBucket: "personalizados-2eb5f.firebasestorage.ap",
   messagingSenderId: "498226923096",
   appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
 };
@@ -20,3 +20,4 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 export { db, auth };
+
