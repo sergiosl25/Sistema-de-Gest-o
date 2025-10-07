@@ -804,8 +804,10 @@ window.excluirProduto = excluirProduto;
 window.excluirVenda = excluirVenda;
 window.excluirOrcamento = excluirOrcamento;
 window.exportarRelatorio = exportarRelatorio;
+window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.logout = logout;
+window.exportarRelatorio = exportarRelatorio;
 
 // ---- Controle de navegação ----
 window.mostrar = function (viewId) {
@@ -828,6 +830,7 @@ window.mostrar = function (viewId) {
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
 
 
