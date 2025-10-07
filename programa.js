@@ -354,6 +354,11 @@ function gerarRecibo(vendaId) {
   if(!venda) return alert("Venda não encontrada");
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  const imgLogo = new Image();
+  imgLogo.src = "logo.png";
+  imgLogo.onload = function () {
+    doc.addImage(imgLogo, "PNG", 10, 10, 40, 20)
+  }
   doc.setFontSize(16);
   doc.text("Recibo de Venda", 105, 20, { align: "center" });
   doc.text("Alvespersonalizados", 105, 30, { align: "center" });
@@ -453,6 +458,11 @@ btnGerarPDF.onclick = async () => {
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  const imgLogo = new Image();
+  imgLogo.src = "logo.png";
+  imgLogo.onload = function () {
+    doc.addImage(imgLogo, "PNG", 10, 10, 40, 20)
+  }
   doc.setFontSize(16);
   doc.text("Orçamento", 105, 20, { align: "center" });
   let y = 40;
@@ -530,6 +540,11 @@ function reimprimirOrcamento(orcId) {
   if (!orc) return alert("Orçamento não encontrado");
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  const imgLogo = new Image();
+  imgLogo.src = "logo.png";
+  imgLogo.onload = function () {
+    doc.addImage(imgLogo, "PNG", 10, 10, 40, 20)
+  }
   doc.setFontSize(16);
   doc.text("Orçamento", 105, 20, { align: "center" });
   let y = 40;
@@ -701,5 +716,6 @@ window.mostrar = function (viewId) {
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
 
