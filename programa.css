@@ -15,14 +15,14 @@ html, body {
 }
 
 body {
-  background: linear-gradient(135deg, #2c3e50, #3498db);
+  background: linear-gradient(135deg, #4c7196, #3498db);
   color: #333;
   min-height: 100vh;
 }
 
 /* ===== Header ===== */
 header {
-  background: linear-gradient(135deg, #2c3e50, #3498db);
+  background: linear-gradient(135deg, #4c7196, #3498db);
   color: #2c3e50;
   padding: 15px 25px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -40,7 +40,7 @@ header .logo {
 header h1 {
   font-size: 1.6rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: black;
 }
 
 /* ===== Botão de Logout ===== */
@@ -61,7 +61,7 @@ header h1 {
 
 /* ===== Menu de Navegação ===== */
 nav {
-  background: linear-gradient(135deg, #2c3e50, #3498db);
+  background: linear-gradient(135deg, #4c7196, #3498db);
   margin: 20px auto;
   padding: 10px;
   display: flex;
@@ -70,7 +70,7 @@ nav {
   gap: 10px;
   border-radius: 10px;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-  max-width: 900px;
+  max-width: 1500px;
 }
 
 nav button {
@@ -99,7 +99,7 @@ main {
 .view {
   display: none;
   width: 100%;
-  max-width: 900px;
+  max-width: 1500px;
   background: #fff;
   padding: 25px;
   border-radius: 12px;
@@ -235,7 +235,7 @@ table tr:hover {
   background: #fff;
   padding: 25px;
   border-radius: 10px;
-  width: 90%;
+  width: 100%;
   max-width: 400px;
   text-align: center;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -280,6 +280,7 @@ table tr:hover {
     padding: 8px;
   }
 }
+
 
 
 
