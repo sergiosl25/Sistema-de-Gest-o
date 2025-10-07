@@ -366,7 +366,7 @@ function gerarRecibo(vendaId) {
     const logoHeight = 40;
     const logoX = (pageWidth - logoWidth) / 2; // centraliza
 
-    doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
+    doc.addImage(imgLogo, "PNG", logoX, 5, logoWidth, logoHeight);
 
     // Título
     doc.setFontSize(16);
@@ -497,7 +497,7 @@ btnGerarPDF.onclick = async () => {
     const logoHeight = 40;
     const logoX = (pageWidth - logoWidth) / 2;
 
-    doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
+    doc.addImage(imgLogo, "PNG", logoX, 5, logoWidth, logoHeight);
 
     // Cabeçalho
     doc.setFontSize(16);
@@ -623,7 +623,7 @@ function reimprimirOrcamento(orcId) {
     const logoX = (pageWidth - logoWidth) / 2;
 
     // Logo centralizada
-    doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
+    doc.addImage(imgLogo, "PNG", logoX, 5, logoWidth, logoHeight);
 
     // Título
     doc.setFontSize(16);
@@ -829,6 +829,7 @@ window.mostrar = function (viewId) {
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
 
 
