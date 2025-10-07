@@ -576,7 +576,6 @@ btnGerarPDF.onclick = async () => {
     console.error(err);
     alert("Erro ao salvar orçamento: " + err.message);
   }
-};
 
 function montarOrcamentosSalvos() {
   tabelaOrcamentosSalvos.innerHTML = "";
@@ -830,6 +829,7 @@ window.mostrar = function (viewId) {
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
 
 
