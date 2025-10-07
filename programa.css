@@ -33,7 +33,7 @@ header {
 }
 
 header .logo {
-  width: 70px;
+  width: 120px;
   height: auto;
 }
 
@@ -280,6 +280,7 @@ table tr:hover {
     padding: 8px;
   }
 }
+
 
 
 
