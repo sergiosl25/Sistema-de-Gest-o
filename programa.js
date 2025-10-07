@@ -363,7 +363,7 @@ function gerarRecibo(vendaId) {
     // Adiciona a logo centralizada no topo
     const pageWidth = doc.internal.pageSize.getWidth();
     const logoWidth = 40;
-    const logoHeight = 20;
+    const logoHeight = 40;
     const logoX = (pageWidth - logoWidth) / 2; // centraliza
 
     doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
@@ -494,7 +494,7 @@ btnGerarPDF.onclick = async () => {
     // Centraliza a logo no topo
     const pageWidth = doc.internal.pageSize.getWidth();
     const logoWidth = 40;
-    const logoHeight = 20;
+    const logoHeight = 40;
     const logoX = (pageWidth - logoWidth) / 2;
 
     doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
@@ -619,7 +619,7 @@ function reimprimirOrcamento(orcId) {
   imgLogo.onload = function () {
     const pageWidth = doc.internal.pageSize.getWidth();
     const logoWidth = 40;
-    const logoHeight = 20;
+    const logoHeight = 40;
     const logoX = (pageWidth - logoWidth) / 2;
 
     // Logo centralizada
@@ -829,6 +829,7 @@ window.mostrar = function (viewId) {
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
 
 
