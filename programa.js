@@ -351,30 +351,58 @@ async function excluirVenda(vendaId){
 
 function gerarRecibo(vendaId) {
   const venda = vendas.find(v => v.id === vendaId);
-  if(!venda) return alert("Venda não encontrada");
+  if (!venda) return alert("Venda não encontrada");
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+
   const imgLogo = new Image();
-  imgLogo.src = "logo.png";
+  imgLogo.src = "logo.png"; // ajuste o caminho se necessário
+
   imgLogo.onload = function () {
-    doc.addImage(imgLogo, "PNG", 10, 10, 40, 20)
-  }
-  doc.setFontSize(16);
-  doc.text("Recibo de Venda", 105, 20, { align: "center" });
-  doc.text("Alvespersonalizados", 105, 30, { align: "center" });
-  let y = 50;
-  doc.setFontSize(12);
-  doc.text(`Data: ${venda.data}`, 10, y); y+=10;
-  doc.text(`Cliente: ${venda.cliente}`, 10, y); y+=10;
-  doc.text(`Produto: ${venda.produto}`, 10, y); y+=10;
-  doc.text(`Quantidade: ${venda.quantidade}`, 10, y); y+=10;
-  doc.text(`Preço Unitário: R$ ${Number(venda.preco).toFixed(2)}`, 10, y); y+=10;
-  doc.text(`Total: R$ ${Number(venda.total).toFixed(2)}`, 10, y); y+=10;
-  doc.text(`Forma de Pagamento: ${venda.pagamento}`, 10, y);
-  doc.setFontSize(10);
-  doc.text("Obrigado pela preferência!", 105, 280, { align: "center" });
-  doc.output("dataurlnewwindow");
+    // Adiciona a logo centralizada no topo
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoWidth = 40;
+    const logoHeight = 20;
+    const logoX = (pageWidth - logoWidth) / 2; // centraliza
+
+    doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
+
+    // Título
+    doc.setFontSize(16);
+    doc.text("Recibo de Venda", pageWidth / 2, 40, { align: "center" });
+
+    // Subtítulo
+    doc.setFontSize(12);
+    doc.text("Alvespersonalizados", pageWidth / 2, 48, { align: "center" });
+
+    // Dados da venda
+    let y = 65;
+    doc.setFontSize(12);
+    doc.text(`Data: ${venda.data}`, 10, y); y += 10;
+    doc.text(`Cliente: ${venda.cliente}`, 10, y); y += 10;
+    doc.text(`Produto: ${venda.produto}`, 10, y); y += 10;
+    doc.text(`Quantidade: ${venda.quantidade}`, 10, y); y += 10;
+    doc.text(`Preço Unitário: R$ ${Number(venda.preco).toFixed(2)}`, 10, y); y += 10;
+    doc.text(`Total: R$ ${Number(venda.total).toFixed(2)}`, 10, y); y += 10;
+    doc.text(`Forma de Pagamento: ${venda.pagamento}`, 10, y); y += 10;
+
+    // Rodapé
+    doc.setFontSize(10);
+    doc.text("Obrigado pela preferência!", pageWidth / 2, 280, { align: "center" });
+
+    // Exibe o PDF
+    doc.output("dataurlnewwindow");
+  };
+
+  // Se a logo falhar em carregar, ainda gera o PDF
+  imgLogo.onerror = function () {
+    console.warn("Logo não encontrada, gerando sem imagem.");
+    doc.text("Recibo de Venda", 105, 20, { align: "center" });
+    doc.output("dataurlnewwindow");
+  };
 }
+
 
 /* =========================
    ORÇAMENTOS
@@ -451,42 +479,87 @@ function removerProduto(index) {
 }
 
 btnGerarPDF.onclick = async () => {
-  if (!orcamentoAtual.clienteNome || orcamentoAtual.produtos.length === 0 ) {
+  if (!orcamentoAtual.clienteNome || orcamentoAtual.produtos.length === 0) {
     return alert("Informe o nome do cliente e adicione produtos");
   }
+
   if (!orcamentoAtual.data) orcamentoAtual.data = new Date().toLocaleString();
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const imgLogo = new Image();
-  imgLogo.src = "logo.png";
+  imgLogo.src = "logo.png"; // ajuste o caminho se necessário
+
   imgLogo.onload = function () {
-    doc.addImage(imgLogo, "PNG", 10, 10, 40, 20)
-  }
-  doc.setFontSize(16);
-  doc.text("Orçamento", 105, 20, { align: "center" });
-  let y = 40;
-  doc.setFontSize(12);
-  doc.text(`Data: ${orcamentoAtual.data}`, 10, y); y += 10;
-  doc.text(`Cliente: ${orcamentoAtual.clienteNome}`, 10, y); y += 10;
-  doc.text("Produto", 10, y);
-  doc.text("Qtd", 80, y);
-  doc.text("Preço Unit.", 110, y);
-  doc.text("Total", 150, y);
-  y += 10;
-  let totalGeral = 0;
-  orcamentoAtual.produtos.forEach(p => {
-    doc.text(p.nome, 10, y);
-    doc.text(String(p.quantidade), 80, y);
-    doc.text("R$ " + p.preco.toFixed(2), 110, y);
-    doc.text("R$ " + p.total.toFixed(2), 150, y);
-    totalGeral += p.total;
+    // Centraliza a logo no topo
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoWidth = 40;
+    const logoHeight = 20;
+    const logoX = (pageWidth - logoWidth) / 2;
+
+    doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text("Orçamento", pageWidth / 2, 40, { align: "center" });
+
+    // Dados principais
+    let y = 55;
+    doc.setFontSize(12);
+    doc.text(`Data: ${orcamentoAtual.data}`, 10, y); y += 10;
+    doc.text(`Cliente: ${orcamentoAtual.clienteNome}`, 10, y); y += 10;
+
+    // Títulos das colunas
+    doc.setFontSize(12);
+    doc.text("Produto", 10, y);
+    doc.text("Qtd", 90, y);
+    doc.text("Preço Unit.", 120, y);
+    doc.text("Total", 170, y);
+    y += 8;
+    doc.setLineWidth(0.3);
+    doc.line(10, y, 200, y);
+    y += 8;
+
+    // Itens do orçamento
+    let totalGeral = 0;
+    orcamentoAtual.produtos.forEach(p => {
+      doc.text(p.nome, 10, y);
+      doc.text(String(p.quantidade), 90, y);
+      doc.text("R$ " + p.preco.toFixed(2), 120, y);
+      doc.text("R$ " + p.total.toFixed(2), 170, y);
+      totalGeral += p.total;
+      y += 10;
+
+      // Nova página se ultrapassar o limite
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    // Total geral
+    y += 5;
+    doc.setLineWidth(0.3);
+    doc.line(10, y, 200, y);
     y += 10;
-    if (y > 260) { doc.addPage(); y = 20; }
-  });
-  doc.text("Total Geral: R$ " + totalGeral.toFixed(2), 10, y + 10);
-  doc.text("Obrigado pela preferência!", 105, 280, { align: "center" });
-  doc.save(`orcamento_${sanitizeFileName(orcamentoAtual.clienteNome)}.pdf`);
+    doc.setFontSize(12);
+    doc.text(`Total Geral: R$ ${totalGeral.toFixed(2)}`, 10, y);
+
+    // Rodapé
+    doc.setFontSize(10);
+    doc.text("Obrigado pela preferência!", pageWidth / 2, 280, { align: "center" });
+
+    // Salvar PDF
+    doc.save(`orcamento_${sanitizeFileName(orcamentoAtual.clienteNome)}.pdf`);
+  };
+
+  // Caso a logo falhe ao carregar
+  imgLogo.onerror = function () {
+    console.warn("Logo não encontrada, gerando PDF sem imagem.");
+    doc.text("Orçamento", 105, 20, { align: "center" });
+    doc.save(`orcamento_${sanitizeFileName(orcamentoAtual.clienteNome)}.pdf`);
+  };
+};
 
   // salvar no Firestore
   try {
@@ -538,38 +611,77 @@ function montarOrcamentosSalvos() {
 function reimprimirOrcamento(orcId) {
   const orc = orcamentos.find(o => o.id === orcId);
   if (!orc) return alert("Orçamento não encontrado");
+
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const imgLogo = new Image();
-  imgLogo.src = "logo.png";
+  imgLogo.src = "logo.png"; // ajuste o caminho se necessário
+
   imgLogo.onload = function () {
-    doc.addImage(imgLogo, "PNG", 10, 10, 40, 20)
-  }
-  doc.setFontSize(16);
-  doc.text("Orçamento", 105, 20, { align: "center" });
-  let y = 40;
-  doc.setFontSize(12);
-  doc.text(`Data: ${orc.data}`, 10, y); y += 10;
-  doc.text(`Cliente: ${orc.clienteNome || "Cliente não informado"}`, 10, y); y += 10;
-  doc.text("Produto", 10, y);
-  doc.text("Qtd", 80, y);
-  doc.text("Preço Unit.", 110, y);
-  doc.text("Total", 150, y);
-  y += 10;
-  let totalGeral = 0;
-  orc.produtos.forEach(p => {
-    doc.text(p.nome, 10, y);
-    doc.text(String(p.quantidade), 80, y);
-    doc.text("R$ " + p.preco.toFixed(2), 110, y);
-    doc.text("R$ " + p.total.toFixed(2), 150, y);
-    totalGeral += p.total;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoWidth = 40;
+    const logoHeight = 20;
+    const logoX = (pageWidth - logoWidth) / 2;
+
+    // Logo centralizada
+    doc.addImage(imgLogo, "PNG", logoX, 10, logoWidth, logoHeight);
+
+    // Título
+    doc.setFontSize(16);
+    doc.text("Orçamento", pageWidth / 2, 40, { align: "center" });
+
+    // Cabeçalho
+    let y = 55;
+    doc.setFontSize(12);
+    doc.text(`Data: ${orc.data}`, 10, y); y += 10;
+    doc.text(`Cliente: ${orc.clienteNome || "Cliente não informado"}`, 10, y); y += 10;
+
+    // Títulos das colunas
+    doc.setFontSize(12);
+    doc.text("Produto", 10, y);
+    doc.text("Qtd", 90, y);
+    doc.text("Preço Unit.", 120, y);
+    doc.text("Total", 170, y);
+    y += 8;
+    doc.setLineWidth(0.3);
+    doc.line(10, y, 200, y);
+    y += 8;
+
+    // Itens do orçamento
+    let totalGeral = 0;
+    orc.produtos.forEach(p => {
+      doc.text(p.nome, 10, y);
+      doc.text(String(p.quantidade), 90, y);
+      doc.text("R$ " + p.preco.toFixed(2), 120, y);
+      doc.text("R$ " + p.total.toFixed(2), 170, y);
+      totalGeral += p.total;
+      y += 10;
+
+      if (y > 260) { // quebra de página
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    // Total e rodapé
+    y += 5;
+    doc.line(10, y, 200, y);
     y += 10;
-    if (y > 260) { doc.addPage(); y = 20; }
-  });
-  doc.text("Total Geral: R$ " + totalGeral.toFixed(2), 10, y + 10);
-  doc.text("Obrigado pela preferência!", 105, 280, { align: "center" });
-  doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`);
+    doc.text(`Total Geral: R$ ${totalGeral.toFixed(2)}`, 10, y);
+    doc.setFontSize(10);
+    doc.text("Obrigado pela preferência!", pageWidth / 2, 280, { align: "center" });
+
+    // Salvar PDF
+    doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`);
+  };
+
+  imgLogo.onerror = function () {
+    console.warn("Logo não encontrada — gerando PDF sem imagem.");
+    doc.text("Orçamento", 105, 20, { align: "center" });
+    doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`);
+  };
 }
+
 
 async function excluirOrcamento(orcId) {
   if (!confirm("Deseja realmente excluir este orçamento?")) return;
@@ -716,6 +828,7 @@ window.mostrar = function (viewId) {
 // Não precisa chamar carregar*() — onSnapshot já inicializa tudo
 carregarProdutosOrcamento();
 montarTabelaOrcamentoAtual();
+
 
 
 
