@@ -156,11 +156,13 @@
 
 <section id="precos" class="view">
     <h2>Tabela de Preços</h2>
+    <div class="form">
+    <select id="produtoSelectPreco">
+      <option value="">— Selecione produto —</option>
+    </select>
+    <button id="btnNovaLinhaPreco">Adicionar linha (produto)</button>
+  </div>
     <table id="tabelaPrecos"></table>
-      <div class="form">
-      <select id="produtoSelectPreco"><option value="">— Selecione produto —</option></select>
-      <button id="btnNovaLinhaPreco">Adicionar linha (produto)</button>
-    </div>
       <thead>
         <tr>
           <th>Produto</th>
@@ -229,3 +231,4 @@
 <script type="module" src="programa.js"></script>
 </body>
 </html>
+
