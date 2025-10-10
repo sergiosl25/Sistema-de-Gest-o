@@ -11,6 +11,9 @@ import {
   updateDoc,
   onSnapshot,
   getDoc,
+  query,
+  where,
+  getDocs,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 /* =========================
@@ -27,6 +30,12 @@ window.logout = async () => {
   window.location.href = "login.html";
 };
 
+const clientesCol = collection(db, "clientes");
+const estoqueCol = collection(db, "estoque"); // antes 'produtos'
+const vendasCol = collection(db, "vendas");
+const orcamentosCol = collection(db, "orcamentos");
+const precosCol = collection(db, "precos")
+
 /* =========================
    Estado local (cache)
    ========================= */
@@ -34,16 +43,12 @@ let clientes = [];
 let produtos = [];
 let vendas = [];
 let orcamentos = [];
+let precos = [];
 
 let orcamentoAtual = {
   clienteNome: "",
   produtos: [],
   data: null
-};
-
-window.mostrar = function (secao) {
-  document.querySelectorAll(".secao").forEach(s => s.style.display = "none");
-  document.getElementById(secao).style.display = "block";
 };
 
 /* =========================
@@ -58,15 +63,13 @@ const telefoneCliente = document.getElementById("telefoneCliente");
 const btnCadastrarCliente = document.getElementById("btnCadastrarCliente");
 const clienteSelect = document.getElementById("clienteSelect");
 
-const tabelaProdutos = document.querySelector("#tabelaProdutos tbody");
+const tabelaEstoque = document.querySelector("#tabelaEstoque tbody");
 const nomeProduto = document.getElementById("nomeProduto");
 const quantidadeProduto = document.getElementById("quantidadeProduto");
-const valorCompraProduto = document.getElementById("valorCompraProduto");
-const valorVendaProduto = document.getElementById("valorVendaProduto");
 const btnCadastrarProduto = document.getElementById("btnCadastrarProduto");
 const produtoSelect = document.getElementById("produtoSelect");
-const totalCompraEl = document.getElementById("totalCompra");
-const totalVendaEl = document.getElementById("totalVenda");
+const produtoSelectOrcamento = document.getElementById("produtoSelectOrcamento");
+const produtoSelectPreco = document.getElementById("produtoSelectPreco")
 
 const quantidadeVenda = document.getElementById("quantidadeVenda");
 const formaPagamento = document.getElementById("formaPagamento");
@@ -77,12 +80,14 @@ const totalGeralRegistros = document.getElementById("totalGeralRegistros");
 
 const tabelaOrcamento = document.querySelector("#tabelaOrcamento tbody");
 const clienteInputOrcamento = document.getElementById("clienteInputOrcamento");
-const produtoSelectOrcamento = document.getElementById("produtoSelectOrcamento");
+const produtoSelectOrc = document.getElementById("produtoSelectOrcamento");
 const quantidadeOrcamento = document.getElementById("quantidadeOrcamento");
 const btnAdicionarProduto = document.getElementById("btnAdicionarProduto");
 const btnGerarPDF = document.getElementById("btnGerarPDF");
 const tabelaOrcamentosSalvos = document.querySelector("#tabelaOrcamentosSalvos tbody");
 
+const tabelaPrecos = document.querySelector("#tabelaPrecos tbody");
+const btnNovaLinhaPreco = document.getElementById("btnNovaLinhaPreco");
 const modalEditar = document.getElementById("modalEditar");
 const modalEditarTitulo = document.getElementById("modalEditarTitulo");
 const modalEditarNome = document.getElementById("modalEditarNome");
@@ -91,7 +96,7 @@ const modalEditarQuantidade = document.getElementById("modalEditarQuantidade");
 const modalEditarCompra = document.getElementById("modalEditarCompra");
 const modalEditarVenda = document.getElementById("modalEditarVenda");
 const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
-const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
+const btnCancelarEdicao = document.getElementById("btnCancelarEdicao")
 
 const modalExcluir = document.getElementById("modalExcluir");
 const btnConfirmarExcluir = document.getElementById("btnConfirmarExcluir");
@@ -102,17 +107,10 @@ let tipoEdicao = null;
 let acaoExcluir = null;
 
 /* =========================
-   Utilidades
+   Helpers
    ========================= */
-function telephoneOrEmpty(t){ return t ? t.trim() : ""; }
-function sanitizeFileName(name) {
-  return name ? name.replace(/[\/\\?%*:|"<>]/g, "_") : "cliente";
-}
-
-const clientesCol = collection(db, "clientes");
-const produtosCol = collection(db, "produtos");
-const vendasCol = collection(db, "vendas");
-const orcamentosCol = collection(db, "orcamentos");
+function sanitizeFileName(name){ return name ? name.replace(/[\/\\?%*:|"<>]/g,"_") : "cliente"; }
+function money(val){ return Number(val||0).toFixed(2); }
 
 /* =========================
    Real-time listeners (Firestore)
@@ -120,234 +118,191 @@ const orcamentosCol = collection(db, "orcamentos");
    usamos onSnapshot para ter sincronização entre dispositivos
    ========================= */
 onSnapshot(clientesCol, snapshot => {
-  clientes = [];
-  snapshot.forEach(docSnap => clientes.push({ id: docSnap.id, ...docSnap.data() }));
-  carregarClientesUI();
+  clientes = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  renderClientes();
 });
 
-onSnapshot(produtosCol, snapshot => {
-  produtos = [];
-  snapshot.forEach(docSnap => produtos.push({ id: docSnap.id, ...docSnap.data() }));
-  carregarProdutosUI();
-  carregarProdutosOrcamento(); // atualiza selects do orçamento
+onSnapshot(estoqueCol, snapshot => {
+  produtos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  renderEstoque();
+  renderProdutoSelectOrcamento();
+  renderProdutoSelectPreco();
 });
 
 onSnapshot(vendasCol, snapshot => {
-  vendas = [];
-  snapshot.forEach(docSnap => vendas.push({ id: docSnap.id, ...docSnap.data() }));
-  montarRegistrosVendas();
+  vendas = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  renderVendas();
 });
 
 onSnapshot(orcamentosCol, snapshot => {
-  orcamentos = [];
-  snapshot.forEach(docSnap => orcamentos.push({ id: docSnap.id, ...docSnap.data() }));
-  montarOrcamentosSalvos();
+  orcamentos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  renderOrcamentosSalvos();
+})
+
+onSnapshot(precosCol, snapshot => {
+  precos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  renderTabelaPrecos();
 });
 
 /* =========================
    CLIENTES
    ========================= */
 btnCadastrarCliente.onclick = async () => {
-  try {
-    if(!nomeCliente.value.trim()) return alert("Informe o nome do cliente");
-    const cliente = { nome: nomeCliente.value.trim(), telefone: telephoneOrEmpty(telefoneCliente.value) };
-    await addDoc(clientesCol, cliente);
+    const nome = nomeCliente.value.trim();
+    if(!nome) return alert("Informe o nome do cliente");
+    const telefone = telefoneCliente.value.trim();
+    try{
+    await addDoc(clientesCol, {nome, telefone});
     nomeCliente.value = telefoneCliente.value = "";
     // onSnapshot vai recarregar UI automaticamente
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao salvar cliente: " + err.message);
-  }
+  } catch (err){ console.error(err); alert("Erro ao salvar cliente: " +err.message);}
 };
 
-function carregarClientesUI(){
+function renderClientes(){
   tabelaClientes.innerHTML = "";
   clienteSelect.innerHTML = "<option value=''>Selecione o cliente</option>";
-  clientes.forEach((c) => {
-    let tr = document.createElement("tr");
+  clientes.forEach(c => {
+    const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${c.nome}</td>
       <td>${c.telefone || ""}</td>
       <td>
         <button class="acao-btn editar" onclick="abrirModal('cliente','${c.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirCliente('${c.id}'))">Excluir</button>
-      </td>
-    `;
+      </td>`;
     tabelaClientes.appendChild(tr);
 
-    let option = document.createElement("option");
-    option.value = c.id;
-    option.textContent = c.nome;
-    clienteSelect.appendChild(option);
+    const opt = document.createElement("option");
+    opt.value = c.id; opt.textContent = c.nome;
+    clienteSelect.appendChild(opt);
   });
 }
 
 async function excluirCliente(id){
-  try {
-    // Opcional: checar se cliente tem vendas/relacionamentos antes de remover
+  try { 
     await deleteDoc(doc(db, "clientes", id));
-    // remova por onSnapshot
-  } catch(err){
-    console.error(err);
-    alert("Erro ao excluir cliente: " + err.message);
-  }
+    renderClientes(); 
+  } 
+  catch(err){ console.error(err); alert("Erro ao excluir cliente: " + err.message); }
 }
 
 /* =========================
    PRODUTOS
    ========================= */
 btnCadastrarProduto.onclick = async () => {
-  try {
     const nome = nomeProduto.value.trim();
-    const quantidade = parseInt(quantidadeProduto.value);
-    const valorCompra = parseFloat(valorCompraProduto.value);
-    const valorVenda = parseFloat(valorVendaProduto.value);
-    if(!nome || isNaN(quantidade) || isNaN(valorCompra) || isNaN(valorVenda)) return alert("Preencha todos os campos corretamente");
-    const produto = { nome, quantidade, valorCompra, valorVenda };
-    await addDoc(produtosCol, produto);
-    nomeProduto.value = quantidadeProduto.value = valorCompraProduto.value = valorVendaProduto.value = "";
-  } catch(err){
-    console.error(err);
-    alert("Erro ao cadastrar produto: " + err.message);
-  }
+    const quantidade = parseInt(quantidadeProduto.value) || 0;
+     if(!nome) return alert("Informe nome do produto");
+     try {
+    const ref = await addDoc(estoqueCol, { nome, quantidade });
+      await addDoc(precosCol, {
+        produtoId: ref.id,
+        produtoNome: nome,
+        estampaFrente: 0,
+        estampaFrenteVerso: 0,
+        branca: 0,
+        interiorCores: 0,
+        magicaFosca: 0,
+        magicaBrilho: 0
+      });
+    nomeProduto.value = quantidadeProduto.value = "";
+  }catch(err){ console.error(err); alert("Erro ao cadastrar produto: "+err.message); }
 };
 
-function carregarProdutosUI(){
-  tabelaProdutos.innerHTML = "";
+function renderEstoque(){
+  tabelaEstoque.innerHTML = "";
   produtoSelect.innerHTML = "<option value=''>Selecione o produto</option>";
-  let totalCompra = 0;
-  let totalVenda = 0;
-  produtos.forEach((p) => {
-    totalCompra += (p.quantidade || 0) * (p.valorCompra || 0);
-    totalVenda += (p.quantidade || 0) * (p.valorVenda || 0);
-    let tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.nome}</td>
-      <td>${p.quantidade ?? 0}</td>
-      <td>R$ ${Number(p.valorCompra ?? 0).toFixed(2)}</td>
-      <td>R$ ${Number(p.valorVenda ?? 0).toFixed(2)}</td>
+   produtos.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${p.nome}</td><td>${p.quantidade || 0}</td>
       <td>
-        <button class="acao-btn editar" onclick="abrirModal('produto','${p.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirProduto('${p.id}'))">Excluir</button>
-      </td>
-    `;
-    tabelaProdutos.appendChild(tr);
+      </td>`;
+    tabelaEstoque.appendChild(tr);
 
-    let option = document.createElement("option");
-    option.value = p.id;
-    option.textContent = `${p.nome} (Estoque: ${p.quantidade ?? 0})`;
-    produtoSelect.appendChild(option);
+    const opt = document.createElement("option"); opt.value = p.id; opt.textContent = p.nome;
+    produtoSelect.appendChild(opt);
   });
-  totalCompraEl.textContent = "R$ " + totalCompra.toFixed(2);
-  totalVendaEl.textContent = "R$ " + totalVenda.toFixed(2);
 }
 
 async function excluirProduto(id){
   try {
-    await deleteDoc(doc(db, "produtos", id));
-  } catch(err){
-    console.error(err);
-    alert("Erro ao excluir produto: " + err.message);
-  }
+     const q = query(precosCol, where("produtoId","==",id));
+    const snaps = await getDocs(q);
+    for(const s of snaps.docs) await deleteDoc(doc(db, "precos", s.id));
+    await deleteDoc(doc(db, "estoque", id));
+    renderEstoque();
+    renderProdutoSelectOrcamento();
+    renderProdutoSelectPreco();
+  } catch(err){ console.error(err); alert("Erro ao excluir produto: "+err.message); }
 }
 
 /* =========================
    VENDAS (com transação para atualizar estoque)
    ========================= */
 btnVender.onclick = async () => {
-  try {
     const clienteId = clienteSelect.value;
     const produtoId = produtoSelect.value;
     const qtd = parseInt(quantidadeVenda.value);
     if(!clienteId || !produtoId || !qtd || qtd <= 0) return alert("Preencha todos os campos corretamente");
+    try{
+    const produtoRef = doc(db, "estoque", produtoId);
+    const clienteSnap = await getDoc(doc(db,"clientes",clienteId));
+    const clienteNome = clienteSnap.exists()?clienteSnap.data().nome:"Cliente";
 
-    const produtoRef = doc(db, "produtos", produtoId);
-    const cliente = clientes.find(c => c.id === clienteId);
-    if(!cliente) return alert("Cliente inválido");
-
-    // Run transaction: checar estoque e criar venda
-    await runTransaction(db, async (tx) => {
+     await runTransaction(db,async tx=>{
       const produtoSnap = await tx.get(produtoRef);
-      if(!produtoSnap.exists()) throw new Error("Produto não encontrado");
-      const produtoData = produtoSnap.data();
-      const estoque = produtoData.quantidade || 0;
-      if(estoque < qtd) throw new Error("Estoque insuficiente");
-      // decrementar estoque
-      tx.update(produtoRef, { quantidade: estoque - qtd });
-
-      // criar documento de venda
-      const venda = {
-        data: new Date().toLocaleString(),
-        cliente: cliente.nome,
-        clienteId: cliente.id,
-        produtoId: produtoId,
-        produto: produtoData.nome,
-        quantidade: qtd,
-        preco: Number(produtoData.valorVenda || 0),
-        total: Number(produtoData.valorVenda || 0) * qtd,
-        pagamento: formaPagamento.value || "Não informado"
-      };
-      // adiciona venda (não precisamos do resultado aqui; onSnapshot atualizará)
-      const vendasCollectionRef = collection(db, "vendas");
-      await addDoc(vendasCollectionRef, venda);
+      if(!produtoSnap.exists()) throw "Produto não encontrado";
+      const estoqueAtual = produtoSnap.data().quantidade||0;
+      if(estoqueAtual<qtd) throw "Estoque insuficiente";
+      tx.update(produtoRef,{quantidade:estoqueAtual-qtd});
+      tx.set(doc(vendasCol),{
+        data:new Date().toLocaleString(),
+        clienteId,cliente:clienteNome,
+        produtoId, produto: produtoSnap.data().nome,
+        quantidade:qtd, preco:0, total:0,
+        pagamento:formaPagamento.value||"Não informado"
+      });
     });
-
-    quantidadeVenda.value = "";
-    // onSnapshot atualiza UI
-  } catch(err) {
-    console.error(err);
-    alert("Erro ao registrar venda: " + err.message);
-  }
-};
-
-function montarRegistrosVendas(){
-  tabelaRegistros.innerHTML = "";
-  let totalGeral = 0;
-  vendas.forEach((v, index) => {
-    totalGeral += Number(v.total || 0);
-    let tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${v.data}</td>
-      <td>${v.cliente}</td>
-      <td>${v.produto}</td>
-      <td>${v.quantidade}</td>
-      <td>R$ ${Number(v.preco ?? 0).toFixed(2)}</td>
-      <td>R$ ${Number(v.total ?? 0).toFixed(2)}</td>
-      <td>${v.pagamento}</td>
-      <td>
-        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Gerar Recibo</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
-      </td>
-    `;
-    tabelaRegistros.appendChild(tr);
-  });
-  totalGeralRegistros.textContent = "R$ " + totalGeral.toFixed(2);
+    quantidadeVenda.value="";
+  }catch(err){ console.error(err); alert("Erro ao registrar venda: "+err);}
 }
 
-async function excluirVenda(vendaId){
-  try {
-    const vendaRef = doc(db, "vendas", vendaId);
-    // Recupera info da venda
-    const vendaSnap = await getDoc(vendaRef);
-    if(!vendaSnap.exists()) return alert("Venda não encontrada");
-    const venda = vendaSnap.data();
+function renderVendas(){
+  tabelaRegistros.innerHTML = "";
+  let total = 0;
+  vendas.forEach(v => {
+    total += Number(v.total || 0);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${v.data}</td><td>${v.cliente}</td><td>${v.produto}</td><td>${v.quantidade}</td>
+     <td>R$ ${money(v.preco)}</td><td>R$ ${money(v.total)}</td><td>${v.pagamento}</td>
+      <td>
+        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
+      </td>`;
+    tabelaRegistros.appendChild(tr);
+  });
+  totalGeralRegistros.textContent = money(total);
+}
 
-    // Transação: restaurar estoque e remover venda
-    await runTransaction(db, async (tx) => {
-      const produtoRef = doc(db, "produtos", venda.produtoId);
+async function excluirVenda(id){
+  try{
+    const vendaRef = doc(db,"vendas",id);
+    const vendaSnap = await getDoc(vendaRef);
+    if(!vendaSnap.exists()) return;
+    const venda = vendaSnap.data();
+    await runTransaction(db,async tx=>{
+      const produtoRef = doc(db,"estoque",venda.produtoId);
       const produtoSnap = await tx.get(produtoRef);
       if(produtoSnap.exists()){
-        const atual = produtoSnap.data().quantidade || 0;
-        tx.update(produtoRef, { quantidade: atual + (venda.quantidade || 0) });
+        const atual = produtoSnap.data().quantidade||0;
+        tx.update(produtoRef,{quantidade:atual+(venda.quantidade||0)});
       }
       tx.delete(vendaRef);
     });
-    // onSnapshot irá atualizar UI
-  } catch(err){
-    console.error(err);
-    alert("Erro ao excluir venda: " + err.message);
-  }
+  }catch(err){ console.error(err); alert("Erro ao excluir venda: "+err);}
 }
+
 
 function gerarRecibo(vendaId) {
   const venda = vendas.find(v => v.id === vendaId);
@@ -403,79 +358,53 @@ function gerarRecibo(vendaId) {
   };
 }
 
-
 /* =========================
    ORÇAMENTOS
    ========================= */
-function carregarProdutosOrcamento() {
-  produtoSelectOrcamento.innerHTML = "<option value=''>Selecione o produto</option>";
-  produtos.forEach(p => {
-    let option = document.createElement("option");
-    option.value = p.id;
-    option.textContent = `${p.nome}`;
-    produtoSelectOrcamento.appendChild(option);
+function renderProdutoSelectOrcamento(){
+  produtoSelectOrcamento.innerHTML="<option value=''>Selecione o produto</option>";
+  produtos.forEach(p=>{
+    const opt = document.createElement("option"); opt.value=p.id; opt.textContent=p.nome;
+    produtoSelectOrcamento.appendChild(opt);
   });
 }
 
 btnAdicionarProduto.onclick = () => {
-  const clienteNomeLocal = clienteInputOrcamento.value.trim();
-  const produtoId = produtoSelectOrcamento.value;
-  const qtd = parseInt(quantidadeOrcamento.value);
-  if (!clienteNomeLocal) return alert("Informe o nome do cliente (ou visitante)");
-  if (!produtoId) return alert("Selecione um produto");
-  if (!qtd || qtd <= 0) return alert("Informe a quantidade");
-  const produto = produtos.find(p => p.id === produtoId);
-  if (!produto) return alert("Produto não encontrado");
+ const produto = produtos.find(p=>p.id===produtoId);
+if(!produto) return alert("Produto não encontrado");
 
-  if (!orcamentoAtual.clienteNome) orcamentoAtual.clienteNome = clienteNomeLocal;
-  if (!orcamentoAtual.data) orcamentoAtual.data = new Date().toLocaleString();
+// ✅ buscar preço atual do produto
+let precoAtual = 0;
+const precoDoc = precos.find(pr => pr.produtoId === produtoId);
+if(precoDoc) precoAtual = precoDoc.estampaFrente || 0;
 
-  const item = {
-    produtoId: produto.id,
-    nome: produto.nome,
-    quantidade: qtd,
-    preco: Number(produto.valorVenda || 0),
-    total: Number(produto.valorVenda || 0) * qtd
-  };
-  orcamentoAtual.produtos.push(item);
-  montarTabelaOrcamentoAtual();
-  produtoSelectOrcamento.value = "";
-  quantidadeOrcamento.value = "";
-};
-
-function montarTabelaOrcamentoAtual() {
-  tabelaOrcamento.innerHTML = "";
-  let totalGeral = 0;
-  orcamentoAtual.produtos.forEach((p, index) => {
-    totalGeral += p.total;
-    let tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${orcamentoAtual.data || "-"}</td>
-      <td>${orcamentoAtual.clienteNome || "-"}</td>
-      <td>${p.nome}</td>
-      <td>${p.quantidade}</td>
-      <td>R$ ${p.preco.toFixed(2)}</td>
-      <td>R$ ${p.total.toFixed(2)}</td>
-      <td>
-        <button class="acao-btn excluir" onclick="removerProduto(${index})">Remover</button>
-      </td>
-    `;
-    tabelaOrcamento.appendChild(tr);
-  });
-
-  if (orcamentoAtual.produtos.length > 0) {
-    let trTotal = document.createElement("tr");
-    trTotal.innerHTML = `
-      <td colspan="5" style="text-align:right"><strong>Total:</strong></td>
-      <td colspan="2"><strong>R$ ${totalGeral.toFixed(2)}</strong></td>
-    `;
-    tabelaOrcamento.appendChild(trTotal);
-  }
+// atualizar orcamentoAtual
+orcamentoAtual.produtos.push({
+  produtoId,
+  nome: produto.nome,
+  quantidade: qtd,
+  preco: precoAtual,
+  total: precoAtual * qtd
+});
 }
 
-function removerProduto(index) {
-  orcamentoAtual.produtos.splice(index, 1);
-  montarTabelaOrcamentoAtual();
+function renderTabelaOrcamentoAtual(){
+  tabelaOrcamento.innerHTML="";
+  let total=0;
+  orcamentoAtual.produtos.forEach((p,i)=>{
+    total+=Number(p.total||0);
+    const tr = document.createElement("tr");
+    tr.innerHTML=`<td>${orcamentoAtual.data||"-"}</td><td>${orcamentoAtual.clienteNome||"-"}</td>
+      <td>${p.nome}</td><td>${p.quantidade}</td>
+      <td>R$ ${money(p.preco)}</td><td>R$ ${money(p.total)}</td>
+      <td><button class="acao-btn excluir" onclick="removerProduto(${i})">Remover</button></td>`;
+    tabelaOrcamento.appendChild(tr);
+  });
+}
+
+function removerProduto(index){
+  orcamentoAtual.produtos.splice(index,1);
+  renderTabelaOrcamentoAtual();
 }
 
 btnGerarPDF.onclick = async () => {
@@ -561,13 +490,65 @@ btnGerarPDF.onclick = async () => {
   };
 };
 
+btnNovaLinhaPreco.onclick = async () => {
+  const prodId = produtoSelectPreco.value;
+  const prod = produtos.find(p=>p.id===prodId);
+  try{
+    await addDoc(precosCol,{
+      produtoId: prodId||null,
+      produtoNome: prod?prod.nome:"Produto não informado",
+      estampaFrente:0, estampaFrenteVerso:0, branca:0,
+      interiorCores:0, magicaFosca:0, magicaBrilho:0
+    });
+  }catch(err){ console.error(err); alert("Erro ao adicionar linha de preço: "+err);}
+}
+
+function renderProdutoSelectPreco(){
+  produtoSelectPreco.innerHTML="<option value=''>— Selecione produto —</option>";
+  produtos.forEach(p=>{
+    const opt=document.createElement("option"); opt.value=p.id; opt.textContent=p.nome;
+    produtoSelectPreco.appendChild(opt);
+  });
+}
+
+function renderTabelaPrecos(){
+  tabelaPrecos.innerHTML="";
+  precos.forEach(p=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${p.produtoNome||""}</td>
+      <td contenteditable data-field="estampaFrente">${p.estampaFrente||0}</td>
+      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso||0}</td>
+      <td contenteditable data-field="branca">${p.branca||0}</td>
+      <td contenteditable data-field="interiorCores">${p.interiorCores||0}</td>
+      <td contenteditable data-field="magicaFosca">${p.magicaFosca||0}</td>
+      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho||0}</td>
+      <td>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
+      </td>`;
+       tr.querySelectorAll("[contenteditable]").forEach(td=>{
+      td.onblur = async ()=>{
+        const num = parseFloat(td.textContent)||0;
+        const field = td.dataset.field;
+        await updateDoc(doc(db,"precos",p.id),{[field]:num});
+      }
+    });
+    tabelaPrecos.appendChild(tr);
+  });
+}
+
+async function excluirPreco(id){
+  try{ await deleteDoc(doc(db,"precos",id)); }
+  catch(err){ console.error(err); alert("Erro ao excluir preço: "+err);}
+}
+
   // salvar no Firestore
   try {
     const copia = JSON.parse(JSON.stringify(orcamentoAtual));
     await addDoc(orcamentosCol, copia);
     // limpar
     orcamentoAtual = { clienteNome: "", produtos: [], data: null };
-    montarTabelaOrcamentoAtual();
+    renderTabelaOrcamentoAtual();
     clienteInputOrcamento.value = "";
     produtoSelectOrcamento.value = "";
     quantidadeOrcamento.value = "";
@@ -577,33 +558,64 @@ btnGerarPDF.onclick = async () => {
     alert("Erro ao salvar orçamento: " + err.message);
   }
 
-function montarOrcamentosSalvos() {
-  tabelaOrcamentosSalvos.innerHTML = "";
-  if (orcamentos.length === 0) {
-    let tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="7" style="text-align:center">Nenhum orçamento salvo</td>`;
-    tabelaOrcamentosSalvos.appendChild(tr);
-    return;
+  window.abrirModal = (tipo,id)=>{
+  tipoEdicao = tipo;
+  itemEdicao = id;
+  modalEditar.style.display="block";
+  if(tipo==="cliente"){
+    const c = clientes.find(x=>x.id===id);
+    modalEditarTitulo.textContent="Editar Cliente";
+    modalEditarNome.value=c.nome;
+    modalEditarTelefone.value=c.telefone||"";
+  }else if(tipo==="produto"){
+    const p = produtos.find(x=>x.id===id);
+    modalEditarTitulo.textContent="Editar Produto";
+    modalEditarNome.value=p.nome;
+    modalEditarQuantidade.value=p.quantidade||0;
   }
-  orcamentos.forEach((orc, index) => {
-    orc.produtos.forEach((p, i) => {
-      let tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i === 0 ? orc.data : ""}</td>
-        <td>${i === 0 ? (orc.clienteNome || "Cliente não informado") : ""}</td>
-        <td>${p.nome}</td>
-        <td>${p.quantidade}</td>
-        <td>R$ ${p.preco.toFixed(2)}</td>
-        <td>R$ ${p.total.toFixed(2)}</td>
-        <td>
-          ${i === 0 ? `
-            <button class="acao-btn pdf" onclick="reimprimirOrcamento('${orc.id}')">PDF</button>
-            <button class="acao-btn excluir" onclick="excluirOrcamento('${orc.id}')">Excluir</button>
-          ` : ""}
-        </td>
-      `;
-      tabelaOrcamentosSalvos.appendChild(tr);
-    });
+}
+
+btnSalvarEdicao.onclick=async()=>{
+  if(!itemEdicao) return;
+  try{
+    if(tipoEdicao==="cliente"){
+      await updateDoc(doc(db,"clientes",itemEdicao),{
+        nome:modalEditarNome.value.trim(),
+        telefone:modalEditarTelefone.value.trim()
+      });
+    }else if(tipoEdicao==="produto"){
+      await updateDoc(doc(db,"estoque",itemEdicao),{
+        nome:modalEditarNome.value.trim(),
+        quantidade:parseInt(modalEditarQuantidade.value)||0
+      });
+      // sincroniza nome no precos
+      const q = query(precosCol,where("produtoId","==",itemEdicao));
+      const snaps = await getDocs(q);
+      for(const s of snaps.docs){
+        await updateDoc(doc(db,"precos",s.id),{produtoNome:modalEditarNome.value.trim()});
+      }
+    }
+    modalEditar.style.display="none";
+  }catch(err){ console.error(err); alert("Erro ao salvar edição: "+err);}
+}
+
+btnCancelarEdicao.onclick=()=>{ modalEditar.style.display="none"; }
+
+window.abrirModalExclusao=(acao)=>{
+  acaoExcluir=acao;
+  modalExcluir.style.display="block";
+}
+btnConfirmarExcluir.onclick=()=>{ if(acaoExcluir) acaoExcluir(); modalExcluir.style.display="none"; }
+btnCancelarExcluir.onclick=()=>{ modalExcluir.style.display="none"; }
+
+function renderOrcamentosSalvos(){
+  tabelaOrcamentosSalvos.innerHTML="";
+  orcamentos.forEach(o=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${o.data}</td><td>${o.clienteNome}</td>
+      <td>${o.produtos.map(p=>p.nome).join(", ")}</td>
+      <td><button class="acao-btn pdf" onclick="gerarOrcamentoPDF('${o.id}')">PDF</button></td>`;
+    tabelaOrcamentosSalvos.appendChild(tr);
   });
 }
 
@@ -681,159 +693,5 @@ function reimprimirOrcamento(orcId) {
   };
 }
 
-
-async function excluirOrcamento(orcId) {
-  if (!confirm("Deseja realmente excluir este orçamento?")) return;
-  try {
-    await deleteDoc(doc(db, "orcamentos", orcId));
-  } catch(err){
-    console.error(err);
-    alert("Erro ao excluir orçamento: " + err.message);
-  }
-}
-
-/* =========================
-   Modal Edição / Exclusão
-   ========================= */
-function abrirModal(tipo, id){
-  tipoEdicao = tipo;
-  itemEdicao = id;
-  if(tipo === 'cliente'){
-    const c = clientes.find(x=>x.id===id);
-    modalEditarTitulo.textContent = "Editar Cliente";
-    modalEditarNome.value = c?.nome || "";
-    modalEditarTelefone.value = c?.telefone || "";
-    modalEditarQuantidade.style.display = 'none';
-    modalEditarCompra.style.display = 'none';
-    modalEditarVenda.style.display = 'none';
-    modalEditarTelefone.style.display = 'block';
-  } else {
-    const p = produtos.find(x=>x.id===id);
-    modalEditarTitulo.textContent = "Editar Produto";
-    modalEditarNome.value = p?.nome || "";
-    modalEditarQuantidade.value = p?.quantidade ?? "";
-    modalEditarCompra.value = p?.valorCompra ?? "";
-    modalEditarVenda.value = p?.valorVenda ?? "";
-    modalEditarTelefone.style.display = 'none';
-    modalEditarQuantidade.style.display = 'block';
-    modalEditarCompra.style.display = 'block';
-    modalEditarVenda.style.display = 'block';
-  }
-  modalEditar.style.display = 'flex';
-}
-
-btnSalvarEdicao.onclick = async () => {
-  try {
-    if(tipoEdicao === 'cliente'){
-      if(!modalEditarNome.value.trim()) return alert("Nome obrigatório");
-      await updateDoc(doc(db, "clientes", itemEdicao), {
-        nome: modalEditarNome.value.trim(),
-        telefone: modalEditarTelefone.value.trim()
-      });
-      modalEditar.style.display = 'none';
-    } else {
-      if(!modalEditarNome.value.trim()) return alert("Nome obrigatório");
-      const novos = {
-        nome: modalEditarNome.value.trim(),
-        quantidade: parseInt(modalEditarQuantidade.value) || 0,
-        valorCompra: parseFloat(modalEditarCompra.value) || 0,
-        valorVenda: parseFloat(modalEditarVenda.value) || 0
-      };
-      await updateDoc(doc(db, "produtos", itemEdicao), novos);
-      modalEditar.style.display = 'none';
-    }
-    // onSnapshot atualizará UI
-  } catch(err){
-    console.error(err);
-    alert("Erro ao salvar edição: " + err.message);
-  }
-};
-btnCancelarEdicao.onclick = () => modalEditar.style.display = 'none';
-
-function abrirModalExclusao(func){
-  acaoExcluir = func;
-  modalExcluir.style.display = 'flex';
-}
-btnConfirmarExcluir.onclick = () => { if(acaoExcluir) acaoExcluir(); modalExcluir.style.display='none'; }
-btnCancelarExcluir.onclick = () => modalExcluir.style.display = 'none';
-
-/* =========================
-   Exportar Relatório (PDF)
-   ========================= */
-function exportarRelatorio(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFontSize(16);
-  doc.text("Relatório de Vendas",10,15);
-  let y = 25;
-  let totalGeral = 0;
-  doc.setFontSize(8);
-  doc.text("Data",8,y);
-  doc.text("Cliente",40,y);
-  doc.text("Produto",80,y);
-  doc.text("Qtd",120,y);
-  doc.text("Preço",140,y);
-  doc.text("Total",160,y);
-  doc.text("Pagamento",180,y);
-  y+=8;
-  vendas.forEach(v=>{
-    totalGeral += v.total;
-    doc.text(v.data,10,y);
-    doc.text(v.cliente,40,y);
-    doc.text(v.produto,80,y);
-    doc.text(String(v.quantidade),120,y);
-    doc.text("R$ "+Number(v.preco).toFixed(2),140,y);
-    doc.text("R$ "+Number(v.total).toFixed(2),160,y);
-    doc.text(v.pagamento,180,y);
-    y+=8;
-    if(y>270){doc.addPage();y=20;}
-  });
-  y+=10;
-  doc.setFontSize(14);
-  doc.text("Total Geral: R$ "+Number(totalGeral).toFixed(2),10,y);
-  doc.save("relatorio_vendas.pdf");
-}
-// Expor funções globais para o HTML
-window.mostrar = mostrar;
-window.gerarRecibo = gerarRecibo;
-window.abrirModal = abrirModal;
-window.abrirModalExclusao = abrirModalExclusao;
-window.excluirCliente = excluirCliente;
-window.excluirProduto = excluirProduto;
-window.excluirVenda = excluirVenda;
-window.excluirOrcamento = excluirOrcamento;
-window.exportarRelatorio = exportarRelatorio;
-window.removerProduto = removerProduto;
-window.reimprimirOrcamento = reimprimirOrcamento;
-window.logout = logout;
-window.exportarRelatorio = exportarRelatorio;
-
-// ---- Controle de navegação ----
-window.mostrar = function (viewId) {
-  // Seleciona todas as seções com a classe .view
-  const views = document.querySelectorAll(".view");
-
-  // Esconde todas as views
-  views.forEach(v => v.style.display = "none");
-
-  // Mostra somente a view selecionada
-  const viewAtiva = document.getElementById(viewId);
-  if (viewAtiva) {
-    viewAtiva.style.display = "block";
-  }
-};
-
-/* =========================
-   Inicialização UI
-   ========================= */
-// Não precisa chamar carregar*() — onSnapshot já inicializa tudo
-carregarProdutosOrcamento();
-montarTabelaOrcamentoAtual();
-
-
-
-
-
-
-
-
+window.gerarRecibo = async (id)=>{ console.log("PDF venda:",id); }
+window.gerarOrcamentoPDF = async (id)=>{ console.log("PDF orcamento:",id);}
