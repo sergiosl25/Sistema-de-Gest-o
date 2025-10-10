@@ -16,10 +16,11 @@
     <h1>Alvespersonalizados</h1>
     <nav>
       <button onclick="mostrar('clientes')">Clientes</button>
-      <button onclick="mostrar('produtos')">Produtos</button>
+      <button onclick="mostrar('estoque')">Estoque</button>
       <button onclick="mostrar('vendas')">Vendas</button>
       <button onclick="mostrar('registrosVendas')">Registros</button>
       <button onclick="mostrar('orcamento')">Orçamento</button>
+      <button onclick="mostrar('tabelaPrecos')">Tabela de Preços</button>
     </nav>
   </div>
   <div class="header-right">
@@ -50,29 +51,24 @@
   </section>
 
   <!-- Produtos -->
-  <section id="produtos" class="view">
-    <h2>Cadastro de Produtos</h2>
+  <section id="estoque" class="view">
+    <h2>Estoque</h2>
     <div class="form">
       <input type="text" id="nomeProduto" placeholder="Nome do Produto *">
       <input type="number" id="quantidadeProduto" placeholder="Quantidade *">
-      <input type="number" id="valorCompraProduto" placeholder="Valor de Compra (R$) *" step="0.01">
-      <input type="number" id="valorVendaProduto" placeholder="Valor de Venda (R$) *" step="0.01">
       <button id="btnCadastrarProduto">Cadastrar Produto</button>
     </div>
-    <h3>Lista de Produtos</h3>
-    <table id="tabelaProdutos">
+    <h3>Lista de Estoque</h3>
+    <table id="tabelaEstoque">
       <thead>
         <tr>
           <th>Produto</th>
           <th>Qtd</th>
-          <th>Valor Compra</th>
-          <th>Valor Venda</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
-    <p class="total">Total Compra: <span id="totalCompra">R$ 0,00</span> | Total Venda: <span id="totalVenda">R$ 0,00</span></p>
   </section>
 
   <!-- Vendas -->
@@ -158,6 +154,31 @@
   </table>
 </section>
 
+<section id="precos" class="view">
+    <h2>Tabela de Preços</h2>
+    <table id="tabelaPrecos"></table>
+      <div class="form">
+      <select id="produtoSelectPreco"><option value="">— Selecione produto —</option></select>
+      <button id="btnNovaLinhaPreco">Adicionar linha (produto)</button>
+    </div>
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Preço de compra (R$)</th>
+          <th>Estampa frente (RS)</th>
+          <th>Estampa frente e atrás (R$)</th>
+          <th>Branca (R$)</th>
+          <th>Interior em cores (R$)</th>
+          <th>Mágica fosca (R$)</th>
+          <th>Mágica brilho (R$)</th>
+          <th>Preço de venda (R$)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p class="total">Preço de compra: <span id="totalPrecodeCompra">R$ 0,00</span></p>
+    <p class="total">Preço de venda: <span id="totalPrecodeVenda">R$ 0,00</span></p>
+  </section>
 
 <!-- Modal Edição -->
 <div id="modalEditar" class="modal">
@@ -208,6 +229,3 @@
 <script type="module" src="programa.js"></script>
 </body>
 </html>
-
-
-
