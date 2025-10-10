@@ -526,15 +526,14 @@ function renderProdutoSelectPreco(){
   });
 }
 
-function renderTabelaPrecos(){
-  function renderTabelaPrecos() {
+function renderTabelaPrecos() {
   const tabelaBody = document.querySelector("#tabelaPrecos tbody");
   if (!tabelaBody) {
     console.warn("⚠️ Tabela de preços não encontrada no DOM ainda.");
     return;
   }
-  }
-  tabelaPrecos.innerHTML="";
+
+  tabelaBody.innerHTML="";
   precos.forEach(p=>{
     const tr=document.createElement("tr");
     tr.innerHTML=`
@@ -555,9 +554,10 @@ function renderTabelaPrecos(){
         await updateDoc(doc(db,"precos",p.id),{[field]:num});
       }
     });
-    tabelaPrecos.appendChild(tr);
+    tabelaBody.appendChild(tr);
   });
 }
+
 
 async function excluirPreco(id){
   try{ await deleteDoc(doc(db,"precos",id)); }
@@ -717,3 +717,4 @@ function reimprimirOrcamento(orcId) {
 
 window.gerarRecibo = async (id)=>{ console.log("PDF venda:",id); }
 window.gerarOrcamentoPDF = async (id)=>{ console.log("PDF orcamento:",id);}
+
