@@ -30,6 +30,21 @@ window.logout = async () => {
   window.location.href = "login.html";
 };
 
+// === Controle de Views (Clientes, Estoque, Vendas etc.) ===
+window.mostrar = (viewId) => {
+  // esconde todas as views
+  document.querySelectorAll(".view").forEach(view => view.classList.remove("active"));
+  
+  // mostra a view escolhida
+  const target = document.getElementById(viewId);
+  if (target) {
+    target.classList.add("active");
+  } else {
+    console.warn(`⚠️ View "${viewId}" não encontrada.`);
+  }
+};
+
+
 const clientesCol = collection(db, "clientes");
 const estoqueCol = collection(db, "estoque"); // antes 'produtos'
 const vendasCol = collection(db, "vendas");
@@ -512,6 +527,13 @@ function renderProdutoSelectPreco(){
 }
 
 function renderTabelaPrecos(){
+  function renderTabelaPrecos() {
+  const tabelaBody = document.querySelector("#tabelaPrecos tbody");
+  if (!tabelaBody) {
+    console.warn("⚠️ Tabela de preços não encontrada no DOM ainda.");
+    return;
+  }
+  }
   tabelaPrecos.innerHTML="";
   precos.forEach(p=>{
     const tr=document.createElement("tr");
