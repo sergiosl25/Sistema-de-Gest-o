@@ -149,10 +149,16 @@ onSnapshot(vendasCol, snapshot => {
   renderVendas();
 });
 
-onSnapshot(orcamentosCol, snapshot => {
-  orcamentos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+onSnapshot(orcamentosCol, (snapshot) => {
+  orcamentos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+  // ✅ limpa orçamentos inválidos
+  orcamentos = orcamentos.filter(o => o && o.clienteNome && o.produtos && o.produtos.length > 0);
+
+  // renderiza tabela
   renderOrcamentosSalvos();
-})
+});
+
 
 onSnapshot(precosCol, snapshot => {
   precos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
@@ -393,19 +399,35 @@ function renderProdutoSelectOrcamento(){
 }
 
 btnAdicionarProduto.onclick = () => {
+  const clienteNome = document.getElementById("clienteInputOrcamento").value.trim();
   const produtoId = document.getElementById("produtoSelectOrcamento").value; 
   const qtd = parseInt(document.getElementById("quantidadeOrcamento").value) || 0;
-  if (!produtoId || qtd <= 0) return alert("Selecione um produto e informe a quantidade");
+
+  if (!clienteNome) return alert("Informe o nome do cliente antes de adicionar o produto.");
+  if (!produtoId || qtd <= 0) return alert("Selecione um produto e informe a quantidade.");
 
   const produto = produtos.find(p => p.id === produtoId);
-  if (!produto) return alert("Produto não encontrado");
+  if (!produto) return alert("Produto não encontrado.");
+
+  // ✅ Garante que orcamentoAtual exista com dados válidos
+  if (!orcamentoAtual || !Array.isArray(orcamentoAtual.produtos)) {
+    orcamentoAtual = {
+      clienteNome: clienteNome,
+      data: new Date().toLocaleDateString("pt-BR"),
+      produtos: []
+    };
+  }
+
+  // Atualiza cliente e data caso mude
+  orcamentoAtual.clienteNome = clienteNome;
+  orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
 
   // ✅ Buscar preço atual do produto
   let precoAtual = 0;
   const precoDoc = precos.find(pr => pr.produtoId === produtoId);
   if (precoDoc) precoAtual = precoDoc.estampaFrente || 0;
 
-  // ✅ Atualizar orçamento atual
+  // Adiciona produto ao orçamento atual
   orcamentoAtual.produtos.push({
     produtoId,
     nome: produto.nome,
@@ -414,14 +436,13 @@ btnAdicionarProduto.onclick = () => {
     total: precoAtual * qtd
   });
 
-  // Atualiza a tabela na tela
+  // Atualiza tabela
   renderTabelaOrcamentoAtual();
 
-  // limpa campos
+  // Limpa campos
   document.getElementById("produtoSelectOrcamento").value = "";
   document.getElementById("quantidadeOrcamento").value = "";
 };
-
 
 function renderTabelaOrcamentoAtual(){
   tabelaOrcamento.innerHTML="";
@@ -583,20 +604,29 @@ async function excluirPreco(id){
 }
 
   // salvar no Firestore
-  try {
-    const copia = JSON.parse(JSON.stringify(orcamentoAtual));
-    await addDoc(orcamentosCol, copia);
-    // limpar
-    orcamentoAtual = { clienteNome: "", produtos: [], data: null };
-    renderTabelaOrcamentoAtual();
-    clienteInputOrcamento.value = "";
-    produtoSelectOrcamento.value = "";
-    quantidadeOrcamento.value = "";
-    // onSnapshot atualiza lista de orçamentos
-  } catch(err){
-    console.error(err);
-    alert("Erro ao salvar orçamento: " + err.message);
+  // salvar no Firestore
+try {
+  if (!orcamentoAtual || !orcamentoAtual.clienteNome || orcamentoAtual.produtos.length === 0) {
+    return alert("Informe o nome do cliente e adicione ao menos um produto antes de salvar.");
   }
+
+  // Garante data válida
+  if (!orcamentoAtual.data)
+    orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
+
+  const copia = JSON.parse(JSON.stringify(orcamentoAtual));
+  await addDoc(orcamentosCol, copia);
+
+  // limpar orçamento atual
+  orcamentoAtual = { clienteNome: "", produtos: [], data: null };
+  renderTabelaOrcamentoAtual();
+  clienteInputOrcamento.value = "";
+  produtoSelectOrcamento.value = "";
+  quantidadeOrcamento.value = "";
+} catch (err) {
+  console.error(err);
+  alert("Erro ao salvar orçamento: " + err.message);
+}
 
 window.abrirModal = (tipo, id) => {
   tipoEdicao = tipo;
@@ -773,6 +803,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
