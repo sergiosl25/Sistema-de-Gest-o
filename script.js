@@ -598,16 +598,23 @@ async function excluirPreco(id){
     alert("Erro ao salvar orçamento: " + err.message);
   }
 
- window.abrirModal = (tipo, id) => {
+window.abrirModal = (tipo, id) => {
   tipoEdicao = tipo;
   itemEdicao = id;
   modalEditar.style.display = "block";
 
-  // Esconde todos os campos primeiro
-  document.getElementById("campoTelefone").style.display = "none";
-  document.getElementById("campoQuantidade").style.display = "none";
-  document.getElementById("campoValorCompra").style.display = "none";
-  document.getElementById("campoValorVenda").style.display = "none";
+  // Limpa todos os campos
+  modalEditarNome.value = "";
+  modalEditarTelefone.value = "";
+  modalEditarQuantidade.value = "";
+  modalEditarCompra.value = "";
+  modalEditarVenda.value = "";
+
+  // Esconde todos os campos inicialmente
+  modalEditarTelefone.style.display = "none";
+  modalEditarQuantidade.style.display = "none";
+  modalEditarCompra.style.display = "none";
+  modalEditarVenda.style.display = "none";
 
   if (tipo === "cliente") {
     const c = clientes.find(x => x.id === id);
@@ -615,8 +622,8 @@ async function excluirPreco(id){
     modalEditarNome.value = c.nome;
     modalEditarTelefone.value = c.telefone || "";
 
-    // Mostra apenas os campos de cliente
-    document.getElementById("campoTelefone").style.display = "block";
+    // Mostra apenas campos de cliente
+    modalEditarTelefone.style.display = "block";
 
   } else if (tipo === "produto") {
     const p = produtos.find(x => x.id === id);
@@ -624,12 +631,11 @@ async function excluirPreco(id){
     modalEditarNome.value = p.nome;
     modalEditarQuantidade.value = p.quantidade || 0;
 
-    // Mostra apenas os campos de produto
-    document.getElementById("campoQuantidade").style.display = "block";
-    document.getElementById("campoValorCompra").style.display = "block";
-    document.getElementById("campoValorVenda").style.display = "block";
+    // Mostra apenas campos de produto
+    modalEditarQuantidade.style.display = "block";
   }
 };
+
 
 btnSalvarEdicao.onclick=async()=>{
   if(!itemEdicao) return;
@@ -767,6 +773,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
