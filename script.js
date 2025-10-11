@@ -395,7 +395,7 @@ if(precoDoc) precoAtual = precoDoc.estampaFrente || 0;
 
 // atualizar orcamentoAtual
 orcamentoAtual.produtos.push({
-  produtoId,
+  produto,
   nome: produto.nome,
   quantidade: qtd,
   preco: precoAtual,
@@ -715,5 +715,16 @@ function reimprimirOrcamento(orcId) {
 
 window.gerarRecibo = async (id)=>{ console.log("PDF venda:",id); }
 window.gerarOrcamentoPDF = async (id)=>{ console.log("PDF orcamento:",id);}
+
+// Torna funções acessíveis no escopo global (para uso no HTML onclick)
+window.mostrar = mostrar
+window.excluirCliente = excluirCliente;
+window.excluirProduto = excluirProduto;
+window.excluirVenda = excluirVenda;
+window.excluirPreco = excluirPreco;
+window.removerProduto = removerProduto;
+window.reimprimirOrcamento = reimprimirOrcamento;
+window.gerarRecibo = gerarRecibo;
+
 
 
