@@ -528,9 +528,7 @@ function renderProdutoSelectPreco(){
 
 function renderTabelaPrecos() {
   const tabelaBody = document.querySelector("#tabelaPrecos tbody");
-  if (!tabelaBody) {
-    console.warn("⚠️ Tabela de preços não encontrada no DOM ainda.");
-    return;
+  if (!tabelaBody) { return;
   }
 
   tabelaBody.innerHTML="";
@@ -717,4 +715,5 @@ function reimprimirOrcamento(orcId) {
 
 window.gerarRecibo = async (id)=>{ console.log("PDF venda:",id); }
 window.gerarOrcamentoPDF = async (id)=>{ console.log("PDF orcamento:",id);}
+
 
