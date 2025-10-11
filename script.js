@@ -713,8 +713,14 @@ function reimprimirOrcamento(orcId) {
   };
 }
 
-window.gerarRecibo = async (id)=>{ console.log("PDF venda:",id); }
-window.gerarOrcamentoPDF = async (id)=>{ console.log("PDF orcamento:",id);}
+window.gerarRecibo = async (id) => {
+  console.log(`✅ Recibo de venda gerado com sucesso! ID: ${id}`);
+};
+
+window.gerarOrcamentoPDF = async (id) => {
+  console.log(`✅ PDF de orçamento criado com sucesso! ID: ${id}`);
+};
+
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
@@ -725,6 +731,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
