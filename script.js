@@ -602,9 +602,9 @@ function renderTabelaPrecos() {
   });
 }
 
-function abrirModalPreco(id){
+function abrirModalPreco(id) {
   const preco = precos.find(p => p.id === id);
-  if(!preco) return;
+  if (!preco) return;
 
   itemEdicao = id;
   tipoEdicao = "preco";
@@ -612,10 +612,14 @@ function abrirModalPreco(id){
   modalEditar.style.display = "block";
   modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome}`;
 
-  modalEditarNome.value = preco.produtoNome;
-  modalEditarQuantidade.value = preco.estampaFrente; // exemplo
-  modalEditarCompra.value = preco.estampaFrenteVerso;
-  modalEditarVenda.value = preco.branca;
+  // Preenche os campos do modal com os valores do preço
+  modalEditarNome.value = preco.produtoNome || "";
+  modalEditarQuantidade.value = preco.estampaFrente || 0;
+  modalEditarCompra.value = preco.estampaFrenteVerso || 0;
+  modalEditarVenda.value = preco.branca || 0;
+  modalEditarVenda.value = preco.interioremCores || 0;
+  modalEditarVenda.value = preco.magicaFosca || 0;
+  modalEditarVenda.value = preco.magicaBrilho || 0;
 }
 
 async function excluirPreco(id){
@@ -868,6 +872,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
