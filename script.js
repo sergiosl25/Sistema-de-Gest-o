@@ -224,21 +224,29 @@ btnCadastrarProduto.onclick = async () => {
   }catch(err){ console.error(err); alert("Erro ao cadastrar produto: "+err.message); }
 };
 
-function renderEstoque(){
+function renderEstoque() {
   tabelaEstoque.innerHTML = "";
   produtoSelect.innerHTML = "<option value=''>Selecione o produto</option>";
-   produtos.forEach(p => {
+
+  produtos.forEach(p => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${p.nome}</td><td>${p.quantidade || 0}</td>
+    tr.innerHTML = `
+      <td>${p.nome}</td>
+      <td>${p.quantidade || 0}</td>
       <td>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirProduto('${p.id}'))">Excluir</button>
-      </td>`;
+        <button class="acao-btn editar" onclick="abrirModal('produto', '${p.id}')">Editar</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(() => excluirProduto('${p.id}'))">Excluir</button>
+      </td>
+    `;
     tabelaEstoque.appendChild(tr);
 
-    const opt = document.createElement("option"); opt.value = p.id; opt.textContent = p.nome;
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.nome;
     produtoSelect.appendChild(opt);
   });
 }
+
 
 async function excluirProduto(id){
   try {
@@ -759,6 +767,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
