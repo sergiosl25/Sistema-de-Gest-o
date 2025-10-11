@@ -385,8 +385,11 @@ function renderProdutoSelectOrcamento(){
 }
 
 btnAdicionarProduto.onclick = () => {
- const produto = produtos.find(p=>p.id===produtoId);
-if(!produto) return alert("Produto não encontrado");
+  const produtoId = document.getElementById("produtoSelectOrcamento").value; 
+  const produto = produtos.find(p => p.id === produtoId);
+  if (!produto) return alert("Produto não encontrado");
+
+};
 
 // ✅ buscar preço atual do produto
 let precoAtual = 0;
@@ -401,7 +404,6 @@ orcamentoAtual.produtos.push({
   preco: precoAtual,
   total: precoAtual * qtd
 });
-}
 
 function renderTabelaOrcamentoAtual(){
   tabelaOrcamento.innerHTML="";
@@ -731,6 +733,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
