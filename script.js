@@ -571,13 +571,12 @@ function renderProdutoSelectPreco(){
 
 function renderTabelaPrecos() {
   const tabelaBody = document.querySelector("#tabelaPrecos tbody");
-  if (!tabelaBody) { return;
-  }
+  if (!tabelaBody) return;
 
-  tabelaBody.innerHTML="";
-  precos.forEach(p=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
+  tabelaBody.innerHTML = "";
+  precos.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
       <td>${p.produtoNome||""}</td>
       <td contenteditable data-field="estampaFrente">${p.estampaFrente||0}</td>
       <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso||0}</td>
@@ -586,19 +585,38 @@ function renderTabelaPrecos() {
       <td contenteditable data-field="magicaFosca">${p.magicaFosca||0}</td>
       <td contenteditable data-field="magicaBrilho">${p.magicaBrilho||0}</td>
       <td>
+        <button class="acao-btn editar" onclick="abrirModalPreco('${p.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
       </td>`;
-       tr.querySelectorAll("[contenteditable]").forEach(td=>{
-      td.onblur = async ()=>{
-        const num = parseFloat(td.textContent)||0;
+
+    tabelaBody.appendChild(tr);
+
+    // Atualiza valores ao sair do campo
+    tr.querySelectorAll("[contenteditable]").forEach(td => {
+      td.onblur = async () => {
+        const num = parseFloat(td.textContent) || 0;
         const field = td.dataset.field;
         await updateDoc(doc(db,"precos",p.id),{[field]:num});
       }
     });
-    tabelaBody.appendChild(tr);
   });
 }
 
+function abrirModalPreco(id){
+  const preco = precos.find(p => p.id === id);
+  if(!preco) return;
+
+  itemEdicao = id;
+  tipoEdicao = "preco";
+
+  modalEditar.style.display = "block";
+  modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome}`;
+
+  modalEditarNome.value = preco.produtoNome;
+  modalEditarQuantidade.value = preco.estampaFrente; // exemplo
+  modalEditarCompra.value = preco.estampaFrenteVerso;
+  modalEditarVenda.value = preco.branca;
+}
 
 async function excluirPreco(id){
   try{ await deleteDoc(doc(db,"precos",id)); }
@@ -668,29 +686,43 @@ window.abrirModal = (tipo, id) => {
   }
 };
 
-
-btnSalvarEdicao.onclick=async()=>{
+btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
-  try{
+  try {
     if(tipoEdicao==="cliente"){
       await updateDoc(doc(db,"clientes",itemEdicao),{
-        nome:modalEditarNome.value.trim(),
-        telefone:modalEditarTelefone.value.trim()
+        nome: modalEditarNome.value.trim(),
+        telefone: modalEditarTelefone.value.trim()
       });
-    }else if(tipoEdicao==="produto"){
+    } else if(tipoEdicao==="produto"){
       await updateDoc(doc(db,"estoque",itemEdicao),{
-        nome:modalEditarNome.value.trim(),
-        quantidade:parseInt(modalEditarQuantidade.value)||0
+        nome: modalEditarNome.value.trim(),
+        quantidade: parseInt(modalEditarQuantidade.value) || 0
       });
       // sincroniza nome no precos
-      const q = query(precosCol,where("produtoId","==",itemEdicao));
+      const q = query(precosCol, where("produtoId","==",itemEdicao));
       const snaps = await getDocs(q);
       for(const s of snaps.docs){
-        await updateDoc(doc(db,"precos",s.id),{produtoNome:modalEditarNome.value.trim()});
+        await updateDoc(doc(db,"precos",s.id), { produtoNome: modalEditarNome.value.trim() });
       }
+    } else if(tipoEdicao==="preco"){  // <-- ADICIONE ESTE BLOCO
+      await updateDoc(doc(db,"precos",itemEdicao), {
+        produtoNome: modalEditarNome.value.trim(),
+        estampaFrente: parseFloat(modalEditarQuantidade.value) || 0,
+        estampaFrenteVerso: parseFloat(modalEditarCompra.value) || 0,
+        branca: parseFloat(modalEditarVenda.value) || 0,
+        interiorCores: parseFloat(modalEditarTelefone.value) || 0, // ajuste se tiver campos extras
+        magicaFosca: parseFloat(modalEditarTelefone.value) || 0,
+        magicaBrilho: parseFloat(modalEditarTelefone.value) || 0
+      });
+      renderTabelaPrecos(); // atualiza tabela de preços
     }
-    modalEditar.style.display="none";
-  }catch(err){ console.error(err); alert("Erro ao salvar edição: "+err);}
+
+    modalEditar.style.display = "none";
+  } catch(err) {
+    console.error(err);
+    alert("Erro ao salvar edição: " + err);
+  }
 }
 
 btnCancelarEdicao.onclick=()=>{ modalEditar.style.display="none"; }
@@ -834,13 +866,8 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
-
-
-
-
-
-
-
+window.salvarOrcamento = salvarOrcamento;
+window.abrirModalPreco = abrirModalPreco;
 
 
 
