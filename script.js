@@ -388,6 +388,7 @@ btnAdicionarProduto.onclick = () => {
   const produtoId = document.getElementById("produtoSelectOrcamento").value; 
   const produto = produtos.find(p => p.id === produtoId);
   if (!produto) return alert("Produto não encontrado");
+  console.log(produto.nome);
 
 };
 
@@ -733,6 +734,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
