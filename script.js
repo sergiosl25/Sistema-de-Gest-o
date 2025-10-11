@@ -464,86 +464,88 @@ function removerProduto(index){
 }
 
 btnGerarPDF.onclick = async () => {
+  // Validação
   if (!orcamentoAtual.clienteNome || orcamentoAtual.produtos.length === 0) {
     return alert("Informe o nome do cliente e adicione produtos");
   }
 
-  if (!orcamentoAtual.data) orcamentoAtual.data = new Date().toLocaleString();
+  // Garante data válida
+  if (!orcamentoAtual.data) orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
 
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const imgLogo = new Image();
-  imgLogo.src = "logo.png"; // ajuste o caminho se necessário
+  try {
+    // 1️⃣ Salvar orçamento no Firestore
+    const copia = JSON.parse(JSON.stringify(orcamentoAtual));
+    await addDoc(orcamentosCol, copia);
 
-  imgLogo.onload = function () {
-    // Centraliza a logo no topo
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const logoWidth = 40;
-    const logoHeight = 40;
-    const logoX = (pageWidth - logoWidth) / 2;
+    // 2️⃣ Limpar orçamento atual
+    orcamentoAtual = { clienteNome: "", produtos: [], data: null };
+    renderTabelaOrcamentoAtual();
+    clienteInputOrcamento.value = "";
+    produtoSelectOrcamento.value = "";
+    quantidadeOrcamento.value = "";
 
-    doc.addImage(imgLogo, "PNG", logoX, 5, logoWidth, logoHeight);
+    // 3️⃣ Gerar PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const imgLogo = new Image();
+    imgLogo.src = "logo.png";
 
-    // Cabeçalho
-    doc.setFontSize(16);
-    doc.text("Orçamento", pageWidth / 2, 40, { align: "center" });
+    imgLogo.onload = function () {
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const logoWidth = 40;
+      const logoHeight = 40;
+      const logoX = (pageWidth - logoWidth) / 2;
 
-    // Dados principais
-    let y = 55;
-    doc.setFontSize(12);
-    doc.text(`Data: ${orcamentoAtual.data}`, 10, y); y += 10;
-    doc.text(`Cliente: ${orcamentoAtual.clienteNome}`, 10, y); y += 10;
+      doc.addImage(imgLogo, "PNG", logoX, 5, logoWidth, logoHeight);
+      doc.setFontSize(16);
+      doc.text("Orçamento", pageWidth / 2, 40, { align: "center" });
 
-    // Títulos das colunas
-    doc.setFontSize(12);
-    doc.text("Produto", 10, y);
-    doc.text("Qtd", 90, y);
-    doc.text("Preço Unit.", 120, y);
-    doc.text("Total", 170, y);
-    y += 8;
-    doc.setLineWidth(0.3);
-    doc.line(10, y, 200, y);
-    y += 8;
+      let y = 55;
+      doc.setFontSize(12);
+      doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 10, y); y += 10;
+      doc.text(`Cliente: ${clienteInputOrcamento.value}`, 10, y); y += 10;
 
-    // Itens do orçamento
-    let totalGeral = 0;
-    orcamentoAtual.produtos.forEach(p => {
-      doc.text(p.nome, 10, y);
-      doc.text(String(p.quantidade), 90, y);
-      doc.text("R$ " + p.preco.toFixed(2), 120, y);
-      doc.text("R$ " + p.total.toFixed(2), 170, y);
-      totalGeral += p.total;
+      doc.text("Produto", 10, y);
+      doc.text("Qtd", 90, y);
+      doc.text("Preço Unit.", 120, y);
+      doc.text("Total", 170, y);
+      y += 8;
+      doc.setLineWidth(0.3);
+      doc.line(10, y, 200, y);
+      y += 8;
+
+      let totalGeral = 0;
+      copia.produtos.forEach(p => {
+        doc.text(p.nome, 10, y);
+        doc.text(String(p.quantidade), 90, y);
+        doc.text("R$ " + p.preco.toFixed(2), 120, y);
+        doc.text("R$ " + p.total.toFixed(2), 170, y);
+        totalGeral += p.total;
+        y += 10;
+        if (y > 260) { doc.addPage(); y = 20; }
+      });
+
+      y += 5;
+      doc.line(10, y, 200, y);
       y += 10;
+      doc.setFontSize(12);
+      doc.text(`Total Geral: R$ ${totalGeral.toFixed(2)}`, 10, y);
+      doc.setFontSize(10);
+      doc.text("Obrigado pela preferência!", pageWidth / 2, 280, { align: "center" });
 
-      // Nova página se ultrapassar o limite
-      if (y > 260) {
-        doc.addPage();
-        y = 20;
-      }
-    });
+      doc.save(`orcamento_${sanitizeFileName(copia.clienteNome)}.pdf`);
+    };
 
-    // Total geral
-    y += 5;
-    doc.setLineWidth(0.3);
-    doc.line(10, y, 200, y);
-    y += 10;
-    doc.setFontSize(12);
-    doc.text(`Total Geral: R$ ${totalGeral.toFixed(2)}`, 10, y);
+    imgLogo.onerror = function () {
+      console.warn("Logo não encontrada — gerando PDF sem imagem.");
+      doc.text("Orçamento", 105, 20, { align: "center" });
+      doc.save(`orcamento_${sanitizeFileName(copia.clienteNome)}.pdf`);
+    };
 
-    // Rodapé
-    doc.setFontSize(10);
-    doc.text("Obrigado pela preferência!", pageWidth / 2, 280, { align: "center" });
-
-    // Salvar PDF
-    doc.save(`orcamento_${sanitizeFileName(orcamentoAtual.clienteNome)}.pdf`);
-  };
-
-  // Caso a logo falhe ao carregar
-  imgLogo.onerror = function () {
-    console.warn("Logo não encontrada, gerando PDF sem imagem.");
-    doc.text("Orçamento", 105, 20, { align: "center" });
-    doc.save(`orcamento_${sanitizeFileName(orcamentoAtual.clienteNome)}.pdf`);
-  };
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar orçamento: " + err.message);
+  }
 };
 
 btnNovaLinhaPreco.onclick = async () => {
@@ -604,28 +606,28 @@ async function excluirPreco(id){
 }
 
   // salvar no Firestore
-  // salvar no Firestore
-try {
-  if (!orcamentoAtual || !orcamentoAtual.clienteNome || orcamentoAtual.produtos.length === 0) {
-    return alert("Informe o nome do cliente e adicione ao menos um produto antes de salvar.");
+async function salvarOrcamento() {
+  try {
+    if (!orcamentoAtual || !orcamentoAtual.clienteNome || orcamentoAtual.produtos.length === 0) {
+      return alert("Informe o nome do cliente e adicione ao menos um produto antes de salvar.");
+    }
+
+    if (!orcamentoAtual.data)
+      orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
+
+    const copia = JSON.parse(JSON.stringify(orcamentoAtual));
+    await addDoc(orcamentosCol, copia);
+
+    // limpar orçamento atual
+    orcamentoAtual = { clienteNome: "", produtos: [], data: null };
+    renderTabelaOrcamentoAtual();
+    clienteInputOrcamento.value = "";
+    produtoSelectOrcamento.value = "";
+    quantidadeOrcamento.value = "";
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar orçamento: " + err.message);
   }
-
-  // Garante data válida
-  if (!orcamentoAtual.data)
-    orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
-
-  const copia = JSON.parse(JSON.stringify(orcamentoAtual));
-  await addDoc(orcamentosCol, copia);
-
-  // limpar orçamento atual
-  orcamentoAtual = { clienteNome: "", produtos: [], data: null };
-  renderTabelaOrcamentoAtual();
-  clienteInputOrcamento.value = "";
-  produtoSelectOrcamento.value = "";
-  quantidadeOrcamento.value = "";
-} catch (err) {
-  console.error(err);
-  alert("Erro ao salvar orçamento: " + err.message);
 }
 
 window.abrirModal = (tipo, id) => {
@@ -803,6 +805,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
