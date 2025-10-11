@@ -386,25 +386,34 @@ function renderProdutoSelectOrcamento(){
 
 btnAdicionarProduto.onclick = () => {
   const produtoId = document.getElementById("produtoSelectOrcamento").value; 
+  const qtd = parseInt(document.getElementById("quantidadeOrcamento").value) || 0;
+  if (!produtoId || qtd <= 0) return alert("Selecione um produto e informe a quantidade");
+
   const produto = produtos.find(p => p.id === produtoId);
   if (!produto) return alert("Produto não encontrado");
-  console.log(produto.nome);
 
+  // ✅ Buscar preço atual do produto
+  let precoAtual = 0;
+  const precoDoc = precos.find(pr => pr.produtoId === produtoId);
+  if (precoDoc) precoAtual = precoDoc.estampaFrente || 0;
+
+  // ✅ Atualizar orçamento atual
+  orcamentoAtual.produtos.push({
+    produtoId,
+    nome: produto.nome,
+    quantidade: qtd,
+    preco: precoAtual,
+    total: precoAtual * qtd
+  });
+
+  // Atualiza a tabela na tela
+  renderTabelaOrcamentoAtual();
+
+  // limpa campos
+  document.getElementById("produtoSelectOrcamento").value = "";
+  document.getElementById("quantidadeOrcamento").value = "";
 };
 
-// ✅ buscar preço atual do produto
-let precoAtual = 0;
-const precoDoc = precos.find(pr => pr.produtoId === produtoId);
-if(precoDoc) precoAtual = precoDoc.estampaFrente || 0;
-
-// atualizar orcamentoAtual
-orcamentoAtual.produtos.push({
-  produto,
-  nome: produto.nome,
-  quantidade: qtd,
-  preco: precoAtual,
-  total: precoAtual * qtd
-});
 
 function renderTabelaOrcamentoAtual(){
   tabelaOrcamento.innerHTML="";
@@ -734,6 +743,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
