@@ -811,6 +811,19 @@ window.gerarOrcamentoPDF = async (id) => {
   console.log(`✅ PDF de orçamento criado com sucesso! ID: ${id}`);
 };
 
+async function excluirOrcamento(id) {
+  try {
+    await deleteDoc(doc(db, "orcamentos", id));
+    // Atualiza a tabela após exclusão
+    renderOrcamentosSalvos();
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao excluir orçamento: " + err.message);
+  }
+}
+
+// Torna acessível no HTML
+window.excluirOrcamento = excluirOrcamento;
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
@@ -821,6 +834,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
