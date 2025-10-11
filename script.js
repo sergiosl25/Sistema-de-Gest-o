@@ -702,13 +702,29 @@ window.abrirModalExclusao=(acao)=>{
 btnConfirmarExcluir.onclick=()=>{ if(acaoExcluir) acaoExcluir(); modalExcluir.style.display="none"; }
 btnCancelarExcluir.onclick=()=>{ modalExcluir.style.display="none"; }
 
-function renderOrcamentosSalvos(){
-  tabelaOrcamentosSalvos.innerHTML="";
-  orcamentos.forEach(o=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${o.data}</td><td>${o.clienteNome}</td>
-      <td>${o.produtos.map(p=>p.nome).join(", ")}</td>
-      <td><button class="acao-btn pdf" onclick="gerarOrcamentoPDF('${o.id}')">PDF</button></td>`;
+function renderOrcamentosSalvos() {
+  tabelaOrcamentosSalvos.innerHTML = "";
+  orcamentos.forEach(o => {
+    const tr = document.createElement("tr");
+
+    // Junta os valores dos produtos em cada coluna
+    const produtos = o.produtos.map(p => p.nome).join(", ");
+    const quantidades = o.produtos.map(p => p.quantidade).join(", ");
+    const precosUnit = o.produtos.map(p => "R$ " + p.preco.toFixed(2)).join(", ");
+    const precosTotal = o.produtos.map(p => "R$ " + p.total.toFixed(2)).join(", ");
+
+    tr.innerHTML = `
+      <td>${o.data}</td>
+      <td>${o.clienteNome}</td>
+      <td>${produtos}</td>
+      <td>${quantidades}</td>
+      <td>${precosUnit}</td>
+      <td>${precosTotal}</td>
+      <td>
+        <button class="acao-btn pdf" onclick="reimprimirOrcamento('${o.id}')">PDF</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirOrcamento('${o.id}'))">Excluir</button>
+      </td>
+    `;
     tabelaOrcamentosSalvos.appendChild(tr);
   });
 }
@@ -805,6 +821,7 @@ window.excluirPreco = excluirPreco;
 window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
+
 
 
 
