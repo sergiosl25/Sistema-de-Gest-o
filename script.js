@@ -548,6 +548,85 @@ btnGerarPDF.onclick = async () => {
   }
 };
 
+btnNovaLinhaPreco.onclick = async () => {
+  const prodId = produtoSelectPreco.value;
+  const prod = produtos.find(p=>p.id===prodId);
+  try{
+    await addDoc(precosCol,{
+      produtoId: prodId||null,
+      produtoNome: prod?prod.nome:"Produto não informado",
+      estampaFrente:0, estampaFrenteVerso:0, branca:0,
+      interiorCores:0, magicaFosca:0, magicaBrilho:0
+    });
+  }catch(err){ console.error(err); alert("Erro ao adicionar linha de preço: "+err);}
+}
+
+function renderProdutoSelectPreco(){
+  produtoSelectPreco.innerHTML="<option value=''>— Selecione produto —</option>";
+  produtos.forEach(p=>{
+    const opt=document.createElement("option"); opt.value=p.id; opt.textContent=p.nome;
+    produtoSelectPreco.appendChild(opt);
+  });
+}
+
+function renderTabelaPrecos() {
+  const tabelaBody = document.querySelector("#tabelaPrecos tbody");
+  if (!tabelaBody) return;
+
+  tabelaBody.innerHTML = "";
+  precos.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${p.produtoNome||""}</td>
+      <td contenteditable data-field="estampaFrente">${p.estampaFrente||0}</td>
+      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso||0}</td>
+      <td contenteditable data-field="branca">${p.branca||0}</td>
+      <td contenteditable data-field="interiorCores">${p.interiorCores||0}</td>
+      <td contenteditable data-field="magicaFosca">${p.magicaFosca||0}</td>
+      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho||0}</td>
+      <td>
+        <button class="acao-btn editar" onclick="abrirModalPreco('${p.id}')">Editar</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
+      </td>`;
+
+    tabelaBody.appendChild(tr);
+
+    // Atualiza valores ao sair do campo
+    tr.querySelectorAll("[contenteditable]").forEach(td => {
+      td.onblur = async () => {
+        const num = parseFloat(td.textContent) || 0;
+        const field = td.dataset.field;
+        await updateDoc(doc(db,"precos",p.id),{[field]:num});
+      }
+    });
+  });
+}
+
+function abrirModalPreco(id) {
+  const preco = precos.find(p => p.id === id);
+  if (!preco) return;
+
+  itemEdicao = id;
+  tipoEdicao = "preco";
+
+  modalEditar.style.display = "block";
+  modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome}`;
+
+  // Preenche os campos do modal com os valores do preço
+  modalEditarNome.value = preco.produtoNome || "";
+  modalEditarQuantidade.value = preco.estampaFrente || 0;
+  modalEditarCompra.value = preco.estampaFrenteVerso || 0;
+  modalEditarVenda.value = preco.branca || 0;
+  modalEditarVenda.value = preco.interioremCores || 0;
+  modalEditarVenda.value = preco.magicaFosca || 0;
+  modalEditarVenda.value = preco.magicaBrilho || 0;
+}
+
+async function excluirPreco(id){
+  try{ await deleteDoc(doc(db,"precos",id)); }
+  catch(err){ console.error(err); alert("Erro ao excluir preço: "+err);}
+}
+
   // salvar no Firestore
 async function salvarOrcamento() {
   try {
@@ -572,6 +651,44 @@ async function salvarOrcamento() {
     alert("Erro ao salvar orçamento: " + err.message);
   }
 }
+
+window.abrirModal = (tipo, id) => {
+  tipoEdicao = tipo;
+  itemEdicao = id;
+  modalEditar.style.display = "block";
+
+  // Limpa todos os campos
+  modalEditarNome.value = "";
+  modalEditarTelefone.value = "";
+  modalEditarQuantidade.value = "";
+  modalEditarCompra.value = "";
+  modalEditarVenda.value = "";
+
+  // Esconde todos os campos inicialmente
+  modalEditarTelefone.style.display = "none";
+  modalEditarQuantidade.style.display = "none";
+  modalEditarCompra.style.display = "none";
+  modalEditarVenda.style.display = "none";
+
+  if (tipo === "cliente") {
+    const c = clientes.find(x => x.id === id);
+    modalEditarTitulo.textContent = "Editar Cliente";
+    modalEditarNome.value = c.nome;
+    modalEditarTelefone.value = c.telefone || "";
+
+    // Mostra apenas campos de cliente
+    modalEditarTelefone.style.display = "block";
+
+  } else if (tipo === "produto") {
+    const p = produtos.find(x => x.id === id);
+    modalEditarTitulo.textContent = "Editar Produto";
+    modalEditarNome.value = p.nome;
+    modalEditarQuantidade.value = p.quantidade || 0;
+
+    // Mostra apenas campos de produto
+    modalEditarQuantidade.style.display = "block";
+  }
+};
 
 btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
@@ -743,126 +860,18 @@ async function excluirOrcamento(id) {
 
 // Torna acessível no HTML
 window.excluirOrcamento = excluirOrcamento;
-function renderTabelaPrecos() {
-  const tabelaBody = document.querySelector("#tabelaPrecos tbody");
-  if (!tabelaBody) return;
 
-  function renderTabelaPrecos() {
-  const tabelaBody = document.querySelector("#tabelaPrecos tbody");
-  if (!tabelaBody) return;
-  tabelaBody.innerHTML = "";
-  
-  precos.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.produtoNome||""}</td>
-      <td contenteditable data-field="estampaFrente">${p.estampaFrente||0}</td>
-      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso||0}</td>
-      <td contenteditable data-field="branca">${p.branca||0}</td>
-      <td contenteditable data-field="interiorCores">${p.interiorCores||0}</td>
-      <td contenteditable data-field="magicaFosca">${p.magicaFosca||0}</td>
-      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho||0}</td>
-      <td>
-        <button class="acao-btn editar" onclick="abrirModalPreco('${p.id}')">Editar</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
-      </td>`;
-
-    tabelaBody.appendChild(tr);
-
-    // Atualiza valores ao sair do campo
-    tr.querySelectorAll("[contenteditable]").forEach(td => {
-      td.onblur = async () => {
-        const num = parseFloat(td.textContent) || 0;
-        const field = td.dataset.field;
-        await updateDoc(doc(db,"precos",p.id),{[field]:num});
-      }
-    });
+function mostrar(secaoId) {
+  document.querySelectorAll(".view").forEach(secao => {
+    secao.style.display = "none";
   });
+  const alvo = document.getElementById(secaoId);
+  if (alvo) alvo.style.display = "block";
 }
 
-btnNovaLinhaPreco.onclick = async () => {
-  const prodId = produtoSelectPreco.value;
-  const prod = produtos.find(p=>p.id===prodId);
-  try{
-    await addDoc(precosCol,{
-      produtoId: prodId||null,
-      produtoNome: prod?prod.nome:"Produto não informado",
-      estampaFrente:0, estampaFrenteVerso:0, branca:0,
-      interiorCores:0, magicaFosca:0, magicaBrilho:0
-    });
-  }catch(err){ console.error(err); alert("Erro ao adicionar linha de preço: "+err);}
-}
+// deixa visível no HTML (para onclick)
+window.mostrar = mostrar;
 
-function renderProdutoSelectPreco(){
-  produtoSelectPreco.innerHTML="<option value=''>— Selecione produto —</option>";
-  produtos.forEach(p=>{
-    const opt=document.createElement("option"); opt.value=p.id; opt.textContent=p.nome;
-    produtoSelectPreco.appendChild(opt);
-  });
-}
-
-function abrirModalPreco(id) {
-  const preco = precos.find(p => p.id === id);
-  if (!preco) return;
-
-  itemEdicao = id;
-  tipoEdicao = "preco";
-
-  modalEditar.style.display = "block";
-  modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome}`;
-
-  // Preenche os campos do modal com os valores do preço
-  modalEditarNome.value = preco.produtoNome || "";
-  modalEditarQuantidade.value = preco.estampaFrente || 0;
-  modalEditarCompra.value = preco.estampaFrenteVerso || 0;
-  modalEditarVenda.value = preco.branca || 0;
-  modalEditarVenda.value = preco.interioremCores || 0;
-  modalEditarVenda.value = preco.magicaFosca || 0;
-  modalEditarVenda.value = preco.magicaBrilho || 0;
-}
-
-async function excluirPreco(id){
-  try{ await deleteDoc(doc(db,"precos",id)); }
-  catch(err){ console.error(err); alert("Erro ao excluir preço: "+err);}
-}
-
-window.abrirModal = (tipo, id) => {
-  tipoEdicao = tipo;
-  itemEdicao = id;
-  modalEditar.style.display = "block";
-
-  // Limpa todos os campos
-  modalEditarNome.value = "";
-  modalEditarTelefone.value = "";
-  modalEditarQuantidade.value = "";
-  modalEditarCompra.value = "";
-  modalEditarVenda.value = "";
-
-  // Esconde todos os campos inicialmente
-  modalEditarTelefone.style.display = "none";
-  modalEditarQuantidade.style.display = "none";
-  modalEditarCompra.style.display = "none";
-  modalEditarVenda.style.display = "none";
-
-  if (tipo === "cliente") {
-    const c = clientes.find(x => x.id === id);
-    modalEditarTitulo.textContent = "Editar Cliente";
-    modalEditarNome.value = c.nome;
-    modalEditarTelefone.value = c.telefone || "";
-
-    // Mostra apenas campos de cliente
-    modalEditarTelefone.style.display = "block";
-
-  } else if (tipo === "produto") {
-    const p = produtos.find(x => x.id === id);
-    modalEditarTitulo.textContent = "Editar Produto";
-    modalEditarNome.value = p.nome;
-    modalEditarQuantidade.value = p.quantidade || 0;
-
-    // Mostra apenas campos de produto
-    modalEditarQuantidade.style.display = "block";
-  }
-};
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
@@ -875,12 +884,3 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
-
-
-
-
-
-
-
-
