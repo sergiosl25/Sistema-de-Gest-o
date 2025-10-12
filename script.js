@@ -159,9 +159,8 @@ onSnapshot(orcamentosCol, (snapshot) => {
   renderOrcamentosSalvos();
 });
 
-
-onSnapshot(precosCol, snapshot => {
-  precos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+onSnapshot(collection(db, "precos"), (snapshot) => {
+  precos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   renderTabelaPrecos();
 });
 
@@ -548,19 +547,6 @@ btnGerarPDF.onclick = async () => {
   }
 };
 
-btnNovaLinhaPreco.onclick = async () => {
-  const prodId = produtoSelectPreco.value;
-  const prod = produtos.find(p=>p.id===prodId);
-  try{
-    await addDoc(precosCol,{
-      produtoId: prodId||null,
-      produtoNome: prod?prod.nome:"Produto não informado",
-      estampaFrente:0, estampaFrenteVerso:0, branca:0,
-      interiorCores:0, magicaFosca:0, magicaBrilho:0
-    });
-  }catch(err){ console.error(err); alert("Erro ao adicionar linha de preço: "+err);}
-}
-
 function renderProdutoSelectPreco(){
   produtoSelectPreco.innerHTML="<option value=''>— Selecione produto —</option>";
   produtos.forEach(p=>{
@@ -569,38 +555,96 @@ function renderProdutoSelectPreco(){
   });
 }
 
+// === TABELA DE PREÇOS ===
+
+// Renderiza o select com produtos existentes
+function renderProdutoSelectPreco() {
+  produtoSelectPreco.innerHTML = "<option value=''>— Selecione produto —</option>";
+  produtos.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.nome;
+    produtoSelectPreco.appendChild(opt);
+  });
+}
+
+// Cria uma nova linha de preço no Firestore
+btnNovaLinhaPreco.onclick = async () => {
+  const prodId = produtoSelectPreco.value;
+  if (!prodId) return alert("Selecione um produto para adicionar à tabela de preços");
+
+  const prod = produtos.find(p => p.id === prodId);
+
+  try {
+    await addDoc(precosCol, {
+      produtoId: prodId,
+      produtoNome: prod ? prod.nome : "Produto não informado",
+      estampaFrente: 0,
+      estampaFrenteVerso: 0,
+      branca: 0,
+      interiorCores: 0,
+      magicaFosca: 0,
+      magicaBrilho: 0
+    });
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao adicionar linha de preço: " + err.message);
+  }
+};
+
+// Renderiza tabela de preços
 function renderTabelaPrecos() {
   const tabelaBody = document.querySelector("#tabelaPrecos tbody");
   if (!tabelaBody) return;
 
   tabelaBody.innerHTML = "";
+
   precos.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${p.produtoNome||""}</td>
-      <td contenteditable data-field="estampaFrente">${p.estampaFrente||0}</td>
-      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso||0}</td>
-      <td contenteditable data-field="branca">${p.branca||0}</td>
-      <td contenteditable data-field="interiorCores">${p.interiorCores||0}</td>
-      <td contenteditable data-field="magicaFosca">${p.magicaFosca||0}</td>
-      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho||0}</td>
+      <td>${p.produtoNome || "(sem nome)"}</td>
+      <td contenteditable data-field="estampaFrente">${p.estampaFrente || 0}</td>
+      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso || 0}</td>
+      <td contenteditable data-field="branca">${p.branca || 0}</td>
+      <td contenteditable data-field="interiorCores">${p.interiorCores || 0}</td>
+      <td contenteditable data-field="magicaFosca">${p.magicaFosca || 0}</td>
+      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho || 0}</td>
       <td>
-        <button class="acao-btn editar" onclick="abrirModalPreco('${p.id}')">Editar</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
-      </td>`;
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(() => excluirPreco('${p.id}'))">Excluir</button>
+      </td>
+    `;
 
-    tabelaBody.appendChild(tr);
-
-    // Atualiza valores ao sair do campo
+    // Atualiza o Firestore ao editar célula
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
         const num = parseFloat(td.textContent) || 0;
         const field = td.dataset.field;
-        await updateDoc(doc(db,"precos",p.id),{[field]:num});
-      }
+        try {
+          await updateDoc(doc(db, "precos", p.id), { [field]: num });
+        } catch (err) {
+          console.error("Erro ao atualizar preço:", err);
+          alert("Erro ao atualizar valor: " + err.message);
+        }
+      };
     });
+
+    tabelaBody.appendChild(tr);
   });
 }
+
+// Excluir preço do Firestore
+async function excluirPreco(id) {
+  try {
+    await deleteDoc(doc(db, "precos", id));
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao excluir preço: " + err.message);
+  }
+}
+
+// expõe as funções globais
+window.excluirPreco = excluirPreco;
+
 
 function abrirModalPreco(id) {
   const preco = precos.find(p => p.id === id);
@@ -620,11 +664,6 @@ function abrirModalPreco(id) {
   modalEditarVenda.value = preco.interioremCores || 0;
   modalEditarVenda.value = preco.magicaFosca || 0;
   modalEditarVenda.value = preco.magicaBrilho || 0;
-}
-
-async function excluirPreco(id){
-  try{ await deleteDoc(doc(db,"precos",id)); }
-  catch(err){ console.error(err); alert("Erro ao excluir preço: "+err);}
 }
 
   // salvar no Firestore
