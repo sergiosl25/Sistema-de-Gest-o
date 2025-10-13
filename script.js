@@ -274,56 +274,71 @@ async function excluirProduto(id){
    VENDAS (com transação para atualizar estoque)
    ========================= */
 btnVender.onclick = async () => {
-    const clienteId = clienteSelect.value;
-    const produtoId = produtoSelect.value;
-    const qtd = parseInt(quantidadeVenda.value);
-    if(!clienteId || !produtoId || !qtd || qtd <= 0) {
-      alert("Preencha todos os campos corretamente");
-      return
-    }
-    try{
-      let preco = 0;
-    const precosRef = collection(db, "precos");
-    const precoSnap = await getDocs(query(precosRef, where("produtoId", "==", produtoId)));
+  const clienteId = clienteSelect.value;
+  const produtoId = produtoSelect.value;
+  const qtd = parseInt(quantidadeVenda.value);
 
+  if (!clienteId || !produtoId || !qtd || qtd <= 0)
+    return alert("Preencha todos os campos corretamente");
+
+  try {
+    const produtoRef = doc(db, "estoque", produtoId);
+    const clienteSnap = await getDoc(doc(db, "clientes", clienteId));
+    const clienteNome = clienteSnap.exists() ? clienteSnap.data().nome : "Cliente";
+
+    const produtoSnap = await getDoc(produtoRef);
+    if (!produtoSnap.exists()) throw "Produto não encontrado";
+
+    const produtoNome = produtoSnap.data().nome;
+
+    // 🔍 Buscar o preço do produto na tabela de preços (usando o nome)
+    const precosRef = collection(db, "precos");
+    const precoSnap = await getDocs(query(precosRef, where("produto", "==", produtoNome)));
+
+    let preco = 0;
     precoSnap.forEach(p => {
-      preco = p.data().precoVenda || p.data().preco || 0; 
+      preco = p.data().precoVenda || p.data().preco || 0;
     });
 
-    if (preco === 0) {
+    // Se não encontrou preço, avisa e interrompe
+    if (preco <= 0) {
       alert("Preço do produto não encontrado na tabela de preços!");
       return;
     }
-    const produtoRef = doc(db, "estoque", produtoId);
-    const clienteSnap = await getDoc(doc(db,"clientes",clienteId));
-    const clienteNome = clienteSnap.exists()?clienteSnap.data().nome:"Cliente";
 
-     await runTransaction(db,async tx=>{
-      const produtoSnap = await tx.get(produtoRef);
-      if(!produtoSnap.exists()) throw "Produto não encontrado";
-      const dados = produtoSnap.data();
-      const estoqueAtual = dados.quantidade || 0;
-      const total = preco * qtd;
-      if(estoqueAtual<qtd) throw "Estoque insuficiente";
-      tx.update(produtoRef,{quantidade:estoqueAtual-qtd});
-      tx.set(doc(collection(db, "vendas")), {
+    const total = preco * qtd;
+
+    // 🔄 Transação: atualizar estoque e registrar venda
+    await runTransaction(db, async tx => {
+      const produtoSnapTx = await tx.get(produtoRef);
+      if (!produtoSnapTx.exists()) throw "Produto não encontrado";
+
+      const estoqueAtual = produtoSnapTx.data().quantidade || 0;
+      if (estoqueAtual < qtd) throw "Estoque insuficiente";
+
+      tx.update(produtoRef, { quantidade: estoqueAtual - qtd });
+
+      tx.set(doc(vendasCol), {
         data: new Date().toLocaleString(),
         clienteId,
         cliente: clienteNome,
-        produtoId, 
-        produto: dados.nome,
-        quantidade:qtd, 
-        preco, 
-        total,
-        pagamento:formaPagamento.value||"Não informado"
+        produtoId,
+        produto: produtoNome,
+        quantidade: qtd,
+        preco: preco,
+        total: total,
+        pagamento: formaPagamento.value || "Não informado"
       });
     });
-    quantidadeVenda.value="";
-  } catch(err) { 
-    console.error(err); 
-    alert("Erro ao registrar venda: "+err);
+
+    quantidadeVenda.value = "";
+    alert("Venda registrada com sucesso!");
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao registrar venda: " + err);
   }
 };
+
 
 function renderVendas(){
   tabelaRegistros.innerHTML = "";
@@ -944,6 +959,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
