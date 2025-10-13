@@ -117,6 +117,13 @@ const modalExcluir = document.getElementById("modalExcluir");
 const btnConfirmarExcluir = document.getElementById("btnConfirmarExcluir");
 const btnCancelarExcluir = document.getElementById("btnCancelarExcluir");
 
+// === Função para alternar entre seções ===
+window.mostrar = (id) => {
+  document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+  const view = document.getElementById(id);
+  if (view) view.style.display = 'block';
+};
+
 let itemEdicao = null;
 let tipoEdicao = null;
 let acaoExcluir = null;
@@ -252,7 +259,6 @@ function renderEstoque() {
   });
 }
 
-
 async function excluirProduto(id){
   try {
      const q = query(precosCol, where("produtoId","==",id));
@@ -330,7 +336,6 @@ async function excluirVenda(id){
     });
   }catch(err){ console.error(err); alert("Erro ao excluir venda: "+err);}
 }
-
 
 function gerarRecibo(vendaId) {
   const venda = vendas.find(v => v.id === vendaId);
@@ -546,14 +551,6 @@ btnGerarPDF.onclick = async () => {
     alert("Erro ao salvar orçamento: " + err.message);
   }
 };
-
-function renderProdutoSelectPreco(){
-  produtoSelectPreco.innerHTML="<option value=''>— Selecione produto —</option>";
-  produtos.forEach(p=>{
-    const opt=document.createElement("option"); opt.value=p.id; opt.textContent=p.nome;
-    produtoSelectPreco.appendChild(opt);
-  });
-}
 
 // === TABELA DE PREÇOS ===
 
@@ -923,3 +920,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
