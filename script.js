@@ -993,6 +993,14 @@ window.gerarOrcamentoPDF = async (id) => {
   console.log(`✅ PDF de orçamento criado com sucesso! ID: ${id}`);
 };
 
+function mostrar(secaoId) {
+  document.querySelectorAll(".view").forEach(secao => {
+    secao.style.display = "none";
+  });
+  const alvo = document.getElementById(secaoId);
+  if (alvo) alvo.style.display = "block";
+}
+
 async function excluirOrcamento(id) {
   try {
     await deleteDoc(doc(db, "orcamentos", id));
@@ -1003,21 +1011,6 @@ async function excluirOrcamento(id) {
     alert("Erro ao excluir orçamento: " + err.message);
   }
 }
-
-// Torna acessível no HTML
-window.excluirOrcamento = excluirOrcamento;
-
-function mostrar(secaoId) {
-  document.querySelectorAll(".view").forEach(secao => {
-    secao.style.display = "none";
-  });
-  const alvo = document.getElementById(secaoId);
-  if (alvo) alvo.style.display = "block";
-}
-
-// deixa visível no HTML (para onclick)
-window.mostrar = mostrar;
-
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
@@ -1030,10 +1023,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
-
-
-
-
-
-
+window.excluirOrcamento = excluirOrcamento;
