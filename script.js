@@ -607,6 +607,7 @@ function renderTabelaPrecos() {
       <td contenteditable data-field="magicaFosca">${p.magicaFosca || 0}</td>
       <td contenteditable data-field="magicaBrilho">${p.magicaBrilho || 0}</td>
       <td>
+        <button class="acao-btn editar" onclick="abrirModal('preco', '${p.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(() => excluirPreco('${p.id}'))">Excluir</button>
       </td>
     `;
@@ -920,4 +921,5 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
