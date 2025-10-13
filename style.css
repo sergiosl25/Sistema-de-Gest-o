@@ -1,34 +1,35 @@
-/* ===== Reset ===== */
+/* ====== RESET ====== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: "Arial", sans-serif;
 }
 
-/* ===== Estrutura Geral ===== */
+/* ====== GERAL ====== */
 html, body {
-  height: 100%;
   width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #4c7196, #3498db);
+  color: #333;
 }
 
 body {
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  color: #333;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ===== Header ===== */
+/* ====== HEADER ====== */
 header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   background: linear-gradient(135deg, #4c7196, #3498db);
   color: #fff;
   padding: 15px 25px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   border-radius: 0 0 10px 10px;
-  transition: background 0.3s ease;
 }
 
 header .logo {
@@ -39,16 +40,42 @@ header .logo {
 header h1 {
   font-size: 1.6rem;
   font-weight: 600;
+  text-align: center;
   color: #fff;
 }
 
-/* ===== Botão de Logout ===== */
+/* ====== NAV ====== */
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+nav button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #3da1e4;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+nav button:hover {
+  background: #2980b9;
+  transform: translateY(-2px);
+}
+
+/* ====== BOTÃO DE LOGOUT ====== */
 .logout-btn {
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  color: white;
+  background: #e74c3c;
   border: none;
   padding: 10px 18px;
   border-radius: 6px;
+  color: #fff;
   cursor: pointer;
   font-weight: bold;
   transition: background 0.3s ease;
@@ -58,43 +85,15 @@ header h1 {
   background: #c0392b;
 }
 
-/* ===== Menu de Navegação ===== */
-nav {
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  margin: 20px auto;
-  padding: 10px;
+/* ====== MAIN E SEÇÕES ====== */
+main {
+  flex: 1;
+  padding: 20px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-  max-width: 1500px;
 }
 
-nav button {
-  padding: 10px 20px;
-  border: none;
-  background: #3da1e4;
-  color: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-nav button:hover {
-  background: #2980b9;
-  transform: translateY(-2px);
-}
-
-/* ===== Main ===== */
-main {
-  margin-top: 70px; /* para o conteúdo não ficar embaixo do header */
-  min-height: calc(100vh - 70px);
-  padding: 20px;
-  overflow-y: auto;
-}
 .view {
   display: none;
   width: 100%;
@@ -103,15 +102,15 @@ main {
   padding: 25px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-   margin: auto;
   transition: all 0.3s ease;
+  margin: 0 auto 30px;
 }
 
 .view.active {
   display: block;
 }
 
-/* ===== Formulários ===== */
+/* ====== FORMULÁRIOS ====== */
 .form {
   display: flex;
   flex-wrap: wrap;
@@ -123,23 +122,23 @@ main {
 .form select {
   flex: 1;
   padding: 10px;
-  border-radius: 8px;
   border: 1px solid #ccc;
+  border-radius: 8px;
   transition: all 0.3s ease;
 }
 
 .form input:focus,
 .form select:focus {
   border-color: #3498db;
-  box-shadow: 0 0 4px rgba(52, 152, 219, 0.3);
+  box-shadow: 0 0 5px rgba(52,152,219,0.4);
   outline: none;
 }
 
 .form button {
-  padding: 10px 15px;
   background: #27ae60;
-  color: white;
+  color: #fff;
   border: none;
+  padding: 10px 15px;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -149,7 +148,7 @@ main {
   background: #1e8449;
 }
 
-/* ===== Tabelas ===== */
+/* ====== TABELAS ====== */
 table {
   width: 100%;
   border-collapse: separate;
@@ -157,12 +156,12 @@ table {
   margin-top: 10px;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
 }
 
 table thead {
   background: #3498db;
-  color: white;
+  color: #fff;
 }
 
 table th,
@@ -182,7 +181,7 @@ table tr:hover {
   text-align: right;
 }
 
-/* ===== Botões de Ação ===== */
+/* ====== BOTÕES DE AÇÃO ====== */
 .acao-btn {
   padding: 6px 12px;
   margin: 2px;
@@ -220,7 +219,7 @@ table tr:hover {
   background: #6c3483;
 }
 
-/* ===== Modal ===== */
+/* ====== MODAL ====== */
 .modal {
   display: none;
   position: fixed;
@@ -243,13 +242,20 @@ table tr:hover {
   width: 100%;
   max-width: 400px;
   text-align: center;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .modal-content h3 {
   margin-bottom: 15px;
   color: #2c3e50;
+}
+
+.modal-content input {
+  width: 90%;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
 .modal-content button {
@@ -271,10 +277,11 @@ table tr:hover {
   color: #fff;
 }
 
-/* ===== Responsividade ===== */
+/* ====== RESPONSIVIDADE ====== */
 @media (max-width: 768px) {
   nav {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
   }
 
   .form {
@@ -286,15 +293,28 @@ table tr:hover {
     font-size: 0.9rem;
     padding: 8px;
   }
+
+  header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+  }
 }
 
 @media (max-width: 480px) {
-  nav button, .form input, .form select, .form button {
+  nav button,
+  .form input,
+  .form select,
+  .form button {
     font-size: 0.85rem;
     padding: 8px 10px;
   }
 
-  table th, table td {
+  table th,
+  table td {
     font-size: 0.8rem;
     padding: 6px;
   }
