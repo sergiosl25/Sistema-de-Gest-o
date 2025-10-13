@@ -277,8 +277,23 @@ btnVender.onclick = async () => {
     const clienteId = clienteSelect.value;
     const produtoId = produtoSelect.value;
     const qtd = parseInt(quantidadeVenda.value);
-    if(!clienteId || !produtoId || !qtd || qtd <= 0) return alert("Preencha todos os campos corretamente");
+    if(!clienteId || !produtoId || !qtd || qtd <= 0) {
+      alert("Preencha todos os campos corretamente");
+      return
+    }
     try{
+      let preco = 0;
+    const precosRef = collection(db, "precos");
+    const precoSnap = await getDocs(query(precosRef, where("produtoId", "==", produtoId)));
+
+    precoSnap.forEach(p => {
+      preco = p.data().precoVenda || p.data().preco || 0; 
+    });
+
+    if (preco === 0) {
+      alert("Preço do produto não encontrado na tabela de preços!");
+      return;
+    }
     const produtoRef = doc(db, "estoque", produtoId);
     const clienteSnap = await getDoc(doc(db,"clientes",clienteId));
     const clienteNome = clienteSnap.exists()?clienteSnap.data().nome:"Cliente";
@@ -286,20 +301,29 @@ btnVender.onclick = async () => {
      await runTransaction(db,async tx=>{
       const produtoSnap = await tx.get(produtoRef);
       if(!produtoSnap.exists()) throw "Produto não encontrado";
-      const estoqueAtual = produtoSnap.data().quantidade||0;
+      const dados = produtoSnap.data();
+      const estoqueAtual = dados.quantidade || 0;
+      const total = preco * qtd;
       if(estoqueAtual<qtd) throw "Estoque insuficiente";
       tx.update(produtoRef,{quantidade:estoqueAtual-qtd});
-      tx.set(doc(vendasCol),{
-        data:new Date().toLocaleString(),
-        clienteId,cliente:clienteNome,
-        produtoId, produto: produtoSnap.data().nome,
-        quantidade:qtd, preco:0, total:0,
+      tx.set(doc(collection(db, "vendas")), {
+        data: new Date().toLocaleString(),
+        clienteId,
+        cliente: clienteNome,
+        produtoId, 
+        produto: dados.nome,
+        quantidade:qtd, 
+        preco, 
+        total,
         pagamento:formaPagamento.value||"Não informado"
       });
     });
     quantidadeVenda.value="";
-  }catch(err){ console.error(err); alert("Erro ao registrar venda: "+err);}
-}
+  } catch(err) { 
+    console.error(err); 
+    alert("Erro ao registrar venda: "+err);
+  }
+};
 
 function renderVendas(){
   tabelaRegistros.innerHTML = "";
@@ -920,6 +944,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
