@@ -1024,3 +1024,8 @@ window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
 window.excluirOrcamento = excluirOrcamento;
+
+
+window.abrirModal = abrirModal;
+window.abrirModalExclusao = abrirModalExclusao;
+
