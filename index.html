@@ -75,9 +75,14 @@
   <section id="vendas" class="view">
     <h2>Registrar Venda</h2>
     <div class="form">
-      <select id="clienteSelect"></select>
-      <select id="produtoSelect"></select>
-      <input type="number" id="quantidadeVenda" placeholder="Quantidade">
+      <select id="clienteSelect">
+  <option value="">Selecione o cliente</option>
+      <select id="produtoSelect">
+  <option value="">Selecione o produto</option>
+      <select id="tipoPrecoSelect">
+  <option value="">Selecione o tipo de preço</option>
+      <input type="number" id="precoVenda" placeholder="Preço Unitário" step="0.01" min="0">
+      <input type="number" id="quantidadeVenda" placeholder="Quantidade" min="1">
       <select id="formaPagamento">
         <option value="Dinheiro">Dinheiro</option>
         <option value="Cartãocrédito">Cartão de crédito</option>
@@ -248,6 +253,7 @@
 <script type="module" src="script.js" defer></script>
 </body>
 </html>
+
 
 
 
