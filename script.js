@@ -172,6 +172,30 @@ onSnapshot(collection(db, "precos"), (snapshot) => {
   renderTabelaPrecos();
 });
 
+tipoPrecoSelect.onchange = async () => {
+  const produtoId = produtoSelect.value;
+  if (!produtoId) return alert("Selecione um produto primeiro.");
+
+  const tipo = tipoPrecoSelect.value;
+  if (!tipo) return;
+
+  try {
+    const precoRef = collection(db, "precos");
+    const q = query(precoRef, where("produtoId", "==", produtoId));
+    const snap = await getDocs(q);
+
+    let precoEscolhido = 0;
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      if (data[tipo]) precoEscolhido = data[tipo];
+    });
+
+    precoVenda.value = precoEscolhido.toFixed(2);
+  } catch (err) {
+    console.error("Erro ao buscar preço:", err);
+  }
+};
+
 /* =========================
    CLIENTES
    ========================= */
@@ -1006,6 +1030,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
