@@ -83,6 +83,8 @@ const nomeProduto = document.getElementById("nomeProduto");
 const quantidadeProduto = document.getElementById("quantidadeProduto");
 const btnCadastrarProduto = document.getElementById("btnCadastrarProduto");
 const produtoSelect = document.getElementById("produtoSelect");
+const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
+const precoVenda = document.getElementById("precoVenda");
 const produtoSelectPreco = document.getElementById("produtoSelectPreco")
 
 const quantidadeVenda = document.getElementById("quantidadeVenda");
@@ -258,6 +260,50 @@ function renderEstoque() {
   });
 }
 
+// ==========================
+// Carregar tipos de preço ao selecionar produto
+// ==========================
+produtoSelect.onchange = async () => {
+  const produtoId = produtoSelect.value;
+  tipoPrecoSelect.innerHTML = "<option value=''>Selecione o tipo de preço</option>";
+  precoVenda.value = "";
+
+  if (!produtoId) return;
+
+  const produtoSnap = await getDoc(doc(db, "estoque", produtoId));
+  if (!produtoSnap.exists()) return;
+
+  const produtoNome = produtoSnap.data().nome;
+
+  const precosRef = collection(db, "precos");
+  const precoSnap = await getDocs(query(precosRef, where("produto", "==", produtoNome)));
+
+  precoSnap.forEach(p => {
+    const data = p.data();
+    for (const key in data) {
+      if (typeof data[key] === "number" && data[key] > 0) {
+        const opt = document.createElement("option");
+        opt.value = key;
+        opt.textContent = `${key.replace(/([A-Z])/g, " $1")} (R$ ${data[key].toFixed(2)})`;
+        opt.dataset.valor = data[key];
+        tipoPrecoSelect.appendChild(opt);
+      }
+    }
+  });
+};
+
+// ==========================
+// Atualiza campo de preço quando escolhe tipo
+// ==========================
+tipoPrecoSelect.onchange = () => {
+  const opt = tipoPrecoSelect.selectedOptions[0];
+  if (opt && opt.dataset.valor) {
+    precoVenda.value = opt.dataset.valor;
+  } else {
+    precoVenda.value = "";
+  }
+};
+
 async function excluirProduto(id){
   try {
      const q = query(precosCol, where("produtoId","==",id));
@@ -306,6 +352,7 @@ btnVender.onclick = async () => {
       return;
     }
 
+    const precoUnitario = parseFloat(precoVenda.value) || 0;
     const total = preco * qtd;
 
     // 🔄 Transação: atualizar estoque e registrar venda
@@ -323,9 +370,9 @@ btnVender.onclick = async () => {
         clienteId,
         cliente: clienteNome,
         produtoId,
-        produto: produtoNome,
+        produto: produtoSnap.data().nome,
         quantidade: qtd,
-        preco: preco,
+        preco: precoUnitario,
         total: total,
         pagamento: formaPagamento.value || "Não informado"
       });
@@ -959,6 +1006,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
