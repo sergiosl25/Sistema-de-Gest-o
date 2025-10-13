@@ -1,36 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alvespersonalizados</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alvespersonalizados</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-<header>
-  <div class="header-left">
-    <img src="logo.png" alt="logo" class="logo">
-  </div>
-  <div class="header-center">
-    <h1>Alvespersonalizados</h1>
-    <nav>
-      <button onclick="mostrar('clientes')">Clientes</button>
-      <button onclick="mostrar('estoque')">Estoque</button>
-      <button onclick="mostrar('vendas')">Vendas</button>
-      <button onclick="mostrar('registrosVendas')">Registros</button>
-      <button onclick="mostrar('orcamento')">Orçamento</button>
-      <button onclick="mostrar('precos')">Tabela de Preços</button>
-    </nav>
-  </div>
-  <div class="header-right">
-  <span id="userEmail"></span>
-  <button class="logout-btn" onclick="logout()">Sair</button>
-</div>
-</header>
+  <header>
+    <div class="header-left">
+      <img src="logo.png" alt="logo" class="logo">
+    </div>
+    <div class="header-center">
+      <h1>Alvespersonalizados</h1>
+      <nav>
+        <button data-view="clientes">Clientes</button>
+        <button data-view="estoque">Estoque</button>
+        <button data-view="vendas">Vendas</button>
+        <button data-view="registrosVendas">Registros</button>
+        <button data-view="orcamento">Orçamento</button>
+        <button data-view="precos">Tabela de Preços</button>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span id="userEmail"></span>
+      <button class="logout-btn" id="btnLogout">Sair</button>
+    </div>
+  </header>
 
-  <!-- Clientes -->
-  <section id="clientes" class="view">
+  <!-- ===== Clientes ===== -->
+  <section id="clientes" class="view active">
     <h2>Cadastro de Clientes</h2>
     <div class="form">
       <input type="text" id="nomeCliente" placeholder="Nome *">
@@ -50,7 +50,7 @@
     </table>
   </section>
 
-  <!-- Produtos -->
+  <!-- ===== Estoque ===== -->
   <section id="estoque" class="view">
     <h2>Estoque</h2>
     <div class="form">
@@ -71,33 +71,42 @@
     </table>
   </section>
 
-  <!-- Vendas -->
+  <!-- ===== Vendas ===== -->
   <section id="vendas" class="view">
     <h2>Registrar Venda</h2>
-<select id="clienteSelect">
-  <option value="">Selecione o cliente</option>
-</select>
+    <div class="form">
+      <select id="clienteSelect">
+        <option value="">Selecione o cliente</option>
+      </select>
 
-<select id="produtoSelect">
-  <option value="">Selecione o produto</option>
-</select>
+      <select id="produtoSelect">
+        <option value="">Selecione o produto</option>
+      </select>
 
-<select id="tipoPrecoSelect">
-  <option value="">Selecione o tipo de preço</option>
-</select>
-      <input type="number" id="precoVenda" placeholder="Preço Unitário" step="0.01" min="0">
+      <select id="tipoPrecoSelect">
+        <option value="">Selecione o tipo de preço</option>
+        <option value="estampaFrente">Estampa frente</option>
+        <option value="estampaFrenteAtras">Frente e atrás</option>
+        <option value="branca">Branca</option>
+        <option value="interiorCores">Interior em cores</option>
+        <option value="magicaFosca">Mágica fosca</option>
+        <option value="magicaBrilho">Mágica brilho</option>
+        <option value="precoVenda">Venda padrão</option>
+      </select>
+
+      <input type="number" id="precoVenda" placeholder="Preço Unitário (R$)" readonly>
       <input type="number" id="quantidadeVenda" placeholder="Quantidade" min="1">
       <select id="formaPagamento">
         <option value="Dinheiro">Dinheiro</option>
-        <option value="Cartãocrédito">Cartão de crédito</option>
-        <option value="Cartãodébito">Cartão de débito</option>
+        <option value="Cartão de crédito">Cartão de crédito</option>
+        <option value="Cartão de débito">Cartão de débito</option>
         <option value="Pix">Pix</option>
       </select>
       <button id="btnVender">Vender</button>
     </div>
   </section>
 
-  <!-- Registros -->
+  <!-- ===== Registros ===== -->
   <section id="registrosVendas" class="view">
     <h2>Registros de Vendas</h2>
     <table id="tabelaRegistros">
@@ -116,66 +125,67 @@
       <tbody></tbody>
     </table>
     <p class="total">Total Geral: <span id="totalGeralRegistros">R$ 0,00</span></p>
-    <button onclick="exportarRelatorio()">Exportar PDF</button>
+    <button id="btnExportarPDF">Exportar PDF</button>
   </section>
 
-<section id="orcamento" class="view">
-  <h2>Orçamento</h2>
-  <div class="form">
-    <!-- Antes: <select id="clienteSelectOrcamento"></select> -->
-    <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
-    <select id="produtoSelectOrcamento"></select>
-    <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
-    <button id="btnAdicionarProduto">Adicionar Produto</button>
-    <button id="btnGerarPDF">Gerar PDF</button>
-  </div>
-  
-  <h3>Orçamento Atual</h3>
-  <table id="tabelaOrcamento">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Cliente</th>
-        <th>Produto</th>
-        <th>Quantidade</th>
-        <th>Preço unitario</th>
-        <th>Preço total</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <!-- ===== Orçamento ===== -->
+  <section id="orcamento" class="view">
+    <h2>Orçamento</h2>
+    <div class="form">
+      <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
+      <select id="produtoSelectOrcamento"></select>
+      <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
+      <button id="btnAdicionarProduto">Adicionar Produto</button>
+      <button id="btnGerarPDF">Gerar PDF</button>
+    </div>
+    
+    <h3>Orçamento Atual</h3>
+    <table id="tabelaOrcamento">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Preço unitário</th>
+          <th>Preço total</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-  <h3>Orçamentos Salvos</h3>
-  <table id="tabelaOrcamentosSalvos">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Cliente</th>
-        <th>Produto</th>
-        <th>Quantidade</th>
-        <th>Preço unitario</th>
-        <th>Preço total</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</section>
+    <h3>Orçamentos Salvos</h3>
+    <table id="tabelaOrcamentosSalvos">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Cliente</th>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Preço unitário</th>
+          <th>Preço total</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
-<section id="precos" class="view">
+  <!-- ===== Tabela de Preços ===== -->
+  <section id="precos" class="view">
     <h2>Tabela de Preços</h2>
     <div class="form">
-    <select id="produtoSelectPreco">
-      <option value="">— Selecione produto —</option>
-    </select>
-    <button id="btnNovaLinhaPreco">Adicionar linha (produto)</button>
-  </div>
+      <select id="produtoSelectPreco">
+        <option value="">— Selecione produto —</option>
+      </select>
+      <button id="btnNovaLinhaPreco">Adicionar linha</button>
+    </div>
     <table id="tabelaPrecos">
       <thead>
         <tr>
           <th>Produto</th>
-          <th>Estampa frente (RS)</th>
+          <th>Estampa frente (R$)</th>
           <th>Estampa frente e atrás (R$)</th>
           <th>Branca (R$)</th>
           <th>Interior em cores (R$)</th>
@@ -188,72 +198,49 @@
     </table>
   </section>
 
-<!-- Modal Edição -->
-<div id="modalEditar" class="modal">
-  <div class="modal-content">
-    <h3 id="modalEditarTitulo">Editar</h3>
-
-    <!-- Campo comum (nome) -->
-    <div id="campoNome">
+  <!-- ===== Modal Edição ===== -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content">
+      <h3 id="modalEditarTitulo">Editar</h3>
       <input type="text" id="modalEditarNome" placeholder="Nome">
-    </div>
-
-    <!-- Campos de cliente -->
-    <div id="campoTelefone">
       <input type="text" id="modalEditarTelefone" placeholder="Telefone">
-    </div>
-
-    <!-- Campos de produto -->
-    <div id="campoQuantidade">
       <input type="number" id="modalEditarQuantidade" placeholder="Quantidade">
-    </div>
-
-    <div id="campoValorCompra">
       <input type="number" id="modalEditarCompra" placeholder="Valor de Compra" step="0.01">
-    </div>
-
-    <div id="campoValorVenda">
       <input type="number" id="modalEditarVenda" placeholder="Valor de Venda" step="0.01">
+      <button id="btnSalvarEdicao">Salvar</button>
+      <button id="btnCancelarEdicao">Cancelar</button>
     </div>
-
-    <button id="btnSalvarEdicao">Salvar</button>
-    <button id="btnCancelarEdicao">Cancelar</button>
   </div>
-</div>
 
-<!-- Modal Exclusão -->
-<div id="modalExcluir" class="modal">
-  <div class="modal-content">
-    <p>Deseja realmente excluir?</p>
-    <button id="btnConfirmarExcluir">Sim</button>
-    <button id="btnCancelarExcluir">Não</button>
+  <!-- ===== Modal Exclusão ===== -->
+  <div id="modalExcluir" class="modal">
+    <div class="modal-content">
+      <p>Deseja realmente excluir?</p>
+      <button id="btnConfirmarExcluir">Sim</button>
+      <button id="btnCancelarExcluir">Não</button>
+    </div>
   </div>
-</div>
 
-<!-- Firebase -->
-<script type="module">
-  // Import Firebase SDK
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+  <!-- ===== Firebase ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-  // 🔑 Pegue essas configs no Console Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
-    authDomain: "personalizados-2eb5f.firebaseapp.com",
-    projectId: "personalizados-2eb5f",
-    storageBucket: "personalizados-2eb5f.firebasestorage.app",
-    messagingSenderId: "498226923096",
-    appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
+      authDomain: "personalizados-2eb5f.firebaseapp.com",
+      projectId: "personalizados-2eb5f",
+      storageBucket: "personalizados-2eb5f.firebasestorage.app",
+      messagingSenderId: "498226923096",
+      appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
+    };
 
-  // Inicializar Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    window.db = db;
+  </script>
 
-  // deixar acessível para outros scripts
-  window.db = db;
-</script>
-<script type="module" src="firebase-config.js" defer></script>
-<script type="module" src="script.js" defer></script>
+  <script type="module" src="firebase-config.js" defer></script>
+  <script type="module" src="script.js" defer></script>
 </body>
 </html>
