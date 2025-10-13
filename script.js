@@ -83,7 +83,6 @@ const nomeProduto = document.getElementById("nomeProduto");
 const quantidadeProduto = document.getElementById("quantidadeProduto");
 const btnCadastrarProduto = document.getElementById("btnCadastrarProduto");
 const produtoSelect = document.getElementById("produtoSelect");
-const produtoSelectOrcamento = document.getElementById("produtoSelectOrcamento");
 const produtoSelectPreco = document.getElementById("produtoSelectPreco")
 
 const quantidadeVenda = document.getElementById("quantidadeVenda");
@@ -95,7 +94,7 @@ const totalGeralRegistros = document.getElementById("totalGeralRegistros");
 
 const tabelaOrcamento = document.querySelector("#tabelaOrcamento tbody");
 const clienteInputOrcamento = document.getElementById("clienteInputOrcamento");
-const produtoSelectOrc = document.getElementById("produtoSelectOrcamento");
+const produtoSelectOrcamento = document.getElementById("produtoSelectOrcamento");
 const quantidadeOrcamento = document.getElementById("quantidadeOrcamento");
 const btnAdicionarProduto = document.getElementById("btnAdicionarProduto");
 const btnGerarPDF = document.getElementById("btnGerarPDF");
@@ -921,5 +920,6 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
