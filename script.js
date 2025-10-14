@@ -74,7 +74,7 @@ const quantidadeProduto = document.getElementById("quantidadeProduto");
 const btnCadastrarProduto = document.getElementById("btnCadastrarProduto");
 const produtoSelect = document.getElementById("produtoSelect");
 const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
-const precoVenda = document.getElementById("precoVenda");
+const precoVendaInput = document.getElementById("precoVenda");
 const produtoSelectPreco = document.getElementById("produtoSelectPreco")
 
 const quantidadeVenda = document.getElementById("quantidadeVenda");
@@ -111,6 +111,72 @@ const btnCancelarExcluir = document.getElementById("btnCancelarExcluir");
 let itemEdicao = null;
 let tipoEdicao = null;
 let acaoExcluir = null;
+
+// === Quando o usuário seleciona um produto ===
+produtoSelect.addEventListener("change", async () => {
+  const produtoSelecionado = produtoSelect.value;
+
+  tipoPrecoSelect.innerHTML = `<option value="">Selecione o tipo de preço</option>`;
+  precoVendaInput.value = "";
+
+  if (!produtoSelecionado) return;
+
+  try {
+    const tabelaRef = collection(db, "tabelaPrecos");
+    const q = query(tabelaRef, where("produto", "==", produtoSelecionado));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const dados = querySnapshot.docs[0].data();
+
+      const opcoes = [
+        { label: "Estampa Frente", key: "estampaFrente" },
+        { label: "Estampa Frente e Verso", key: "estampaFrenteEVerso" },
+        { label: "Branca", key: "branca" },
+        { label: "Interior Cores", key: "interiorCores" },
+        { label: "Mágica Fosca", key: "magicaFosca" },
+        { label: "Mágica Brilho", key: "magicaBrilho" }
+      ];
+
+      opcoes.forEach(op => {
+        if (dados[op.key] !== undefined && dados[op.key] !== null) {
+          const opt = document.createElement("option");
+          opt.value = op.key;
+          opt.textContent = `${op.label} - R$ ${Number(dados[op.key]).toFixed(2)}`;
+          tipoPrecoSelect.appendChild(opt);
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Erro ao carregar preços:", error);
+  }
+});
+
+// === Quando o usuário seleciona o tipo de preço ===
+tipoPrecoSelect.addEventListener("change", async () => {
+  const produtoSelecionado = produtoSelect.value;
+  const tipoPreco = tipoPrecoSelect.value;
+
+  if (!produtoSelecionado || !tipoPreco) {
+    precoVendaInput.value = "";
+    return;
+  }
+
+  try {
+    const tabelaRef = collection(db, "tabelaPrecos");
+    const q = query(tabelaRef, where("produto", "==", produtoSelecionado));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const dados = querySnapshot.docs[0].data();
+      precoVendaInput.value = dados[tipoPreco]
+        ? Number(dados[tipoPreco]).toFixed(2)
+        : "";
+    }
+  } catch (error) {
+    console.error("Erro ao buscar preço:", error);
+  }
+});
 
 /* =========================
    Helpers
@@ -995,4 +1061,4 @@ window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
-window.abrirModalPreco = abrirModalPreco;
+window.abrirModalPreco = abrirModalPreco
