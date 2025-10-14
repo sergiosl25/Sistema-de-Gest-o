@@ -666,19 +666,10 @@ function renderProdutoSelectPreco(){
     produtoSelectPreco.appendChild(opt);
   });
 }
+
 function renderTabelaPrecos() {
-  const tabelaBody = document.querySelector("#tabelaPrecos tbody");
-  if (!tabelaBody) return;
-
-  tabelaBody.innerHTML = "";
-
-  if (!precos || precos.length === 0) {
-    // Exibe linha de aviso caso não haja preços
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td colspan="8" style="text-align:center">Nenhum preço cadastrado</td>`;
-    tabelaBody.appendChild(tr);
-    return;
-  }
+  if (!tabelaPrecos) return; // evita erros
+  tabelaPrecos.innerHTML = "";
 
   precos.forEach(p => {
     const tr = document.createElement("tr");
@@ -691,23 +682,19 @@ function renderTabelaPrecos() {
       <td contenteditable data-field="magicaFosca">${p.magicaFosca || 0}</td>
       <td contenteditable data-field="magicaBrilho">${p.magicaBrilho || 0}</td>
       <td>
-        <button class="acao-btn editar" onclick="abrirModalPreco('${p.id}')">Editar</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
-      </td>`;
+        <button onclick="abrirModal('preco','${p.id}')">Editar</button>
+        <button onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
+      </td>
+    `;
+    tabelaPrecos.appendChild(tr);
 
-    tabelaBody.appendChild(tr);
-
-    // Atualiza valores no Firestore ao sair do campo
+    // Atualiza valores ao sair do campo
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
         const num = parseFloat(td.textContent) || 0;
         const field = td.dataset.field;
-        try {
-          await updateDoc(doc(db, "precos", p.id), { [field]: num });
-        } catch (err) {
-          console.error("Erro ao atualizar preço:", err);
-        }
-      };
+        await updateDoc(doc(db,"precos",p.id), {[field]: num});
+      }
     });
   });
 }
