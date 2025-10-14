@@ -201,39 +201,20 @@
     </table>
   </section>
 
-<!-- Modal Edição -->
 <div id="modalEditar" class="modal">
   <div class="modal-content">
-    <h3 id="modalEditarTitulo">Editar</h3>
-
-    <!-- Campo comum (nome) -->
-    <div id="campoNome">
-      <input type="text" id="modalEditarNome" placeholder="Nome">
+    <h2 id="modalEditarTitulo"></h2>
+    <input id="modalEditarNome" placeholder="Nome">
+    <input id="modalEditarTelefone" placeholder="Telefone">
+    <input id="modalEditarQuantidade" type="number" placeholder="Quantidade">
+    <input id="modalEditarCompra" type="number" placeholder="Compra">
+    <input id="modalEditarVenda" type="number" placeholder="Venda">
+    <div class="botoes">
+      <button id="btnSalvarEdicao">Salvar</button>
+      <button id="btnCancelarEdicao">Cancelar</button>
     </div>
-
-    <!-- Campos de cliente -->
-    <div id="campoTelefone">
-      <input type="text" id="modalEditarTelefone" placeholder="Telefone">
-    </div>
-
-    <!-- Campos de produto -->
-    <div id="campoQuantidade">
-      <input type="number" id="modalEditarQuantidade" placeholder="Quantidade">
-    </div>
-
-    <div id="campoValorCompra">
-      <input type="number" id="modalEditarCompra" placeholder="Valor de Compra" step="0.01">
-    </div>
-
-    <div id="campoValorVenda">
-      <input type="number" id="modalEditarVenda" placeholder="Valor de Venda" step="0.01">
-    </div>
-
-    <button id="btnSalvarEdicao">Salvar</button>
-    <button id="btnCancelarEdicao">Cancelar</button>
   </div>
 </div>
-
 
 <!-- Modal Exclusão -->
 <div id="modalExcluir" class="modal">
