@@ -828,12 +828,12 @@ btnSalvarEdicao.onclick = async () => {
     } else if(tipoEdicao==="preco"){  
       await updateDoc(doc(db,"precos",itemEdicao), {
         produtoNome: modalEditarNome.value.trim(),
-        estampaFrente: parseFloat(modalEditarQuantidade.value) || 0,
-        estampaFrenteVerso: parseFloat(modalEditarCompra.value) || 0,
+        estampaFrente: parseFloat(modalEditarVenda.value) || 0,
+        estampaFrenteVerso: parseFloat(modalEditarVenda.value) || 0,
         branca: parseFloat(modalEditarVenda.value) || 0,
-        interiorCores: parseFloat(modalEditarTelefone.value) || 0, 
-        magicaFosca: parseFloat(modalEditarTelefone.value) || 0,
-        magicaBrilho: parseFloat(modalEditarTelefone.value) || 0
+        interiorCores: parseFloat(modalEditarVenda.value) || 0, 
+        magicaFosca: parseFloat(modalEditarVenda.value) || 0,
+        magicaBrilho: parseFloat(modalEditarVenda.value) || 0
       });
       renderTabelaPrecos(); 
     }
@@ -1007,3 +1007,5 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
+
