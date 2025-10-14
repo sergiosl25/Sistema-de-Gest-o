@@ -201,17 +201,34 @@
     </table>
   </section>
 
-<div id="modalEditar" class="modal">
+<!-- ===== Modal de Edição ===== -->
+<div id="modalEditar" class="modal" style="display: none;">
   <div class="modal-content">
-    <h2 id="modalEditarTitulo"></h2>
-    <input id="modalEditarNome" placeholder="Nome">
-    <input id="modalEditarTelefone" placeholder="Telefone">
-    <input id="modalEditarQuantidade" type="number" placeholder="Quantidade">
-    <input id="modalEditarCompra" type="number" placeholder="Compra">
-    <input id="modalEditarVenda" type="number" placeholder="Venda">
+    <h2 id="modalEditarTitulo">Editar</h2>
+
+    <div class="campo">
+      <label for="modalEditarNome">Nome</label>
+      <input id="modalEditarNome" type="text" placeholder="Digite o nome">
+    </div>
+
+    <div class="campo">
+      <label for="modalEditarTelefone">Telefone</label>
+      <input id="modalEditarTelefone" type="text" placeholder="Digite o telefone">
+    </div>
+
+    <div class="campo">
+      <label for="modalEditarQuantidade">Quantidade</label>
+      <input id="modalEditarQuantidade" type="number" placeholder="Digite a quantidade">
+    </div>
+
+    <div class="campo">
+      <label for="modalEditarPreco">Preço</label>
+      <input id="modalEditarPreco" type="number" step="0.01" placeholder="Digite o preço">
+    </div>
+
     <div class="botoes">
-      <button id="btnSalvarEdicao">Salvar</button>
-      <button id="btnCancelarEdicao">Cancelar</button>
+      <button id="btnSalvarEdicao" class="btn-salvar">Salvar</button>
+      <button id="btnCancelarEdicao" class="btn-cancelar">Cancelar</button>
     </div>
   </div>
 </div>
