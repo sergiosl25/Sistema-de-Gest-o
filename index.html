@@ -20,7 +20,7 @@
       <button onclick="mostrar('vendas')">Vendas</button>
       <button onclick="mostrar('registrosVendas')">Registros</button>
       <button onclick="mostrar('orcamento')">Orçamento</button>
-      <button onclick="mostrar('tabelaPrecos')">Tabela de Preços</button>
+      <button onclick="mostrar('precos')">Tabela de Preços</button>
     </nav>
   </div>
   <div class="header-right">
@@ -175,62 +175,35 @@
   </table>
 </section>
 
-<section id="precos" class="view">
-    <h2>Tabela de Preços</h2>
-    <div class="form">
-    <select id="produtoSelectPreco">
-      <option value="">— Selecione produto —</option>
-    </select>
-    <button id="btnNovaLinhaPreco">Adicionar linha (produto)</button>
-  </div>
-    <table id="tabelaPrecos">
-  <thead>
-    <tr>
-      <th>Produto</th>
-      <th>Estampa Frente</th>
-      <th>Estampa Frente/Verso</th>
-      <th>Branca</th>
-      <th>Interior Cores</th>
-      <th>Mágica Fosca</th>
-      <th>Mágica Brilho</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- Linhas serão geradas via JS -->
-  </tbody>
-</table>
+<section id="precos" class="view" style="display:none;">
+  <table id="tabelaPrecos">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Estampa Frente</th>
+        <th>Estampa Frente e Verso</th>
+        <th>Branca</th>
+        <th>Interior Cores</th>
+        <th>Mágica Fosca</th>
+        <th>Mágica Brilho</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button id="btnNovaLinhaPreco">Nova Linha</button>
+  <select id="produtoSelectPreco"></select>
+</section>
 
 <!-- ===== Modal de Edição ===== -->
-<div id="modalEditar" class="modal" style="display: none;">
-  <div class="modal-content">
-    <h2 id="modalEditarTitulo">Editar</h2>
-
-    <div class="campo">
-      <label for="modalEditarNome">Nome</label>
-      <input id="modalEditarNome" type="text" placeholder="Digite o nome">
-    </div>
-
-    <div class="campo">
-      <label for="modalEditarTelefone">Telefone</label>
-      <input id="modalEditarTelefone" type="text" placeholder="Digite o telefone">
-    </div>
-
-    <div class="campo">
-      <label for="modalEditarQuantidade">Quantidade</label>
-      <input id="modalEditarQuantidade" type="number" placeholder="Digite a quantidade">
-    </div>
-
-    <div class="campo">
-      <label for="modalEditarPreco">Preço</label>
-      <input id="modalEditarPreco" type="number" step="0.01" placeholder="Digite o preço">
-    </div>
-
-    <div class="botoes">
-      <button id="btnSalvarEdicao" class="btn-salvar">Salvar</button>
-      <button id="btnCancelarEdicao" class="btn-cancelar">Cancelar</button>
-    </div>
-  </div>
+<div id="modalEditar" class="modal">
+  <h2 id="modalEditarTitulo"></h2>
+  <label>Nome: <input id="modalEditarNome" type="text"></label>
+  <label>Telefone: <input id="modalEditarTelefone" type="text"></label>
+  <label>Quantidade: <input id="modalEditarQuantidade" type="number"></label>
+  <label>Preço: <input id="modalEditarPreco" type="number" step="0.01"></label>
+  <button id="btnSalvarEdicao">Salvar</button>
+  <button id="btnCancelarEdicao">Cancelar</button>
 </div>
 
 <!-- Modal Exclusão -->
