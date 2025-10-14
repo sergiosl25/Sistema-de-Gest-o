@@ -30,8 +30,8 @@ window.logout = async () => {
   window.location.href = "login.html";
 };
 
-window.mostrar = function (secaoId) {
-  document.querySelectorAll(".view").forEach(view => view.style.display = "none");
+window.mostrar = function(secaoId){
+  document.querySelectorAll(".view").forEach(v => v.style.display = "none");
   document.getElementById(secaoId).style.display = "block";
 };
 
@@ -762,39 +762,39 @@ window.abrirModal = function(tipo, id) {
   modalEditarQuantidade.value = "";
   modalEditarPreco.value = "";
 
-  // Esconde todos os campos no início
+  // Esconde todos os campos
   modalEditarTelefone.parentElement.style.display = "none";
   modalEditarQuantidade.parentElement.style.display = "none";
   modalEditarPreco.parentElement.style.display = "none";
 
-  if (tipo === "cliente") {
+  if(tipo === "cliente") {
     modalEditarTitulo.textContent = "Editar Cliente";
     modalEditarTelefone.parentElement.style.display = "block";
 
     const cliente = clientes.find(c => c.id === id);
-    if (!cliente) return;
-    modalEditarNome.value = cliente.nome || "";
-    modalEditarTelefone.value = cliente.telefone || "";
+    if(!cliente) return;
+    modalEditarNome.value = cliente.nome;
+    modalEditarTelefone.value = cliente.telefone;
   }
 
-  else if (tipo === "produto") {
+  else if(tipo === "produto") {
     modalEditarTitulo.textContent = "Editar Produto";
     modalEditarQuantidade.parentElement.style.display = "block";
 
     const produto = produtos.find(p => p.id === id);
-    if (!produto) return;
-    modalEditarNome.value = produto.nome || "";
-    modalEditarQuantidade.value = produto.quantidade || 0;
+    if(!produto) return;
+    modalEditarNome.value = produto.nome;
+    modalEditarQuantidade.value = produto.quantidade;
   }
 
-  else if (tipo === "preco") {
+  else if(tipo === "preco") {
     modalEditarTitulo.textContent = "Editar Preço";
     modalEditarPreco.parentElement.style.display = "block";
 
     const preco = precos.find(p => p.id === id);
-    if (!preco) return;
+    if(!preco) return;
     modalEditarNome.value = preco.produtoNome || "";
-    modalEditarPreco.value = preco.valor || 0; // <- campo único de preço
+    modalEditarPreco.value = preco.valor || 0;
   }
 };
 
@@ -818,14 +818,17 @@ btnSalvarEdicao.onclick = async () => {
       for(const s of snaps.docs){
         await updateDoc(doc(db,"precos",s.id), { produtoNome: modalEditarNome.value.trim() });
       }
-    } else if (tipoEdicao === "preco") {
+    } 
+    else if (tipoEdicao === "preco") {
        await updateDoc(doc(db, "precos", itemEdicao), {
         produtoNome: modalEditarNome.value.trim(),
         valor: parseFloat(modalEditarPreco.value) || 0
       });
+    }
 
-  renderTabelaPrecos();
-}
+    renderClientes();
+    renderEstoque();
+    renderTabelaPrecos();
 
     modalEditar.style.display = "none";
   } catch(err) {
@@ -838,10 +841,24 @@ btnCancelarEdicao.onclick = () => {
   modalEditar.style.display = "none";
 };
 
-window.abrirModalExclusao=(acao)=>{
-  acaoExcluir=acao;
-  modalExcluir.style.display="block";
-}
+// === Modal de Exclusão ===
+window.abrirModalExclusao = function(callback){
+  const modal = document.getElementById("modalExcluir");
+  modal.style.display = "block";
+
+  const confirmar = document.getElementById("btnConfirmarExcluir");
+  const cancelar = document.getElementById("btnCancelarExcluir");
+
+  confirmar.onclick = () => {
+    if(callback) callback();
+    modal.style.display = "none";
+  };
+
+  cancelar.onclick = () => {
+    modal.style.display = "none";
+  };
+};
+
 btnConfirmarExcluir.onclick=()=>{ if(acaoExcluir) acaoExcluir(); modalExcluir.style.display="none"; }
 btnCancelarExcluir.onclick=()=>{ modalExcluir.style.display="none"; }
 
@@ -967,23 +984,6 @@ async function excluirOrcamento(id) {
 
 // Torna acessível no HTML
 window.excluirOrcamento = excluirOrcamento;
-
-window.abrirModalExclusao = function (callback) {
-  const modal = document.getElementById("modalExcluir");
-  modal.style.display = "block";
-
-  const confirmar = document.getElementById("btnConfirmarExcluir");
-  const cancelar = document.getElementById("btnCancelarExcluir");
-
-  confirmar.onclick = () => {
-    callback();
-    modal.style.display = "none";
-  };
-
-  cancelar.onclick = () => {
-    modal.style.display = "none";
-  };
-};
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
