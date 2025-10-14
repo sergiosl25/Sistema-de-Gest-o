@@ -672,16 +672,25 @@ function renderTabelaPrecos() {
   if (!tabelaBody) return;
 
   tabelaBody.innerHTML = "";
+
+  if (!precos || precos.length === 0) {
+    // Exibe linha de aviso caso não haja preços
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td colspan="8" style="text-align:center">Nenhum preço cadastrado</td>`;
+    tabelaBody.appendChild(tr);
+    return;
+  }
+
   precos.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${p.produtoNome||""}</td>
-      <td contenteditable data-field="estampaFrente">${p.estampaFrente||0}</td>
-      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso||0}</td>
-      <td contenteditable data-field="branca">${p.branca||0}</td>
-      <td contenteditable data-field="interiorCores">${p.interiorCores||0}</td>
-      <td contenteditable data-field="magicaFosca">${p.magicaFosca||0}</td>
-      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho||0}</td>
+      <td>${p.produtoNome || ""}</td>
+      <td contenteditable data-field="estampaFrente">${p.estampaFrente || 0}</td>
+      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso || 0}</td>
+      <td contenteditable data-field="branca">${p.branca || 0}</td>
+      <td contenteditable data-field="interiorCores">${p.interiorCores || 0}</td>
+      <td contenteditable data-field="magicaFosca">${p.magicaFosca || 0}</td>
+      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho || 0}</td>
       <td>
         <button class="acao-btn editar" onclick="abrirModalPreco('${p.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
@@ -689,37 +698,40 @@ function renderTabelaPrecos() {
 
     tabelaBody.appendChild(tr);
 
-    // Atualiza valores ao sair do campo
+    // Atualiza valores no Firestore ao sair do campo
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
         const num = parseFloat(td.textContent) || 0;
         const field = td.dataset.field;
-        await updateDoc(doc(db,"precos",p.id),{[field]:num});
-      }
+        try {
+          await updateDoc(doc(db, "precos", p.id), { [field]: num });
+        } catch (err) {
+          console.error("Erro ao atualizar preço:", err);
+        }
+      };
     });
   });
 }
 
 function abrirModalPreco(id) {
   const preco = precos.find(p => p.id === id);
-  if (!preco) return;
+  if (!preco) return alert("Preço não encontrado");
 
   itemEdicao = id;
   tipoEdicao = "preco";
 
   modalEditar.style.display = "block";
-  modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome}`;
+  modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome || ""}`;
 
-  // Preenche os campos do modal com os valores do preço
+  // Preenche os campos do modal corretamente
   modalEditarNome.value = preco.produtoNome || "";
   modalEditarQuantidade.value = preco.estampaFrente || 0;
   modalEditarCompra.value = preco.estampaFrenteVerso || 0;
   modalEditarVenda.value = preco.branca || 0;
-  modalEditarVenda.value = preco.interioremCores || 0;
-  modalEditarVenda.value = preco.magicaFosca || 0;
-  modalEditarVenda.value = preco.magicaBrilho || 0;
+  modalEditarTelefone.value = preco.interiorCores || 0;
+  modalEditarQuantidade.value = preco.magicaFosca || 0; 
+  modalEditarCompra.value = preco.magicaBrilho || 0; 
 }
-
 
 async function excluirPreco(id){
   try{ await deleteDoc(doc(db,"precos",id)); }
@@ -950,4 +962,5 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
