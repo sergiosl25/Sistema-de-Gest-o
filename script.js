@@ -666,7 +666,6 @@ function renderProdutoSelectPreco(){
     produtoSelectPreco.appendChild(opt);
   });
 }
-
 function renderTabelaPrecos() {
   const tabelaBody = document.querySelector("#tabelaPrecos tbody");
   if (!tabelaBody) return;
@@ -763,6 +762,49 @@ async function salvarOrcamento() {
   }
 }
 
+window.abrirModal = function(tipo, id) {
+  itemEdicao = id;
+  tipoEdicao = tipo;
+
+  modalEditar.style.display = "block";
+
+  // Limpa campos antes de preencher
+  modalEditarTitulo.textContent = "";
+  modalEditarNome.value = "";
+  modalEditarTelefone.value = "";
+  modalEditarQuantidade.value = "";
+  modalEditarCompra.value = "";
+  modalEditarVenda.value = "";
+
+  if(tipo === "cliente") {
+    const cliente = clientes.find(c => c.id === id);
+    if (!cliente) return;
+    modalEditarTitulo.textContent = `Editar Cliente: ${cliente.nome}`;
+    modalEditarNome.value = cliente.nome || "";
+    modalEditarTelefone.value = cliente.telefone || "";
+  } 
+  else if(tipo === "produto") {
+    const produto = produtos.find(p => p.id === id);
+    if (!produto) return;
+    modalEditarTitulo.textContent = `Editar Produto: ${produto.nome}`;
+    modalEditarNome.value = produto.nome || "";
+    modalEditarQuantidade.value = produto.quantidade || 0;
+  }
+  else if(tipo === "preco") {
+    const preco = precos.find(p => p.id === id);
+    if (!preco) return;
+    modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome}`;
+
+    modalEditarNome.value = preco.produtoNome || "";
+    modalEditarQuantidade.value = preco.estampaFrente || 0;
+    modalEditarCompra.value = preco.estampaFrenteVerso || 0;
+    modalEditarTelefone.value = preco.interiorCores || 0;
+    modalEditarVenda.value = preco.branca || 0;
+    modalEditarCompra.value = preco.magicaFosca || 0;
+    modalEditarVenda.value = preco.magicaBrilho || 0;
+  }
+};
+
 btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
   try {
@@ -771,7 +813,8 @@ btnSalvarEdicao.onclick = async () => {
         nome: modalEditarNome.value.trim(),
         telefone: modalEditarTelefone.value.trim()
       });
-    } else if(tipoEdicao==="produto"){
+    } 
+    else if(tipoEdicao==="produto"){
       await updateDoc(doc(db,"estoque",itemEdicao),{
         nome: modalEditarNome.value.trim(),
         quantidade: parseInt(modalEditarQuantidade.value) || 0
@@ -782,17 +825,17 @@ btnSalvarEdicao.onclick = async () => {
       for(const s of snaps.docs){
         await updateDoc(doc(db,"precos",s.id), { produtoNome: modalEditarNome.value.trim() });
       }
-    } else if(tipoEdicao==="preco"){  // <-- ADICIONE ESTE BLOCO
+    } else if(tipoEdicao==="preco"){  
       await updateDoc(doc(db,"precos",itemEdicao), {
         produtoNome: modalEditarNome.value.trim(),
         estampaFrente: parseFloat(modalEditarQuantidade.value) || 0,
         estampaFrenteVerso: parseFloat(modalEditarCompra.value) || 0,
         branca: parseFloat(modalEditarVenda.value) || 0,
-        interiorCores: parseFloat(modalEditarTelefone.value) || 0, // ajuste se tiver campos extras
+        interiorCores: parseFloat(modalEditarTelefone.value) || 0, 
         magicaFosca: parseFloat(modalEditarTelefone.value) || 0,
         magicaBrilho: parseFloat(modalEditarTelefone.value) || 0
       });
-      renderTabelaPrecos(); // atualiza tabela de preços
+      renderTabelaPrecos(); 
     }
 
     modalEditar.style.display = "none";
@@ -800,9 +843,11 @@ btnSalvarEdicao.onclick = async () => {
     console.error(err);
     alert("Erro ao salvar edição: " + err);
   }
-}
+};
 
-btnCancelarEdicao.onclick=()=>{ modalEditar.style.display="none"; }
+btnCancelarEdicao.onclick = () => {
+  modalEditar.style.display = "none";
+};
 
 window.abrirModalExclusao=(acao)=>{
   acaoExcluir=acao;
@@ -962,5 +1007,3 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
-
