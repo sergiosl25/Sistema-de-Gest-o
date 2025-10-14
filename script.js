@@ -768,40 +768,46 @@ window.abrirModal = function(tipo, id) {
 
   modalEditar.style.display = "block";
 
-  // Limpa campos antes de preencher
+  // Limpa valores
   modalEditarTitulo.textContent = "";
   modalEditarNome.value = "";
   modalEditarTelefone.value = "";
   modalEditarQuantidade.value = "";
-  modalEditarCompra.value = "";
-  modalEditarVenda.value = "";
+  modalEditarPreco.value = "";
 
-  if(tipo === "cliente") {
+  // Esconde todos os campos no início
+  modalEditarTelefone.parentElement.style.display = "none";
+  modalEditarQuantidade.parentElement.style.display = "none";
+  modalEditarPreco.parentElement.style.display = "none";
+
+  if (tipo === "cliente") {
+    modalEditarTitulo.textContent = "Editar Cliente";
+    modalEditarTelefone.parentElement.style.display = "block";
+
     const cliente = clientes.find(c => c.id === id);
     if (!cliente) return;
-    modalEditarTitulo.textContent = `Editar Cliente: ${cliente.nome}`;
     modalEditarNome.value = cliente.nome || "";
     modalEditarTelefone.value = cliente.telefone || "";
-  } 
-  else if(tipo === "produto") {
+  }
+
+  else if (tipo === "produto") {
+    modalEditarTitulo.textContent = "Editar Produto";
+    modalEditarQuantidade.parentElement.style.display = "block";
+
     const produto = produtos.find(p => p.id === id);
     if (!produto) return;
-    modalEditarTitulo.textContent = `Editar Produto: ${produto.nome}`;
     modalEditarNome.value = produto.nome || "";
     modalEditarQuantidade.value = produto.quantidade || 0;
   }
-  else if(tipo === "preco") {
+
+  else if (tipo === "preco") {
+    modalEditarTitulo.textContent = "Editar Preço";
+    modalEditarPreco.parentElement.style.display = "block";
+
     const preco = precos.find(p => p.id === id);
     if (!preco) return;
-    modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome}`;
-
     modalEditarNome.value = preco.produtoNome || "";
-    modalEditarQuantidade.value = preco.estampaFrente || 0;
-    modalEditarCompra.value = preco.estampaFrenteVerso || 0;
-    modalEditarTelefone.value = preco.interiorCores || 0;
-    modalEditarVenda.value = preco.branca || 0;
-    modalEditarCompra.value = preco.magicaFosca || 0;
-    modalEditarVenda.value = preco.magicaBrilho || 0;
+    modalEditarPreco.value = preco.valor || 0; // <- campo único de preço
   }
 };
 
@@ -825,18 +831,14 @@ btnSalvarEdicao.onclick = async () => {
       for(const s of snaps.docs){
         await updateDoc(doc(db,"precos",s.id), { produtoNome: modalEditarNome.value.trim() });
       }
-    } else if(tipoEdicao==="preco"){  
-      await updateDoc(doc(db,"precos",itemEdicao), {
+    } else if (tipoEdicao === "preco") {
+       await updateDoc(doc(db, "precos", itemEdicao), {
         produtoNome: modalEditarNome.value.trim(),
-        estampaFrente: parseFloat(modalEditarVenda.value) || 0,
-        estampaFrenteVerso: parseFloat(modalEditarVenda.value) || 0,
-        branca: parseFloat(modalEditarVenda.value) || 0,
-        interiorCores: parseFloat(modalEditarVenda.value) || 0, 
-        magicaFosca: parseFloat(modalEditarVenda.value) || 0,
-        magicaBrilho: parseFloat(modalEditarVenda.value) || 0
+        valor: parseFloat(modalEditarPreco.value) || 0
       });
-      renderTabelaPrecos(); 
-    }
+
+  renderTabelaPrecos();
+}
 
     modalEditar.style.display = "none";
   } catch(err) {
@@ -1007,5 +1009,3 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
-
