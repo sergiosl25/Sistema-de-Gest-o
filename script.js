@@ -35,17 +35,6 @@ window.mostrar = function (secaoId) {
   document.getElementById(secaoId).style.display = "block";
 };
 
-  
-  // mostra a view escolhida
-  const target = document.getElementById(viewId);
-  if (target) {
-    target.classList.add("active");
-  } else {
-    console.warn(`⚠️ View "${viewId}" não encontrada.`);
-  }
-
-
-
 const clientesCol = collection(db, "clientes");
 const estoqueCol = collection(db, "estoque"); // antes 'produtos'
 const vendasCol = collection(db, "vendas");
@@ -961,3 +950,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
