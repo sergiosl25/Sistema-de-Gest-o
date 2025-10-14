@@ -256,7 +256,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     tipoPrecoSelect.innerHTML = "<option value=''>Selecione o tipo de preço</option>";
   };
 
-});
 // ==================================================
 // ORÇAMENTOS
 // ==================================================
@@ -384,3 +383,4 @@ async function carregarRegistros() {
 }
 
 carregarRegistros();
+});
