@@ -1,3 +1,9 @@
+// Firebase
+  const db = window.db;
+  import { 
+    collection, addDoc, deleteDoc, doc, updateDoc, getDocs, onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
 // ==================================================
 // Aguarda o DOM estar pronto antes de inicializar
 // ==================================================
@@ -17,12 +23,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const produtoSelectPreco = document.getElementById("produtoSelectPreco");
   const tabelaPrecos = document.getElementById("tabelaPrecos").querySelector("tbody");
-
-  // Firebase
-  const db = window.db;
-  import { 
-    collection, addDoc, deleteDoc, doc, updateDoc, getDocs, onSnapshot 
-  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
   // ==================================================
   // FUNÇÃO PARA TROCAR DE TELA
@@ -384,3 +384,4 @@ async function carregarRegistros() {
 
 carregarRegistros();
 });
+
