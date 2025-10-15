@@ -156,31 +156,6 @@ onSnapshot(precosCol, snapshot => {
   renderTabelaPrecos();
 });
 
-tipoPrecoSelect.onchange = async () => {
-  const produtoId = produtoSelect.value;
-  if (!produtoId) return alert("Selecione um produto primeiro.");
-
-  const tipo = tipoPrecoSelect.value;
-  if (!tipo) return;
-
-  try {
-    const precoRef = collection(db, "precos");
-    const q = query(precoRef, where("produtoId", "==", produtoId));
-    const snap = await getDocs(q);
-
-    let precoEscolhido = 0;
-    snap.forEach(docSnap => {
-      const data = docSnap.data();
-      if (data[tipo]) precoEscolhido = data[tipo];
-    });
-
-    precoVenda.value = precoEscolhido.toFixed(2);
-  } catch (err) {
-    console.error("Erro ao buscar preço:", err);
-  }
-};
-
-
 /* =========================
    CLIENTES
    ========================= */
@@ -358,28 +333,21 @@ tipoPrecoSelect.addEventListener("change", async () => {
       query(collection(db, "precos"), where("produtoId", "==", produtoId))
     );
 
+    if (precosSnap.empty) {
+      console.warn("Nenhum preço encontrado para este produto.");
+      return;
+    }
+
     precosSnap.forEach(docSnap => {
       const dados = docSnap.data();
       if (dados[tipo] !== undefined) {
-        precoVendaInput.value = dados[tipo];
+        precoVendaInput.value = Number(dados[tipo]).toFixed(2);
       }
     });
   } catch (err) {
     console.error("Erro ao carregar preço:", err);
   }
 });
-
-// ==========================
-// Atualiza campo de preço quando escolhe tipo
-// ==========================
-tipoPrecoSelect.onchange = () => {
-  const opt = tipoPrecoSelect.selectedOptions[0];
-  if (opt && opt.dataset.valor) {
-    precoVenda.value = opt.dataset.valor;
-  } else {
-    precoVenda.value = "";
-  }
-};
 
 async function excluirProduto(id){
   try {
@@ -1063,7 +1031,4 @@ window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
-window.abrirModalPreco = abrirModalPreco
-
-
-
+window.abrirModalPreco = abrirModalPreco;
