@@ -284,11 +284,28 @@ produtoSelect.addEventListener("change", async () => {
 
   if (!produtoId) return;
 
+  // 🔍 Procura o produto selecionado no array global de produtos
   const produtoDoc = produtos.find(p => p.id === produtoId);
-  if (!produtoDoc) return;
+  if (!produtoDoc) {
+    console.warn("Produto não encontrado no array de produtos!");
+    return;
+  }
 
-  // ✅ Garante compatibilidade com Firestore (doc.data() ou dados diretos)
-  const dados = typeof produtoDoc.data === "function" ? produtoDoc.data() : produtoDoc.data;
+  // ✅ Captura os dados com segurança
+  let dados = null;
+  if (typeof produtoDoc.data === "function") {
+    dados = produtoDoc.data();
+  } else if (typeof produtoDoc.data === "object") {
+    dados = produtoDoc.data;
+  } else if (typeof produtoDoc === "object") {
+    dados = produtoDoc;
+  }
+
+  if (!dados) {
+    console.error("Dados do produto indefinidos:", produtoDoc);
+    alert("Erro ao carregar dados do produto!");
+    return;
+  }
 
   const tipos = [
     { campo: "estampaFrente", texto: "Estampa Frente" },
@@ -314,16 +331,27 @@ produtoSelect.addEventListener("change", async () => {
 tipoPrecoSelect.addEventListener("change", () => {
   const tipo = tipoPrecoSelect.value;
   const produtoId = produtoSelect.value;
-
   if (!tipo || !produtoId) return;
 
   const produtoDoc = produtos.find(p => p.id === produtoId);
   if (!produtoDoc) return;
 
-  // ✅ Mesma correção aqui também
-  const dados = typeof produtoDoc.data === "function" ? produtoDoc.data() : produtoDoc.data;
-  const valor = dados[tipo];
+  let dados = null;
+  if (typeof produtoDoc.data === "function") {
+    dados = produtoDoc.data();
+  } else if (typeof produtoDoc.data === "object") {
+    dados = produtoDoc.data;
+  } else if (typeof produtoDoc === "object") {
+    dados = produtoDoc;
+  }
 
+  if (!dados) {
+    console.error("Dados do produto indefinidos:", produtoDoc);
+    alert("Erro ao carregar dados do produto!");
+    return;
+  }
+
+  const valor = dados[tipo];
   if (valor !== undefined && valor !== null) {
     const preco = Number(String(valor).replace(",", "."));
     if (!isNaN(preco)) {
@@ -1021,6 +1049,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
