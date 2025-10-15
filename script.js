@@ -323,12 +323,12 @@ produtoSelect.addEventListener("change", async () => {
       const dados = docSnap.data();
 
       const tipos = [
-        { campo: "estampaFrente", texto: "Estampa frente" },
+        { campo: "estampaFrente", texto: "Estampa Frente" },
         { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
         { campo: "branca", texto: "Branca" },
-        { campo: "interiorCores", texto: "Interior em cores" },
-        { campo: "magicaFosca", texto: "Mágica fosca" },
-        { campo: "magicaBrilho", texto: "Mágica brilho" },
+        { campo: "interiorCores", texto: "Interior em Cores" },
+        { campo: "magicaFosca", texto: "Mágica Fosca" },
+        { campo: "magicaBrilho", texto: "Mágica Brilho" },
         { campo: "precoVenda", texto: "Venda padrão" },
       ];
 
@@ -1064,5 +1064,6 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco
+
 
 
