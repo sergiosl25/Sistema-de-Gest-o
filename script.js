@@ -112,72 +112,6 @@ let itemEdicao = null;
 let tipoEdicao = null;
 let acaoExcluir = null;
 
-// === Quando o usuário seleciona um produto ===
-produtoSelect.addEventListener("change", async () => {
-  const produtoSelecionado = produtoSelect.value;
-
-  tipoPrecoSelect.innerHTML = `<option value="">Selecione o tipo de preço</option>`;
-  precoVendaInput.value = "";
-
-  if (!produtoSelecionado) return;
-
-  try {
-    const tabelaRef = collection(db, "tabelaPrecos");
-    const q = query(tabelaRef, where("produto", "==", produtoSelecionado));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const dados = querySnapshot.docs[0].data();
-
-      const opcoes = [
-        { label: "Estampa Frente", key: "estampaFrente" },
-        { label: "Estampa Frente e Verso", key: "estampaFrenteEVerso" },
-        { label: "Branca", key: "branca" },
-        { label: "Interior Cores", key: "interiorCores" },
-        { label: "Mágica Fosca", key: "magicaFosca" },
-        { label: "Mágica Brilho", key: "magicaBrilho" }
-      ];
-
-      opcoes.forEach(op => {
-        if (dados[op.key] !== undefined && dados[op.key] !== null) {
-          const opt = document.createElement("option");
-          opt.value = op.key;
-          opt.textContent = `${op.label} - R$ ${Number(dados[op.key]).toFixed(2)}`;
-          tipoPrecoSelect.appendChild(opt);
-        }
-      });
-    }
-  } catch (error) {
-    console.error("Erro ao carregar preços:", error);
-  }
-});
-
-// === Quando o usuário seleciona o tipo de preço ===
-tipoPrecoSelect.addEventListener("change", async () => {
-  const produtoSelecionado = produtoSelect.value;
-  const tipoPreco = tipoPrecoSelect.value;
-
-  if (!produtoSelecionado || !tipoPreco) {
-    precoVendaInput.value = "";
-    return;
-  }
-
-  try {
-    const tabelaRef = collection(db, "tabelaPrecos");
-    const q = query(tabelaRef, where("produto", "==", produtoSelecionado));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const dados = querySnapshot.docs[0].data();
-      precoVendaInput.value = dados[tipoPreco]
-        ? Number(dados[tipoPreco]).toFixed(2)
-        : "";
-    }
-  } catch (error) {
-    console.error("Erro ao buscar preço:", error);
-  }
-});
-
 /* =========================
    Helpers
    ========================= */
@@ -366,6 +300,74 @@ produtoSelect.onchange = async () => {
     }
   });
 };
+
+// ==== Atualizar tipos de preço conforme o produto selecionado ====
+produtoSelect.addEventListener("change", async () => {
+  const produtoId = produtoSelect.value;
+  tipoPrecoSelect.innerHTML = '<option value="">Selecione o tipo de preço</option>';
+  precoVendaInput.value = "";
+
+  if (!produtoId) return;
+
+  try {
+    const precosSnap = await getDocs(
+      query(collection(db, "precos"), where("produtoId", "==", produtoId))
+    );
+
+    if (precosSnap.empty) {
+      console.warn("Nenhum preço encontrado para este produto.");
+      return;
+    }
+
+    precosSnap.forEach(docSnap => {
+      const dados = docSnap.data();
+
+      const tipos = [
+        { campo: "estampaFrente", texto: "Estampa frente" },
+        { campo: "estampaFrenteAtras", texto: "Frente e atrás" },
+        { campo: "branca", texto: "Branca" },
+        { campo: "interiorCores", texto: "Interior em cores" },
+        { campo: "magicaFosca", texto: "Mágica fosca" },
+        { campo: "magicaBrilho", texto: "Mágica brilho" },
+        { campo: "precoVenda", texto: "Venda padrão" },
+      ];
+
+      tipos.forEach(tipo => {
+        if (dados[tipo.campo] !== undefined && dados[tipo.campo] !== null) {
+          const opt = document.createElement("option");
+          opt.value = tipo.campo;
+          opt.textContent = tipo.texto;
+          tipoPrecoSelect.appendChild(opt);
+        }
+      });
+    });
+  } catch (err) {
+    console.error("Erro ao carregar tipos de preço:", err);
+  }
+});
+
+tipoPrecoSelect.addEventListener("change", async () => {
+  const produtoId = produtoSelect.value;
+  const tipo = tipoPrecoSelect.value;
+  precoVendaInput.value = "";
+
+  if (!produtoId || !tipo) return;
+
+  try {
+    const precosSnap = await getDocs(
+      query(collection(db, "precos"), where("produtoId", "==", produtoId))
+    );
+
+    precosSnap.forEach(docSnap => {
+      const dados = docSnap.data();
+      if (dados[tipo] !== undefined) {
+        precoVendaInput.value = dados[tipo];
+      }
+    });
+  } catch (err) {
+    console.error("Erro ao carregar preço:", err);
+  }
+});
 
 // ==========================
 // Atualiza campo de preço quando escolhe tipo
@@ -1062,3 +1064,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco
+
