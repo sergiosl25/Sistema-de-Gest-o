@@ -276,50 +276,59 @@ produtoSelect.onchange = async () => {
   });
 };
 
-// ==== Atualizar tipos de preço conforme o produto selecionado ====
-produtoSelect.addEventListener("change", async () => {
+// ==== Atualizar o campo de preço conforme o produto e tipo selecionados ====
+tipoPrecoSelect.addEventListener("change", () => {
+  const tipo = tipoPrecoSelect.value;
   const produtoId = produtoSelect.value;
-  tipoPrecoSelect.innerHTML = '<option value="">Selecione o tipo de preço</option>';
-  precoVendaInput.value = "";
 
-  if (!produtoId) return;
+  if (!tipo || !produtoId) return;
 
-  try {
-    const precosSnap = await getDocs(
-      query(collection(db, "precos"), where("produtoId", "==", produtoId))
-    );
+  const produtoDoc = produtos.find(p => p.id === produtoId);
+  if (produtoDoc) {
+    const dados = produtoDoc.data;
+    const valor = dados[tipo];
 
-    if (precosSnap.empty) {
-      console.warn("Nenhum preço encontrado para este produto.");
-      return;
+    if (valor !== undefined && valor !== null) {
+      // ✅ Converte e formata corretamente
+      const preco = Number(String(valor).replace(",", "."));
+      if (!isNaN(preco)) {
+        precoVendaInput.value = preco.toFixed(2);
+      } else {
+        precoVendaInput.value = "";
+        alert("Erro: valor de preço inválido!");
+      }
+    } else {
+      precoVendaInput.value = "";
+      alert("Preço do produto não encontrado na tabela de preços!");
     }
-
-    precosSnap.forEach(docSnap => {
-      const dados = docSnap.data();
-
-      const tipos = [
-        { campo: "estampaFrente", texto: "Estampa Frente" },
-        { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
-        { campo: "branca", texto: "Branca" },
-        { campo: "interiorCores", texto: "Interior em Cores" },
-        { campo: "magicaFosca", texto: "Mágica Fosca" },
-        { campo: "magicaBrilho", texto: "Mágica Brilho" },
-        { campo: "precoVenda", texto: "Venda padrão" },
-      ];
-
-      tipos.forEach(tipo => {
-        if (dados[tipo.campo] !== undefined && dados[tipo.campo] !== null) {
-          const opt = document.createElement("option");
-          opt.value = tipo.campo;
-          opt.textContent = tipo.texto;
-          tipoPrecoSelect.appendChild(opt);
-        }
-      });
-    });
-  } catch (err) {
-    console.error("Erro ao carregar tipos de preço:", err);
   }
 });
+
+// ==== Popular o select de tipos de preço ====
+precosSnap.forEach(docSnap => {
+  const dados = docSnap.data();
+
+  const tipos = [
+    { campo: "estampaFrente", texto: "Estampa Frente" },
+    { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
+    { campo: "branca", texto: "Branca" },
+    { campo: "interiorCores", texto: "Interior em Cores" },
+    { campo: "magicaFosca", texto: "Mágica Fosca" },
+    { campo: "magicaBrilho", texto: "Mágica Brilho" },
+    { campo: "precoVenda", texto: "Venda padrão" },
+  ];
+
+  tipos.forEach(tipo => {
+    // ✅ Cria as opções, mas não alerta nem define preço
+    if (dados[tipo.campo] !== undefined && dados[tipo.campo] !== null) {
+      const opt = document.createElement("option");
+      opt.value = tipo.campo;
+      opt.textContent = tipo.texto;
+      tipoPrecoSelect.appendChild(opt);
+    }
+  });
+});
+
 
 tipoPrecoSelect.addEventListener("change", async () => {
   const produtoId = produtoSelect.value;
@@ -1032,3 +1041,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
