@@ -324,7 +324,7 @@ produtoSelect.addEventListener("change", async () => {
 
       const tipos = [
         { campo: "estampaFrente", texto: "Estampa frente" },
-        { campo: "estampaFrenteAtras", texto: "Frente e atrás" },
+        { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
         { campo: "branca", texto: "Branca" },
         { campo: "interiorCores", texto: "Interior em cores" },
         { campo: "magicaFosca", texto: "Mágica fosca" },
@@ -1064,4 +1064,5 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco
+
 
