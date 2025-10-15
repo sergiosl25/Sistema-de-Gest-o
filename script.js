@@ -276,37 +276,26 @@ produtoSelect.onchange = async () => {
   });
 };
 
-// ==== Atualizar tipos de preço conforme o produto selecionado ====
+// ==== Atualiza tipos de preço quando o produto é selecionado ====
 produtoSelect.addEventListener("change", async () => {
   const produtoId = produtoSelect.value;
-  tipoPrecoSelect.innerHTML = "<option value=''>Selecione o tipo de preço</option>";
+
+  // Limpa o select de tipos de preço
+  tipoPrecoSelect.innerHTML = '<option value="">Selecione o tipo de preço</option>';
   precoVendaInput.value = "";
 
   if (!produtoId) return;
 
-  // 🔍 Procura o produto selecionado no array global de produtos
+  // Busca o documento do produto no Firestore
   const produtoDoc = produtos.find(p => p.id === produtoId);
-  if (!produtoDoc) {
-    console.warn("Produto não encontrado no array de produtos!");
-    return;
-  }
+  if (!produtoDoc) return;
 
-  // ✅ Captura os dados com segurança
-  let dados = null;
-  if (typeof produtoDoc.data === "function") {
-    dados = produtoDoc.data();
-  } else if (typeof produtoDoc.data === "object") {
-    dados = produtoDoc.data;
-  } else if (typeof produtoDoc === "object") {
-    dados = produtoDoc;
-  }
+  const dados = produtoDoc.data;
 
-  if (!dados) {
-    console.error("Dados do produto indefinidos:", produtoDoc);
-    alert("Erro ao carregar dados do produto!");
-    return;
-  }
+  // Mostra no console pra debug
+  console.log("📦 Dados do produto selecionado:", dados);
 
+  // Define os possíveis tipos de preço
   const tipos = [
     { campo: "estampaFrente", texto: "Estampa Frente" },
     { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
@@ -317,6 +306,7 @@ produtoSelect.addEventListener("change", async () => {
     { campo: "precoVenda", texto: "Venda Padrão" },
   ];
 
+  // Adiciona as opções que o produto realmente possui
   tipos.forEach(tipo => {
     if (dados[tipo.campo] !== undefined && dados[tipo.campo] !== null) {
       const opt = document.createElement("option");
@@ -325,6 +315,11 @@ produtoSelect.addEventListener("change", async () => {
       tipoPrecoSelect.appendChild(opt);
     }
   });
+
+  // Se não tiver nenhum tipo disponível, alerta
+  if (tipoPrecoSelect.options.length === 1) {
+    alert("Nenhum tipo de preço encontrado para este produto.");
+  }
 });
 
 // ==== Quando o tipo de preço é selecionado ====
@@ -1049,6 +1044,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
