@@ -287,7 +287,9 @@ produtoSelect.addEventListener("change", async () => {
   const produtoDoc = produtos.find(p => p.id === produtoId);
   if (!produtoDoc) return;
 
-  const dados = produtoDoc.data;
+  // ✅ Garante compatibilidade com Firestore (doc.data() ou dados diretos)
+  const dados = typeof produtoDoc.data === "function" ? produtoDoc.data() : produtoDoc.data;
+
   const tipos = [
     { campo: "estampaFrente", texto: "Estampa Frente" },
     { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
@@ -298,7 +300,6 @@ produtoSelect.addEventListener("change", async () => {
     { campo: "precoVenda", texto: "Venda Padrão" },
   ];
 
-  // ✅ Popula o select com os tipos que realmente existem no produto
   tipos.forEach(tipo => {
     if (dados[tipo.campo] !== undefined && dados[tipo.campo] !== null) {
       const opt = document.createElement("option");
@@ -319,7 +320,8 @@ tipoPrecoSelect.addEventListener("change", () => {
   const produtoDoc = produtos.find(p => p.id === produtoId);
   if (!produtoDoc) return;
 
-  const dados = produtoDoc.data;
+  // ✅ Mesma correção aqui também
+  const dados = typeof produtoDoc.data === "function" ? produtoDoc.data() : produtoDoc.data;
   const valor = dados[tipo];
 
   if (valor !== undefined && valor !== null) {
@@ -1019,5 +1021,6 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
