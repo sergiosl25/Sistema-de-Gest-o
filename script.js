@@ -250,22 +250,21 @@ function renderEstoque() {
 produtoSelect.onchange = async () => {
   const produtoId = produtoSelect.value;
   tipoPrecoSelect.innerHTML = "<option value=''>Selecione o tipo de preço</option>";
-  precoVenda.value = "";
+  precoVendaInput.value = "";
 
   if (!produtoId) return;
 
-  const produtoSnap = await getDoc(doc(db, "estoque", produtoId));
-  if (!produtoSnap.exists()) return;
+  const produtoSelecionado = produtos.find(p => p.id === produtoId);
+  if (!produtoSelecionado) return;
 
-  const produtoNome = produtoSnap.data().nome;
-
-  const precosRef = collection(db, "precos");
-  const precoSnap = await getDocs(query(precosRef, where("produtoId", "==", produtoId)));
   if (precoSnap.empty) {
-    alert("Nenhuma tabela de preços cadastrada para este produto!");
+    console.warn("Nenhuma tabela de preços cadastrada para este produto!");
     return;
   }
-  const precoDoProduto = precoSnap.docs[0].data();
+
+  const precoDoProduto = precoSnap.docs[0].data(); 
+  console.log("💰 Preço encontrado:", precoDoProduto);
+  
   const tipos = [
     { campo: "estampaFrente", texto: "Estampa Frente" },
     { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
@@ -1070,5 +1069,6 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
