@@ -129,10 +129,23 @@ onSnapshot(clientesCol, snapshot => {
 });
 
 onSnapshot(estoqueCol, snapshot => {
-  produtos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  produtos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
   renderEstoque();
   renderProdutoSelectOrcamento();
   renderProdutoSelectPreco();
+
+  // ✅ Atualiza o select da tela de vendas (produtoSelect)
+  const produtoSelect = document.getElementById("produtoSelect");
+  if (produtoSelect) {
+    produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
+    produtos.forEach(prod => {
+      const opt = document.createElement("option");
+      opt.value = prod.id;
+      opt.textContent = prod.nome || "Sem nome";
+      produtoSelect.appendChild(opt);
+    });
+  }
 });
 
 onSnapshot(vendasCol, snapshot => {
@@ -154,6 +167,49 @@ onSnapshot(orcamentosCol, (snapshot) => {
 onSnapshot(precosCol, snapshot => {
   precos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
   renderTabelaPrecos();
+});
+
+// ==== Quando um produto é selecionado, mostra tipos de preço ====
+document.getElementById("produtoSelect").addEventListener("change", () => {
+  const produtoId = produtoSelect.value;
+
+  tipoPrecoSelect.innerHTML = '<option value="">Selecione o tipo de preço</option>';
+  precoVendaInput.value = "";
+
+  if (!produtoId) return;
+
+  const produtoDoc = produtos.find(p => p.id === produtoId);
+  if (!produtoDoc) {
+    console.warn("⚠️ Produto não encontrado:", produtoId);
+    return;
+  }
+
+  const dados = produtoDoc;
+  console.log("📦 Dados do produto selecionado:", dados);
+
+  const tipos = [
+    { campo: "estampaFrente", texto: "Estampa Frente" },
+    { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
+    { campo: "branca", texto: "Branca" },
+    { campo: "interiorCores", texto: "Interior em Cores" },
+    { campo: "magicaFosca", texto: "Mágica Fosca" },
+    { campo: "magicaBrilho", texto: "Mágica Brilho" },
+    { campo: "precoVenda", texto: "Venda Padrão" },
+  ];
+
+  let achou = false;
+
+  tipos.forEach(tipo => {
+    if (dados[tipo.campo] !== undefined && dados[tipo.campo] !== null) {
+      const opt = document.createElement("option");
+      opt.value = tipo.campo;
+      opt.textContent = tipo.texto;
+      tipoPrecoSelect.appendChild(opt);
+      achou = true;
+    }
+  });
+
+  if (!achou) alert("Nenhum tipo de preço encontrado para este produto.");
 });
 
 /* =========================
@@ -1044,6 +1100,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
