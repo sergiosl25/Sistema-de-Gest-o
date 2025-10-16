@@ -147,11 +147,6 @@ onSnapshot(orcamentosCol, (snapshot) => {
   renderOrcamentosSalvos();
 });
 
-onSnapshot(precosCol, snapshot => {
-  precos = snapshot.docs.map(d=>({id:d.id,...d.data()}));
-  renderTabelaPrecos();
-});
-
 /* =========================
    CLIENTES
    ========================= */
@@ -250,7 +245,7 @@ produtoSelect.onchange = async () => {
 
   if (!produtoId) return;
 
-  const produtoSnap = await getDoc(doc(db, "estoque", produtoId));
+  const produtoSnap = await getDocs(doc(db, "estoque", produtoId));
   if (!produtoSnap.exists()) return;
 
   const produtoNome = produtoSnap.data().nome;
@@ -355,7 +350,7 @@ async function excluirProduto(id){
   try {
      const q = query(precosCol, where("produtoId","==",id));
     const snaps = await getDocs(q);
-    for(const s of snaps.docs) await deleteDoc(doc(db, "precos", s.id));
+    for(const s of snaps.docs) await deleteDoc(doc(precosCol, s.id));
     await deleteDoc(doc(db, "estoque", id));
     renderEstoque();
     renderProdutoSelectOrcamento();
@@ -758,7 +753,7 @@ function abrirModalPreco(id) {
 }
 
 async function excluirPreco(id){
-  try{ await deleteDoc(doc(db,"precos",id)); }
+  try{ await deleteDoc(doc(precosCol, id)); }
   catch(err){ console.error(err); alert("Erro ao excluir preço: "+err);}
 }
 
@@ -858,7 +853,7 @@ btnSalvarEdicao.onclick = async () => {
       }
     } 
     else if (tipoEdicao === "preco") {
-       await updateDoc(doc(db, "precos", itemEdicao), {
+       await updateDoc(doc(precosCol, itemEdicao), {
         produtoNome: modalEditarNome.value.trim(),
         valor: parseFloat(modalEditarPreco.value) || 0
       });
