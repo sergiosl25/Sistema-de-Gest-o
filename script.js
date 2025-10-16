@@ -818,14 +818,21 @@ window.abrirModal = function(tipo, id) {
   modalEditarPreco.parentElement.style.display = "none";
 
   if(tipo === "cliente") {
-    modalEditarTitulo.textContent = "Editar Cliente";
-    modalEditarTelefone.parentElement.style.display = "block";
+  modalEditarTitulo.textContent = "Editar Cliente";
 
-    const cliente = clientes.find(c => c.id === id);
-    if(!cliente) return;
-    modalEditarNome.value = cliente.nome;
-    modalEditarTelefone.value = cliente.telefone;
-  }
+  // Mostra somente os campos relevantes
+  modalEditarNome.parentElement.style.display = "block";
+  modalEditarTelefone.parentElement.style.display = "block";
+  modalEditarQuantidade.parentElement.style.display = "none";
+  modalEditarCompra.parentElement.style.display = "none";
+  modalEditarVenda.parentElement.style.display = "none";
+
+  // Preenche os campos com os dados do cliente
+  const cliente = clientes.find(c => c.id === id);
+  if (!cliente) return;
+  modalEditarNome.value = cliente.nome;
+  modalEditarTelefone.value = cliente.telefone || "";
+}
 
   else if(tipo === "produto") {
     modalEditarTitulo.textContent = "Editar Produto";
@@ -852,12 +859,11 @@ btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
   try {
     if(tipoEdicao==="cliente"){
-    await updateDoc(doc(clientesCol, itemEdicao), {
-      nome: modalEditarNome.value.trim(),
-      telefone: modalEditarTelefone.value.trim()
+    await updateDoc(doc(db,"clientes",itemEdicao),{
+    nome: modalEditarNome.value.trim(),
+    telefone: modalEditarTelefone.value.trim()
     });
-    renderClientes(); 
-  }
+   }
     else if(tipoEdicao==="produto"){
       await updateDoc(doc(db,"estoque",itemEdicao),{
         nome: modalEditarNome.value.trim(),
@@ -1069,6 +1075,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
