@@ -259,22 +259,31 @@ produtoSelect.onchange = async () => {
   const produtoNome = produtoSnap.data().nome;
 
   const precosRef = collection(db, "precos");
-  const precoSnap = await getDoc(query(precosRef, where("produto", "==", produtoId)));
-
-  precoSnap.forEach(p => {
-    const data = p.data();
-    for (const key in data) {
-      if (typeof data[key] === "number" && data[key] > 0) {
-        const opt = document.createElement("option");
-        opt.value = key;
-        opt.textContent = `${key.replace(/([A-Z])/g, " $1")} (R$ ${data[key].toFixed(2)})`;
-        opt.dataset.valor = data[key];
-        tipoPrecoSelect.appendChild(opt);
+  const precoSnap = await getDocs(query(precosRef, where("produtoId", "==", produtoId)));
+  if (precoSnap.empty) {
+    alert("Nenhuma tabela de preços cadastrada para este produto!");
+    return;
+  }
+  const precoDoProduto = precoSnap.docs[0].data();
+  const tipos = [
+    { campo: "estampaFrente", texto: "Estampa Frente" },
+    { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
+    { campo: "branca", texto: "Branca" },
+    { campo: "interiorCores", texto: "Interior em Cores" },
+    { campo: "magicaFosca", texto: "Mágica Fosca" },
+    { campo: "magicaBrilho", texto: "Mágica Brilho" },
+    { campo: "precoVenda", texto: "Venda Padrão" }
+  ];
+  tipos.forEach(tipo => {
+    const valor = precoDoProduto[tipo.campo];
+    if (valor !== undefined && valor !== null && valor > 0) {
+      const opt = document.createElement("option");
+      opt.value = tipo.campo;
+      opt.textContent = `${tipo.texto} (R$ ${valor.toFixed(2)})`;
+      tipoPrecoSelect.appendChild(opt);
       }
-    }
   });
 };
-
 
 // =========================
 // Quando seleciona um produto
@@ -1060,3 +1069,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
