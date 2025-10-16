@@ -5,17 +5,16 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 import {
   collection,
+  onSnapshot,
   addDoc,
-  deleteDoc,
   doc,
   updateDoc,
-  onSnapshot,
-  getDoc,
-  query,
-  where,
+  deleteDoc,
   getDocs,
-  runTransaction
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+
 /* =========================
    Proteção de acesso
    ========================= */
@@ -39,6 +38,7 @@ const clientesCol = collection(db, "clientes");
 const estoqueCol = collection(db, "estoque"); // antes 'produtos'
 const vendasCol = collection(db, "vendas");
 const orcamentosCol = collection(db, "orcamentos");
+const precosCol = collection(db, "precos");
 
 /* =========================
    Estado local (cache)
@@ -1029,11 +1029,26 @@ function mostrar(viewId) {
   });
 }
 
+// =========================
+// 🔹 Funções de controle de modal (edição/exclusão)
+// =========================
+function abrirModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = "block";
+}
+
+function fecharModal(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = "none";
+}
+
 // Torna acessível no HTML
 window.excluirOrcamento = excluirOrcamento;
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
+window.abrirModal = abrirModal;
+window.fecharModal = fecharModal;
 window.excluirCliente = excluirCliente;
 window.excluirProduto = excluirProduto;
 window.excluirVenda = excluirVenda;
@@ -1043,4 +1058,3 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
