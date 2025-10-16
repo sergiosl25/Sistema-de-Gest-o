@@ -859,11 +859,11 @@ btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
   try {
     if(tipoEdicao==="cliente"){
-    await updateDoc(doc(db,"clientes",itemEdicao),{
-    nome: modalEditarNome.value.trim(),
-    telefone: modalEditarTelefone.value.trim()
-    });
-   }
+      await updateDoc(doc(db,"clientes",itemEdicao),{
+      nome: modalEditarNome.value.trim(),
+      telefone: modalEditarTelefone.value.trim()
+      });
+    }
     else if(tipoEdicao==="produto"){
       await updateDoc(doc(db,"estoque",itemEdicao),{
         nome: modalEditarNome.value.trim(),
@@ -1075,6 +1075,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
