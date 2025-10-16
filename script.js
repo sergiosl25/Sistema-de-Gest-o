@@ -350,12 +350,14 @@ btnVender.onclick = async () => {
 
     // 🔍 Buscar o preço do produto na tabela de preços (usando o nome)
     const precosRef = collection(db, "precos");
-    const precoSnap = await getDoc(query(precosRef, where("produto", "==", produtoId)));
+    const q = query(precosRef, where("produto", "==", produtoId));
+    const querySnap = await getDocs(q);
 
     let preco = 0;
-    precoSnap.forEach(p => {
+    querySnap.forEach(p => {
       preco = p.data().precoVenda || p.data().preco || 0;
     });
+
 
     // Se não encontrou preço, avisa e interrompe
     if (preco <= 0) {
@@ -764,20 +766,19 @@ window.abrirModal = function(tipo, id) {
   modalEditarQuantidade.value = "";
   modalEditarPreco.value = "";
 
-  // Esconde todos os campos
-  modalEditarTelefone.parentElement.style.display = "none";
-  modalEditarQuantidade.parentElement.style.display = "none";
-  modalEditarPreco.parentElement.style.display = "none";
+  if (modalEditarTelefone) modalEditarTelefone.parentElement.style.display = "block";
+  if (modalEditarQuantidade) modalEditarQuantidade.parentElement.style.display = "block";
+  if (modalEditarPreco) modalEditarPreco.parentElement.style.display = "block";
 
   if(tipo === "cliente") {
   modalEditarTitulo.textContent = "Editar Cliente";
 
   // Mostra somente os campos relevantes
-  modalEditarNome.parentElement.style.display = "block";
-  modalEditarTelefone.parentElement.style.display = "block";
-  modalEditarQuantidade.parentElement.style.display = "none";
-  modalEditarCompra.parentElement.style.display = "none";
-  modalEditarVenda.parentElement.style.display = "none";
+  if (modalEditarNome) modalEditarNome.parentElement.style.display = "block";
+  if (modalEditarTelefone) modalEditarTelefone.parentElement.style.display = "block";
+  if (modalEditarQuantidade) modalEditarQuantidade.parentElement.style.display = "block";
+  if (modalEditarCompra) modalEditarCompra.parentElement.style.display = "block";
+  if (modalEditarVenda) modalEditarVenda.parentElement.style.display = "block";
 
   // Preenche os campos com os dados do cliente
   const cliente = clientes.find(c => c.id === id);
