@@ -16,8 +16,6 @@ import {
   getDocs,
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-const precosCol = collection(db, "precos");
 /* =========================
    Proteção de acesso
    ========================= */
@@ -1022,6 +1020,15 @@ async function excluirOrcamento(id) {
   }
 }
 
+// =========================
+// 🔹 Função para trocar de seção (mostrar/esconder)
+// =========================
+function mostrar(viewId) {
+  document.querySelectorAll(".view").forEach(sec => {
+    sec.style.display = sec.id === viewId ? "block" : "none";
+  });
+}
+
 // Torna acessível no HTML
 window.excluirOrcamento = excluirOrcamento;
 
@@ -1036,3 +1043,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
