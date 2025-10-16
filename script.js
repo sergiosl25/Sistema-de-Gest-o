@@ -101,6 +101,7 @@ const modalEditarTelefone = document.getElementById("modalEditarTelefone");
 const modalEditarQuantidade = document.getElementById("modalEditarQuantidade");
 const modalEditarCompra = document.getElementById("modalEditarCompra");
 const modalEditarVenda = document.getElementById("modalEditarVenda");
+const modalEditarPreco = document.getElementById("modalEditarPreco");
 const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
 const btnCancelarEdicao = document.getElementById("btnCancelarEdicao")
 
@@ -257,17 +258,11 @@ produtoSelect.onchange = async () => {
   const produtoSelecionado = produtos.find(p => p.id === produtoId);
   if (!produtoSelecionado) return;
 
-  const precosRef = collection(db, "precos");
-  const precoSnapDocs = await getDocs(query(precosRef, where("produtoId", "==", produtoId)));
-
-  if (precoSnapDocs.empty) {
-    console.warn("Nenhuma tabela de preços cadastrada para este produto!");
-    return;
+  const precoDoProduto = precos.find(p => p.produtoId === produtoId);
+  if (!precoDoProduto) {
+  console.warn("Nenhuma tabela de preços cadastrada para este produto!");
+  return;
   }
-
-  const precoDoProduto = precoSnapDocs.docs[0].data(); // pega o primeiro documento de preço
-  console.log("📦 Produto selecionado:", produtoSelecionado);
-  console.log("💰 Preço encontrado:", precoDoProduto);
 
   const tipos = [
     { campo: "estampaFrente", texto: "Estampa Frente" },
@@ -290,53 +285,6 @@ produtoSelect.onchange = async () => {
 };
 
 // =========================
-// Quando seleciona um produto
-// =========================
-produtoSelect.addEventListener("change", () => {
-  const produtoId = produtoSelect.value;
-  tipoPrecoSelect.innerHTML = "<option value=''>Selecione tipo de preço</option>";
-  precoVendaInput.value = "";
-
-  if (!produtoId) return;
-
-  // Busca o nome do produto selecionado no estoque
-  const produtoSelecionado = produtos.find(p => p.id === produtoId);
-  if (!produtoSelecionado) return;
-
-  // Busca o registro de preços correspondente
-  const precoDoProduto = precos.find(p => p.produto === produtoSelecionado.nome);
-  console.log("📦 Produto selecionado:", produtoSelecionado);
-  console.log("💰 Preços encontrados:", precoDoProduto);
-
-  if (!precoDoProduto) {
-    alert("Nenhuma tabela de preços cadastrada para este produto!");
-    return;
-  }
-
-  // Tipos de preço possíveis
-  const tipos = [
-    { campo: "estampaFrente", texto: "Estampa Frente" },
-    { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
-    { campo: "branca", texto: "Branca" },
-    { campo: "interiorCores", texto: "Interior em Cores" },
-    { campo: "magicaFosca", texto: "Mágica Fosca" },
-    { campo: "magicaBrilho", texto: "Mágica Brilho" },
-    { campo: "precoVenda", texto: "Venda Padrão" }
-  ];
-
-  // Popula o select com os tipos de preço disponíveis
-  tipos.forEach(tipo => {
-    const valor = precoDoProduto[tipo.campo];
-    if (valor !== undefined && valor !== null && valor !== "") {
-      const opt = document.createElement("option");
-      opt.value = tipo.campo;
-      opt.textContent = tipo.texto;
-      tipoPrecoSelect.appendChild(opt);
-    }
-  });
-});
-
-// =========================
 // Quando seleciona o tipo de preço
 // =========================
 tipoPrecoSelect.addEventListener("change", () => {
@@ -347,7 +295,7 @@ tipoPrecoSelect.addEventListener("change", () => {
   const produtoSelecionado = produtos.find(p => p.id === produtoId);
   if (!produtoSelecionado) return;
 
-  const precoDoProduto = precos.find(p => p.produto === produtoSelecionado.nome);
+  const precoDoProduto = precos.find(p => p.produtoId === produtoId);
   if (!precoDoProduto) return;
 
   const valor = precoDoProduto[tipo];
@@ -836,8 +784,7 @@ window.abrirModal = function(tipo, id) {
   if (!cliente) return;
   modalEditarNome.value = cliente.nome;
   modalEditarTelefone.value = cliente.telefone || "";
-}
-
+  }
   else if(tipo === "produto") {
     modalEditarTitulo.textContent = "Editar Produto";
     modalEditarQuantidade.parentElement.style.display = "block";
@@ -847,7 +794,6 @@ window.abrirModal = function(tipo, id) {
     modalEditarNome.value = produto.nome;
     modalEditarQuantidade.value = produto.quantidade;
   }
-
   else if(tipo === "preco") {
     modalEditarTitulo.textContent = "Editar Preço";
     modalEditarPreco.parentElement.style.display = "block";
@@ -1042,6 +988,69 @@ async function excluirOrcamento(id) {
 }
 
 // =========================
+// 📄 Exportar PDF das vendas
+// =========================
+async function exportarPDF() {
+  try {
+    // Verifica se jsPDF está disponível
+    if (!window.jspdf) {
+      alert("Biblioteca jsPDF não está carregada.");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.text("Relatório de Vendas", 14, 20);
+
+    // Coleta os dados da tabela de vendas
+    const tabela = document.querySelector("#tabelaVendas tbody");
+    if (!tabela || tabela.rows.length === 0) {
+      alert("Nenhum registro de venda encontrado.");
+      return;
+    }
+
+    const dados = [];
+    for (let i = 0; i < tabela.rows.length; i++) {
+      const cols = tabela.rows[i].cells;
+      dados.push([
+        cols[0].innerText, // Cliente
+        cols[1].innerText, // Produto
+        cols[2].innerText, // Quantidade
+        cols[3].innerText, // Valor
+        cols[4].innerText  // Data
+      ]);
+    }
+
+    // Gera a tabela no PDF
+    doc.autoTable({
+      head: [["Cliente", "Produto", "Qtd", "Valor", "Data"]],
+      body: dados,
+      startY: 30,
+      styles: { fontSize: 10 }
+    });
+
+    // Rodapé
+    doc.text(
+      `Gerado em: ${new Date().toLocaleString()}`,
+      14,
+      doc.internal.pageSize.height - 10
+    );
+
+    // Salva o arquivo
+    doc.save(`Relatorio_Vendas_${Date.now()}.pdf`);
+  } catch (e) {
+    console.error("Erro ao exportar PDF:", e);
+    alert("Erro ao exportar PDF. Veja o console para detalhes.");
+  }
+}
+
+// Torna a função acessível no HTML
+window.exportarPDF = exportarPDF;
+
+// =========================
 // 🔹 Função para trocar de seção (mostrar/esconder)
 // =========================
 function mostrar(viewId) {
@@ -1068,7 +1077,6 @@ window.excluirOrcamento = excluirOrcamento;
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
-window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
 window.excluirCliente = excluirCliente;
 window.excluirProduto = excluirProduto;
@@ -1079,9 +1087,3 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
-
-
-
-
-
