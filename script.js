@@ -257,23 +257,27 @@ produtoSelect.onchange = async () => {
   const produtoSelecionado = produtos.find(p => p.id === produtoId);
   if (!produtoSelecionado) return;
 
-  if (precoSnap.empty) {
+  const precosRef = collection(db, "precos");
+  const precoSnapDocs = await getDocs(query(precosRef, where("produtoId", "==", produtoId)));
+
+  if (precoSnapDocs.empty) {
     console.warn("Nenhuma tabela de preços cadastrada para este produto!");
     return;
   }
 
-  const precoDoProduto = precoSnap.docs[0].data(); 
+  const precoDoProduto = precoSnapDocs.docs[0].data(); // pega o primeiro documento de preço
+  console.log("📦 Produto selecionado:", produtoSelecionado);
   console.log("💰 Preço encontrado:", precoDoProduto);
-  
+
   const tipos = [
     { campo: "estampaFrente", texto: "Estampa Frente" },
     { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
     { campo: "branca", texto: "Branca" },
     { campo: "interiorCores", texto: "Interior em Cores" },
     { campo: "magicaFosca", texto: "Mágica Fosca" },
-    { campo: "magicaBrilho", texto: "Mágica Brilho" },
-    { campo: "precoVenda", texto: "Venda Padrão" }
+    { campo: "magicaBrilho", texto: "Mágica Brilho" }
   ];
+
   tipos.forEach(tipo => {
     const valor = precoDoProduto[tipo.campo];
     if (valor !== undefined && valor !== null && valor > 0) {
@@ -281,7 +285,7 @@ produtoSelect.onchange = async () => {
       opt.value = tipo.campo;
       opt.textContent = `${tipo.texto} (R$ ${valor.toFixed(2)})`;
       tipoPrecoSelect.appendChild(opt);
-      }
+    }
   });
 };
 
@@ -1075,6 +1079,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
