@@ -774,11 +774,11 @@ window.abrirModal = function(tipo, id) {
   modalEditarTitulo.textContent = "Editar Cliente";
 
   // Mostra somente os campos relevantes
-  if (modalEditarNome) modalEditarNome.parentElement.style.display = "block";
-  if (modalEditarTelefone) modalEditarTelefone.parentElement.style.display = "block";
-  if (modalEditarQuantidade) modalEditarQuantidade.parentElement.style.display = "block";
-  if (modalEditarCompra) modalEditarCompra.parentElement.style.display = "block";
-  if (modalEditarVenda) modalEditarVenda.parentElement.style.display = "block";
+  modalEditarNome.parentElement.style.display = "block";
+  modalEditarTelefone.parentElement.style.display = "block";
+  modalEditarQuantidade.parentElement.style.display = "none";
+  modalEditarCompra.parentElement.style.display = "none";
+  modalEditarVenda.parentElement.style.display = "none";
 
   // Preenche os campos com os dados do cliente
   const cliente = clientes.find(c => c.id === id);
@@ -1088,3 +1088,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
