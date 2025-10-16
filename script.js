@@ -132,6 +132,7 @@ onSnapshot(precosCol, snapshot => {
   renderTabelaPrecos(); // ✅ chama aqui para atualizar a tabela
 });
 
+
 onSnapshot(vendasCol, snapshot => {
   vendas = snapshot.docs.map(d=>({id:d.id,...d.data()}));
   renderVendas();
@@ -252,13 +253,13 @@ produtoSelect.onchange = async () => {
 
   if (!produtoId) return;
 
-  const produtoSnap = await getDocs(doc(db, "estoque", produtoId));
+  const produtoSnap = await getDoc(doc(db, "estoque", produtoId));
   if (!produtoSnap.exists()) return;
 
   const produtoNome = produtoSnap.data().nome;
 
   const precosRef = collection(db, "precos");
-  const precoSnap = await getDocs(query(precosRef, where("produto", "==", produtoNome)));
+  const precoSnap = await getDoc(query(precosRef, where("produto", "==", produtoId)));
 
   precoSnap.forEach(p => {
     const data = p.data();
@@ -388,7 +389,7 @@ btnVender.onclick = async () => {
 
     // 🔍 Buscar o preço do produto na tabela de preços (usando o nome)
     const precosRef = collection(db, "precos");
-    const precoSnap = await getDocs(query(precosRef, where("produto", "==", produtoNome)));
+    const precoSnap = await getDoc(query(precosRef, where("produto", "==", produtoId)));
 
     let preco = 0;
     precoSnap.forEach(p => {
@@ -842,7 +843,7 @@ btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
   try {
     if(tipoEdicao==="cliente"){
-    await updateDoc(doc(clientesCol, itemEdicao), { 
+    await updateDoc(doc(clientesCol, itemEdicao), {
       nome: modalEditarNome.value.trim(),
       telefone: modalEditarTelefone.value.trim()
     });
@@ -1059,4 +1060,3 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
