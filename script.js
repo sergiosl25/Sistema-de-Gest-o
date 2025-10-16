@@ -127,9 +127,9 @@ onSnapshot(clientesCol, snapshot => {
   renderClientes();
 });
 
-onSnapshot(precosCol, (snapshot) => {
-  precos = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-  console.log("📊 Preços carregados:", precos);
+onSnapshot(precosCol, snapshot => {
+  precos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderTabelaPrecos(); // ✅ chama aqui para atualizar a tabela
 });
 
 onSnapshot(vendasCol, snapshot => {
@@ -145,6 +145,13 @@ onSnapshot(orcamentosCol, (snapshot) => {
 
   // renderiza tabela
   renderOrcamentosSalvos();
+});
+
+onSnapshot(estoqueCol, snapshot => {
+  produtos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderEstoque();
+  renderProdutoSelectOrcamento();
+  renderProdutoSelectPreco();
 });
 
 /* =========================
@@ -835,11 +842,12 @@ btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
   try {
     if(tipoEdicao==="cliente"){
-      await updateDoc(doc(db,"clientes",itemEdicao),{
-        nome: modalEditarNome.value.trim(),
-        telefone: modalEditarTelefone.value.trim()
-      });
-    } 
+    await updateDoc(doc(clientesCol, itemEdicao), { 
+      nome: modalEditarNome.value.trim(),
+      telefone: modalEditarTelefone.value.trim()
+    });
+    renderClientes(); 
+  }
     else if(tipoEdicao==="produto"){
       await updateDoc(doc(db,"estoque",itemEdicao),{
         nome: modalEditarNome.value.trim(),
@@ -858,8 +866,6 @@ btnSalvarEdicao.onclick = async () => {
         valor: parseFloat(modalEditarPreco.value) || 0
       });
     }
-
-    renderClientes();
     renderEstoque();
     renderTabelaPrecos();
 
@@ -1053,3 +1059,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
