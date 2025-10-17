@@ -1,4 +1,6 @@
-/* ===== Reset ===== */
+/* ===========================
+   🔷 RESET GERAL
+=========================== */
 * {
   margin: 0;
   padding: 0;
@@ -6,111 +8,166 @@
   font-family: "Poppins", Arial, sans-serif;
 }
 
-/* ===== Estrutura ===== */
-body {
+html, body {
+  height: 100%;
+  width: 100%;
   background: linear-gradient(135deg, #4c7196, #3498db);
   color: #333;
-  min-height: 100vh;
 }
 
-/* ===== Botões Modernos ===== */
-button,
-.acao-btn {
-  padding: 10px 16px;
+/* ===========================
+   🔹 CABEÇALHO
+=========================== */
+header {
+  background: linear-gradient(135deg, #4c7196, #3498db);
+  color: #fff;
+  padding: 15px 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Logout */
+.logout-btn {
+  background: #e74c3c;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.logout-btn:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
+}
+
+/* ===========================
+   🔹 MENU DE NAVEGAÇÃO
+=========================== */
+nav {
+  margin: 25px auto;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4c7196, #3498db);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  max-width: 1500px;
+}
+
+nav button {
+  padding: 10px 20px;
   border: none;
   border-radius: 8px;
+  background: #3da1e4;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
-
-button:hover,
-.acao-btn:hover {
+nav button:hover {
+  background: #2980b9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-/* ===== Botão "Nova Linha" ===== */
-#btnNovaLinhaPreco {
-  background: linear-gradient(135deg, #28a745, #2ecc71);
-  color: #fff;
+/* ===========================
+   🔹 CONTEÚDO PRINCIPAL
+=========================== */
+main {
+  padding: 20px;
+  margin-top: 20px;
+  min-height: calc(100vh - 100px);
 }
-#btnNovaLinhaPreco:hover {
+
+.view {
+  display: none;
+  width: 100%;
+  max-width: 1500px;
+  margin: auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: 0.3s ease;
+}
+
+.view.active {
+  display: block;
+}
+
+/* ===========================
+   🔹 FORMULÁRIOS
+=========================== */
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.form input,
+.form select {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  transition: 0.25s;
+}
+
+.form input:focus,
+.form select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+  outline: none;
+}
+
+.form button {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s;
+}
+.form button:hover {
   background: linear-gradient(135deg, #239b56, #27ae60);
-}
-#btnNovaLinhaPreco::before {
-  content: "\f067"; /* ícone de + */
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
+  transform: translateY(-2px);
 }
 
-/* ===== Exportar PDF ===== */
-.acao-btn.pdf,
-#btnExportarPDF {
-  background: linear-gradient(135deg, #8e44ad, #9b59b6);
-  color: #fff;
-}
-.acao-btn.pdf:hover,
-#btnExportarPDF:hover {
-  background: linear-gradient(135deg, #6c3483, #8e44ad);
-}
-.acao-btn.pdf::before,
-#btnExportarPDF::before {
-  content: "\f1c1"; /* ícone de PDF */
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-}
-
-/* ===== Editar ===== */
-.acao-btn.editar {
-  background: linear-gradient(135deg, #f39c12, #f1c40f);
-  color: #fff;
-}
-.acao-btn.editar:hover {
-  background: linear-gradient(135deg, #d68910, #f4d03f);
-}
-.acao-btn.editar::before {
-  content: "\f044"; /* ícone de lápis */
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-}
-
-/* ===== Excluir ===== */
-.acao-btn.excluir {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: #fff;
-}
-.acao-btn.excluir:hover {
-  background: linear-gradient(135deg, #c0392b, #922b21);
-}
-.acao-btn.excluir::before {
-  content: "\f2ed"; /* ícone de lixeira */
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-}
-
-/* ===== Tabelas ===== */
+/* ===========================
+   🔹 TABELAS
+=========================== */
 table {
   width: 100%;
   border-collapse: separate;
-  margin-top: 15px;
   background: #fff;
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
 }
 
 table thead {
   background: #3498db;
   color: #fff;
-  font-weight: 600;
 }
 
-table th, table td {
+table th,
+table td {
   padding: 12px;
   text-align: center;
   border-bottom: 1px solid #eee;
@@ -120,17 +177,89 @@ table tr:hover {
   background: #f8f9fa;
 }
 
-/* ===== Modais ===== */
+/* ===========================
+   🔹 BOTÕES DE AÇÃO
+=========================== */
+.acao-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #fff;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Ícones Font Awesome */
+.acao-btn::before {
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+/* Editar */
+.acao-btn.editar {
+  background: linear-gradient(135deg, #f39c12, #f1c40f);
+}
+.acao-btn.editar:hover {
+  background: linear-gradient(135deg, #d68910, #f4d03f);
+}
+.acao-btn.editar::before {
+  content: "\f044";
+}
+
+/* Excluir */
+.acao-btn.excluir {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+.acao-btn.excluir:hover {
+  background: linear-gradient(135deg, #c0392b, #922b21);
+}
+.acao-btn.excluir::before {
+  content: "\f2ed";
+}
+
+/* Exportar PDF */
+.acao-btn.pdf {
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+}
+.acao-btn.pdf:hover {
+  background: linear-gradient(135deg, #6c3483, #8e44ad);
+}
+.acao-btn.pdf::before {
+  content: "\f1c1";
+}
+
+/* Botão Nova Linha */
+#btnNovaLinhaPreco {
+  background: linear-gradient(135deg, #28a745, #2ecc71);
+}
+#btnNovaLinhaPreco:hover {
+  background: linear-gradient(135deg, #239b56, #27ae60);
+}
+#btnNovaLinhaPreco::before {
+  content: "\f067";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+/* ===========================
+   🔹 MODAIS
+=========================== */
 .modal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.55);
   z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(5px);
 }
+
 .modal.active {
   display: flex;
   animation: fadeIn 0.3s ease;
@@ -143,7 +272,7 @@ table tr:hover {
   width: 90%;
   max-width: 420px;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   animation: popIn 0.35s ease;
 }
 
@@ -168,16 +297,17 @@ table tr:hover {
   outline: none;
 }
 
-/* ===== Botões no Modal ===== */
+/* Botões dentro do modal */
 .modal-content button {
   padding: 10px 18px;
   border-radius: 8px;
   font-weight: 600;
   border: none;
-  margin: 5px;
+  margin: 6px;
   cursor: pointer;
   transition: all 0.25s ease;
 }
+
 .modal-content button:first-of-type {
   background: linear-gradient(135deg, #27ae60, #2ecc71);
   color: #fff;
@@ -185,6 +315,7 @@ table tr:hover {
 .modal-content button:first-of-type:hover {
   background: linear-gradient(135deg, #239b56, #27ae60);
 }
+
 .modal-content button:last-of-type {
   background: linear-gradient(135deg, #e74c3c, #c0392b);
   color: #fff;
@@ -193,30 +324,32 @@ table tr:hover {
   background: linear-gradient(135deg, #c0392b, #922b21);
 }
 
-/* ===== Animações ===== */
+/* ===========================
+   🔹 ANIMAÇÕES
+=========================== */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 @keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-/* ===== Responsivo ===== */
+/* ===========================
+   🔹 RESPONSIVIDADE
+=========================== */
 @media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+  }
   table th, table td {
     font-size: 0.9rem;
     padding: 8px;
   }
   button, .acao-btn {
-    padding: 8px 12px;
     font-size: 0.9rem;
+    padding: 8px 12px;
   }
 }
