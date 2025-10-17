@@ -1021,7 +1021,7 @@ async function exportarPDF() {
     doc.text("Relatório de Vendas", 14, 20);
 
     // Coleta os dados da tabela de vendas
-    const tabela = document.querySelector("#tabelaVendas tbody");
+    const tabela = document.querySelector("#tabelaRegistros tbody");
     if (!tabela || tabela.rows.length === 0) {
       alert("Nenhum registro de venda encontrado.");
       return;
@@ -1102,6 +1102,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
