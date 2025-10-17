@@ -764,52 +764,59 @@ window.abrirModal = function(tipo, id) {
   itemEdicao = id;
   tipoEdicao = tipo;
 
+  if (!modalEditar) return; // garante que o modal exista
   modalEditar.style.display = "block";
 
-  // Limpa valores
+  // Limpa valores e campos do modal
   modalEditarTitulo.textContent = "";
-  modalEditarNome.value = "";
-  modalEditarTelefone.value = "";
-  modalEditarQuantidade.value = "";
-  modalEditarPreco.value = "";
+  if (modalEditarNome) modalEditarNome.value = "";
+  if (modalEditarTelefone) modalEditarTelefone.value = "";
+  if (modalEditarQuantidade) modalEditarQuantidade.value = "";
+  if (modalEditarCompra) modalEditarCompra.value = "";
+  if (modalEditarVenda) modalEditarVenda.value = "";
+  if (modalEditarPreco) modalEditarPreco.value = "";
 
-  if (modalEditarTelefone) modalEditarTelefone.parentElement.style.display = "block";
-  if (modalEditarQuantidade) modalEditarQuantidade.parentElement.style.display = "block";
-  if (modalEditarPreco) modalEditarPreco.parentElement.style.display = "block";
+  // Oculta todos os campos inicialmente
+  if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "none";
+  if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "none";
+  if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "none";
+  if (modalEditarCompra?.parentElement) modalEditarCompra.parentElement.style.display = "none";
+  if (modalEditarVenda?.parentElement) modalEditarVenda.parentElement.style.display = "none";
+  if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "none";
 
-  if(tipo === "cliente") {
-  modalEditarTitulo.textContent = "Editar Cliente";
+  // Configura campos dependendo do tipo
+  if (tipo === "cliente") {
+    modalEditarTitulo.textContent = "Editar Cliente";
 
-  // Mostra somente os campos relevantes
-  modalEditarNome.parentElement.style.display = "block";
-  modalEditarTelefone.parentElement.style.display = "block";
-  modalEditarQuantidade.parentElement.style.display = "none";
-  modalEditarCompra.parentElement.style.display = "none";
-  modalEditarVenda.parentElement.style.display = "none";
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "block";
+    if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "block";
 
-  // Preenche os campos com os dados do cliente
-  const cliente = clientes.find(c => c.id === id);
-  if (!cliente) return;
-  modalEditarNome.value = cliente.nome;
-  modalEditarTelefone.value = cliente.telefone || "";
-  }
-  else if(tipo === "produto") {
+    const cliente = clientes.find(c => c.id === id);
+    if (!cliente) return;
+    if (modalEditarNome) modalEditarNome.value = cliente.nome;
+    if (modalEditarTelefone) modalEditarTelefone.value = cliente.telefone || "";
+
+  } else if (tipo === "produto") {
     modalEditarTitulo.textContent = "Editar Produto";
-    modalEditarQuantidade.parentElement.style.display = "block";
+
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "block";
+    if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "block";
 
     const produto = produtos.find(p => p.id === id);
-    if(!produto) return;
-    modalEditarNome.value = produto.nome;
-    modalEditarQuantidade.value = produto.quantidade;
-  }
-  else if(tipo === "preco") {
+    if (!produto) return;
+    if (modalEditarNome) modalEditarNome.value = produto.nome;
+    if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade;
+
+  } else if (tipo === "preco") {
     modalEditarTitulo.textContent = "Editar Preço";
-    modalEditarPreco.parentElement.style.display = "block";
+
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "block";
+    if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "block";
 
     const preco = precos.find(p => p.id === id);
-    if(!preco) return;
-    modalEditarNome.value = preco.produtoNome || "";
-    modalEditarPreco.value = preco.valor || 0;
+    if (!preco) return;
+    if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
+    if (modalEditarPreco) modalEditarPreco.value = preco.valor || 0;
   }
 };
 
@@ -1095,6 +1102,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
