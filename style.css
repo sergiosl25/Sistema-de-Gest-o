@@ -1,335 +1,222 @@
-/* ============================= */
-/* 🔹 RESET GERAL */
-/* ============================= */
+/* ===== Reset ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: "Poppins", Arial, sans-serif;
 }
 
-html, body {
-  height: 100%;
-  width: 100%;
-}
-
+/* ===== Estrutura ===== */
 body {
   background: linear-gradient(135deg, #4c7196, #3498db);
   color: #333;
   min-height: 100vh;
 }
 
-/* ============================= */
-/* 🔹 CABEÇALHO */
-/* ============================= */
-header {
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  color: #fff;
-  padding: 15px 25px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: 0 0 10px 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-header .logo {
-  width: 120px;
-  height: auto;
-}
-
-header h1 {
-  font-size: 1.6rem;
-  font-weight: 600;
-}
-
-/* ============================= */
-/* 🔹 BOTÃO DE LOGOUT */
-/* ============================= */
-.logout-btn {
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-.logout-btn:hover {
-  background: #c0392b;
-}
-
-/* ============================= */
-/* 🔹 MENU DE NAVEGAÇÃO */
-/* ============================= */
-nav {
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  margin: 20px auto;
-  padding: 10px;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-  max-width: 1500px;
-}
-nav button {
-  padding: 10px 20px;
-  border: none;
-  background: #3da1e4;
-  color: #fff;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-nav button:hover {
-  background: #2980b9;
-  transform: translateY(-2px);
-}
-
-/* ============================= */
-/* 🔹 CONTEÚDO PRINCIPAL */
-/* ============================= */
-main {
-  margin-top: 70px;
-  min-height: calc(100vh - 70px);
-  padding: 20px;
-  overflow-y: auto;
-}
-.view {
-  display: none;
-  width: 100%;
-  max-width: 1500px;
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  margin: auto;
-  transition: all 0.3s ease;
-}
-.view.active {
-  display: block;
-}
-
-/* ============================= */
-/* 🔹 FORMULÁRIOS */
-/* ============================= */
-.form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-.form input,
-.form select {
-  flex: 1;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  transition: all 0.3s ease;
-}
-.form input:focus,
-.form select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 4px rgba(52, 152, 219, 0.3);
-  outline: none;
-}
-.form button {
-  padding: 10px 15px;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.form button:hover {
-  background: #1e8449;
-}
-
-/* ============================= */
-/* 🔹 TABELAS */
-/* ============================= */
-table {
-  width: 100%;
-  border-collapse: separate;
-  background: #fff;
-  margin-top: 10px;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-table thead {
-  background: #3498db;
-  color: white;
-}
-table th,
-table td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
-}
-table tr:hover {
-  background: #f8f8f8;
-}
-.total {
-  margin-top: 10px;
-  font-weight: bold;
-  text-align: right;
-}
-
-/* ============================= */
-/* 🔹 BOTÕES MODERNOS */
-/* ============================= */
-.botao-modern {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  color: #fff;
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-.botao-modern:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-}
-.botao-modern.adicionar {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-}
-.botao-modern.editar {
-  background: linear-gradient(135deg, #f39c12, #f1c40f);
-}
-.botao-modern.excluir {
-  background: linear-gradient(135deg, #e74c3c, #ff6b6b);
-}
-.botao-modern.pdf {
-  background: linear-gradient(135deg, #8e44ad, #9b59b6);
-}
-.botao-modern i {
-  font-size: 1.1rem;
-}
-.tabela-botoes {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* ============================= */
-/* 🔹 MODAIS MODERNOS */
-/* ============================= */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(3px);
-  justify-content: center;
-  align-items: center;
-  animation: fadeIn 0.3s ease;
-}
-.modal.active {
-  display: flex;
-}
-.modal-content {
-  background: #fff;
-  padding: 25px 30px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  transform: scale(0.9);
-  animation: popIn 0.3s ease forwards;
-}
-.modal-content h3 {
-  margin-bottom: 20px;
-  color: #2c3e50;
-  font-size: 1.4rem;
-  font-weight: 700;
-}
-.modal-content input,
-.modal-content select {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: 0.3s;
-}
-.modal-content input:focus,
-.modal-content select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-  outline: none;
-}
-.modal-content .btn-salvar {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  color: #fff;
-}
-.modal-content .btn-cancelar {
-  background: linear-gradient(135deg, #e74c3c, #ff6b6b);
-  color: #fff;
-}
-.modal-content button {
-  margin: 6px;
+/* ===== Botões Modernos ===== */
+button,
+.acao-btn {
   padding: 10px 16px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.3s ease;
-}
-.modal-content button:hover {
-  transform: scale(1.05);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* ============================= */
-/* 🔹 ANIMAÇÕES */
-/* ============================= */
+button:hover,
+.acao-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* ===== Botão "Nova Linha" ===== */
+#btnNovaLinhaPreco {
+  background: linear-gradient(135deg, #28a745, #2ecc71);
+  color: #fff;
+}
+#btnNovaLinhaPreco:hover {
+  background: linear-gradient(135deg, #239b56, #27ae60);
+}
+#btnNovaLinhaPreco::before {
+  content: "\f067"; /* ícone de + */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+/* ===== Exportar PDF ===== */
+.acao-btn.pdf,
+#btnExportarPDF {
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  color: #fff;
+}
+.acao-btn.pdf:hover,
+#btnExportarPDF:hover {
+  background: linear-gradient(135deg, #6c3483, #8e44ad);
+}
+.acao-btn.pdf::before,
+#btnExportarPDF::before {
+  content: "\f1c1"; /* ícone de PDF */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+/* ===== Editar ===== */
+.acao-btn.editar {
+  background: linear-gradient(135deg, #f39c12, #f1c40f);
+  color: #fff;
+}
+.acao-btn.editar:hover {
+  background: linear-gradient(135deg, #d68910, #f4d03f);
+}
+.acao-btn.editar::before {
+  content: "\f044"; /* ícone de lápis */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+/* ===== Excluir ===== */
+.acao-btn.excluir {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #fff;
+}
+.acao-btn.excluir:hover {
+  background: linear-gradient(135deg, #c0392b, #922b21);
+}
+.acao-btn.excluir::before {
+  content: "\f2ed"; /* ícone de lixeira */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+}
+
+/* ===== Tabelas ===== */
+table {
+  width: 100%;
+  border-collapse: separate;
+  margin-top: 15px;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+table thead {
+  background: #3498db;
+  color: #fff;
+  font-weight: 600;
+}
+
+table th, table td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+table tr:hover {
+  background: #f8f9fa;
+}
+
+/* ===== Modais ===== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(6px);
+}
+.modal.active {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  animation: popIn 0.35s ease;
+}
+
+.modal-content h3 {
+  color: #2c3e50;
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  transition: all 0.25s ease;
+}
+.modal-content input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 6px rgba(52,152,219,0.3);
+  outline: none;
+}
+
+/* ===== Botões no Modal ===== */
+.modal-content button {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  margin: 5px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.modal-content button:first-of-type {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+}
+.modal-content button:first-of-type:hover {
+  background: linear-gradient(135deg, #239b56, #27ae60);
+}
+.modal-content button:last-of-type {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #fff;
+}
+.modal-content button:last-of-type:hover {
+  background: linear-gradient(135deg, #c0392b, #922b21);
+}
+
+/* ===== Animações ===== */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 @keyframes popIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-/* ============================= */
-/* 🔹 RESPONSIVIDADE */
-/* ============================= */
+/* ===== Responsivo ===== */
 @media (max-width: 768px) {
-  nav {
-    flex-wrap: wrap;
-  }
-  .form {
-    flex-direction: column;
-  }
-  table th,
-  table td {
+  table th, table td {
     font-size: 0.9rem;
     padding: 8px;
   }
-}
-@media (max-width: 480px) {
-  nav button, .form input, .form select, .form button {
-    font-size: 0.85rem;
-    padding: 8px 10px;
-  }
-  table th, table td {
-    font-size: 0.8rem;
-    padding: 6px;
+  button, .acao-btn {
+    padding: 8px 12px;
+    font-size: 0.9rem;
   }
 }
