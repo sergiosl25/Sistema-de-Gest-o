@@ -348,25 +348,31 @@ btnVender.onclick = async () => {
 
     const produtoNome = produtoSnap.data().nome;
 
-    // 🔍 Buscar o preço do produto na tabela de preços (usando o nome)
-    const precosRef = collection(db, "precos");
-    const q = query(precosRef, where("produtoId", "==", produtoId));
-    const querySnap = await getDocs(q);
+    const tipoPreco = tipoPrecoSelect.value; // tipo de preço selecionado
+if (!tipoPreco) {
+  alert("Selecione um tipo de preço antes de vender!");
+  return;
+}
 
-    let preco = 0;
-    querySnap.forEach(p => {
-      preco = p.data().precoVenda || p.data().preco || 0;
-    });
+// Busca o documento de preços do produto
+const precoDoc = precos.find(p => p.produtoId === produtoId);
 
+if (!precoDoc) {
+  alert("Preço do produto não encontrado na tabela de preços!");
+  return;
+}
 
-    // Se não encontrou preço, avisa e interrompe
-    if (preco <= 0) {
-      alert("Preço do produto não encontrado na tabela de preços!");
-      return;
-    }
+// Pega o valor do tipo de preço correto
+const preco = precoDoc[tipoPreco] || 0;
 
-    const precoUnitario = parseFloat(precoVenda.value) || 0;
-    const total = preco * qtd;
+if (preco <= 0) {
+  alert("Preço do produto não encontrado na tabela de preços!");
+  return;
+}
+
+const precoUnitario = preco; // valor usado na venda
+const total = precoUnitario * qtd;
+
 
     // 🔄 Transação: atualizar estoque e registrar venda
     await runTransaction(db, async tx => {
@@ -1088,5 +1094,6 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
