@@ -350,7 +350,7 @@ btnVender.onclick = async () => {
 
     // 🔍 Buscar o preço do produto na tabela de preços (usando o nome)
     const precosRef = collection(db, "precos");
-    const q = query(precosRef, where("produto", "==", produtoId));
+    const q = query(precosRef, where("produtoId", "==", produtoId));
     const querySnap = await getDocs(q);
 
     let preco = 0;
@@ -1088,4 +1088,5 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
