@@ -212,6 +212,7 @@ btnCadastrarProduto.onclick = async () => {
       await addDoc(precosCol, {
         produtoId: ref.id,
         produtoNome: nome,
+        preco: 0,
         estampaFrente: 0,
         estampaFrenteVerso: 0,
         branca: 0,
@@ -266,6 +267,7 @@ produtoSelect.onchange = async () => {
   }
 
   const tipos = [
+    { campo: "preco", texto: "Preço" },
     { campo: "estampaFrente", texto: "Estampa Frente" },
     { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
     { campo: "branca", texto: "Branca" },
@@ -664,7 +666,7 @@ btnNovaLinhaPreco.onclick = async () => {
     await addDoc(precosCol,{
       produtoId: prodId||null,
       produtoNome: prod?prod.nome:"Produto não informado",
-      estampaFrente:0, estampaFrenteVerso:0, branca:0,
+      preco:0, estampaFrente:0, estampaFrenteVerso:0, branca:0,
       interiorCores:0, magicaFosca:0, magicaBrilho:0
     });
   }catch(err){ console.error(err); alert("Erro ao adicionar linha de preço: "+err);}
@@ -686,6 +688,7 @@ function renderTabelaPrecos() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${p.produtoNome || ""}</td>
+      <td contenteditable data-field="preco">${p.preco || 0}</td>
       <td contenteditable data-field="estampaFrente">${p.estampaFrente || 0}</td>
       <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso || 0}</td>
       <td contenteditable data-field="branca">${p.branca || 0}</td>
@@ -1102,6 +1105,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
