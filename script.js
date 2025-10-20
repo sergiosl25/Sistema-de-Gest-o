@@ -425,6 +425,85 @@ function renderVendas(){
   totalGeralRegistros.textContent = money(total);
 }
 
+// === MODAL DE DESCONTO ===
+const modalDesconto = document.getElementById("modalDesconto");
+const tipoDesconto = document.getElementById("tipoDesconto");
+const valorDesconto = document.getElementById("valorDesconto");
+const btnConfirmarDesconto = document.getElementById("btnConfirmarDesconto");
+const btnCancelarDesconto = document.getElementById("btnCancelarDesconto");
+
+let tipoDescontoAtual = ""; // 'produto' ou 'venda'
+
+// Mostrar modal ao clicar nos botões
+document.getElementById("btnDesconto").addEventListener("click", () => {
+  tipoDescontoAtual = "produto";
+  document.getElementById("tituloModalDesconto").textContent = "Desconto no Produto";
+  modalDesconto.classList.add("active");
+});
+
+document.getElementById("btnDescontoVenda").addEventListener("click", () => {
+  tipoDescontoAtual = "venda";
+  document.getElementById("tituloModalDesconto").textContent = "Desconto na Venda";
+  modalDesconto.classList.add("active");
+});
+
+// Cancelar modal
+btnCancelarDesconto.addEventListener("click", () => {
+  modalDesconto.classList.remove("active");
+  valorDesconto.value = "";
+});
+
+// Confirmar desconto
+btnConfirmarDesconto.addEventListener("click", () => {
+  const tipo = tipoDesconto.value;
+  const valor = parseFloat(valorDesconto.value);
+
+  if (isNaN(valor) || valor <= 0) {
+    alert("Digite um valor de desconto válido!");
+    return;
+  }
+
+  // Dados da venda atual
+  const precoUnitario = parseFloat(document.getElementById("precoVenda").value) || 0;
+  const qtd = parseInt(document.getElementById("quantidadeVenda").value) || 1;
+  const totalAntes = precoUnitario * qtd;
+
+  let totalDepois = totalAntes;
+  let descontoTexto = "";
+
+  if (tipo === "percentual") {
+    totalDepois = totalAntes - (totalAntes * (valor / 100));
+    descontoTexto = valor + "%";
+  } else {
+    totalDepois = totalAntes - valor;
+    descontoTexto = "R$ " + valor.toFixed(2);
+  }
+
+  if (totalDepois < 0) totalDepois = 0;
+
+  // Atualiza os campos ou tabela (exemplo simples)
+  const tabela = document.getElementById("tabelaVendas").querySelector("tbody");
+  const novaLinha = document.createElement("tr");
+  const data = new Date().toLocaleDateString("pt-BR");
+
+  novaLinha.innerHTML = `
+    <td>${data}</td>
+    <td>${document.getElementById("clienteSelect").value}</td>
+    <td>${document.getElementById("produtoSelect").value}</td>
+    <td>${qtd}</td>
+    <td>${precoUnitario.toFixed(2)}</td>
+    <td>${descontoTexto}</td>
+    <td>${totalAntes.toFixed(2)}</td>
+    <td>${totalDepois.toFixed(2)}</td>
+    <td>${document.getElementById("formaPagamento").value}</td>
+    <td>-</td>
+  `;
+  tabela.appendChild(novaLinha);
+
+  modalDesconto.classList.remove("active");
+  valorDesconto.value = "";
+});
+
 async function excluirVenda(id){
   try{
     const vendaRef = doc(db,"vendas",id);
@@ -1188,6 +1267,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
