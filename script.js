@@ -247,24 +247,14 @@ function renderEstoque() {
   });
 }
 
-// ==========================
-// Carregar tipos de preço ao selecionar produto
-// ==========================
-produtoSelect.onchange = async () => {
+produtoSelect.onchange = () => {
   const produtoId = produtoSelect.value;
   tipoPrecoSelect.innerHTML = "<option value=''>Selecione o tipo de preço</option>";
   precoVendaInput.value = "";
-
-  if (!produtoId) return;
-
-  const produtoSelecionado = produtos.find(p => p.id === produtoId);
-  if (!produtoSelecionado) return;
+  if(!produtoId) return;
 
   const precoDoProduto = precos.find(p => p.produtoId === produtoId);
-  if (!precoDoProduto) {
-  console.warn("Nenhuma tabela de preços cadastrada para este produto!");
-  return;
-  }
+  if(!precoDoProduto) return;
 
   const tipos = [
     { campo: "preco", texto: "Preço" },
@@ -278,7 +268,7 @@ produtoSelect.onchange = async () => {
 
   tipos.forEach(tipo => {
     const valor = precoDoProduto[tipo.campo];
-    if (valor !== undefined && valor !== null && valor > 0) {
+    if(valor > 0){
       const opt = document.createElement("option");
       opt.value = tipo.campo;
       opt.textContent = `${tipo.texto} (R$ ${valor.toFixed(2)})`;
@@ -408,22 +398,39 @@ const total = precoUnitario * qtd;
   }
 };
 
-function renderVendas(){
-  tabelaRegistros.innerHTML = "";
-  let total = 0;
-  vendas.forEach(v => {
-    total += Number(v.total || 0);
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${v.data}</td><td>${v.cliente}</td><td>${v.produto}</td><td>${v.quantidade}</td>
-     <td>R$ ${money(v.preco)}</td><td>R$ ${money(v.total)}</td><td>${v.pagamento}</td>
-      <td>
-        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
-      </td>`;
-    tabelaRegistros.appendChild(tr);
-  });
-  totalGeralRegistros.textContent = money(total);
+function aplicarDesconto(tipoDescontoAtual, tipo, valor){
+  const precoUnitario = parseFloat(precoVendaInput.value) || 0;
+  const quantidade = parseInt(quantidadeVenda.value) || 1;
+  let totalAntes = precoUnitario * quantidade;
+  let totalDepois = totalAntes;
+
+  if(tipoDescontoAtual === 'unitario'){
+    const desconto = tipo === 'percentual' ? precoUnitario * valor/100 : valor;
+    precoVendaInput.value = (precoUnitario - desconto).toFixed(2);
+    totalDepois = (precoUnitario - desconto) * quantidade;
+  } else {
+    const desconto = tipo === 'percentual' ? totalAntes * valor/100 : valor;
+    totalDepois = totalAntes - desconto;
+  }
+
+  return { totalAntes, totalDepois };
 }
+
+function calcularTotal(produtos){
+  return produtos.reduce((acc, p) => acc + (p.preco * p.quantidade), 0);
+}
+
+function formatarMoeda(valor){
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+
+btnAplicarDesconto.onclick = () => {
+  const tipoDesconto = tipoDescontoSelect.value; // 'unitario' ou 'total'
+  const tipo = tipoInput.value; // 'percentual' ou 'valor'
+  const valor = parseFloat(valorInput.value);
+  aplicarDesconto(tipoDesconto, tipo, valor);
+};
 
 // === MODAL DE DESCONTO ===
 const modalDesconto = document.getElementById("modalDesconto");
@@ -432,7 +439,7 @@ const valorDesconto = document.getElementById("valorDesconto");
 const btnConfirmarDesconto = document.getElementById("btnConfirmarDesconto");
 const btnCancelarDesconto = document.getElementById("btnCancelarDesconto");
 
-tipoDescontoAtual = "produto"; 
+tipoDescontoAtual = "produto";
 
 // Mostrar modal ao clicar nos botões
 document.getElementById("btnDesconto").addEventListener("click", () => {
@@ -503,6 +510,23 @@ btnConfirmarDesconto.addEventListener("click", () => {
   modalDesconto.classList.remove("active");
   valorDesconto.value = "";
 });
+
+function renderVendas(){
+  tabelaRegistros.innerHTML = "";
+  let total = 0;
+  vendas.forEach(v => {
+    total += Number(v.total || 0);
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${v.data}</td><td>${v.cliente}</td><td>${v.produto}</td><td>${v.quantidade}</td>
+     <td>R$ ${money(v.preco)}</td><td>R$ ${money(v.total)}</td><td>${v.pagamento}</td>
+      <td>
+        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
+      </td>`;
+    tabelaRegistros.appendChild(tr);
+  });
+  totalGeralRegistros.textContent = money(total);
+}
 
 async function excluirVenda(id){
   try{
@@ -928,74 +952,54 @@ async function salvarOrcamento() {
 window.abrirModal = function(tipo, id) {
   itemEdicao = id;
   tipoEdicao = tipo;
-
-  if (!modalEditar) return; // garante que o modal exista
   modalEditar.style.display = "block";
 
-  // Limpa valores e campos do modal
-  modalEditarTitulo.textContent = "";
-  if (modalEditarNome) modalEditarNome.value = "";
-  if (modalEditarTelefone) modalEditarTelefone.value = "";
-  if (modalEditarQuantidade) modalEditarQuantidade.value = "";
-  if (modalEditarCompra) modalEditarCompra.value = "";
-  if (modalEditarVenda) modalEditarVenda.value = "";
-  if (modalEditarPreco) modalEditarPreco.value = "";
+  // Esconde todos os campos
+  ["Nome", "Telefone", "Quantidade", "Compra", "Venda", "Preco"].forEach(f => {
+    const el = document.getElementById(`modalEditar${f}`);
+    if (el?.parentElement) el.parentElement.style.display = "none";
+  });
 
-  // Oculta todos os campos inicialmente
-  if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "none";
-  if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "none";
-  if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "none";
-  if (modalEditarCompra?.parentElement) modalEditarCompra.parentElement.style.display = "none";
-  if (modalEditarVenda?.parentElement) modalEditarVenda.parentElement.style.display = "none";
-  if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "none";
-
-  // Configura campos dependendo do tipo
   if (tipo === "cliente") {
     modalEditarTitulo.textContent = "Editar Cliente";
-
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "block";
-    if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "block";
-
+    modalEditarNome.parentElement.style.display = "block";
+    modalEditarTelefone.parentElement.style.display = "block";
     const cliente = clientes.find(c => c.id === id);
-    if (!cliente) return;
-    if (modalEditarNome) modalEditarNome.value = cliente.nome;
-    if (modalEditarTelefone) modalEditarTelefone.value = cliente.telefone || "";
-
+    if (cliente) {
+      modalEditarNome.value = cliente.nome;
+      modalEditarTelefone.value = cliente.telefone || "";
+    }
   } else if (tipo === "produto") {
     modalEditarTitulo.textContent = "Editar Produto";
-
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "block";
-    if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "block";
-
+    modalEditarNome.parentElement.style.display = "block";
+    modalEditarQuantidade.parentElement.style.display = "block";
     const produto = produtos.find(p => p.id === id);
-    if (!produto) return;
-    if (modalEditarNome) modalEditarNome.value = produto.nome;
-    if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade;
-
+    if (produto) {
+      modalEditarNome.value = produto.nome;
+      modalEditarQuantidade.value = produto.quantidade;
+    }
   } else if (tipo === "preco") {
     modalEditarTitulo.textContent = "Editar Preço";
-
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "block";
-    if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "block";
-
+    modalEditarNome.parentElement.style.display = "block";
+    modalEditarPreco.parentElement.style.display = "block";
     const preco = precos.find(p => p.id === id);
-    if (!preco) return;
-    if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
-    if (modalEditarPreco) modalEditarPreco.value = preco.valor || 0;
+    if (preco) {
+      modalEditarNome.value = preco.produtoNome || "";
+      modalEditarPreco.value = preco.valor || 0;
+    }
   }
 };
 
 btnSalvarEdicao.onclick = async () => {
   if(!itemEdicao) return;
   try {
-    if(tipoEdicao==="cliente"){
-      await updateDoc(doc(db,"clientes",itemEdicao),{
-      nome: modalEditarNome.value.trim(),
-      telefone: modalEditarTelefone.value.trim()
+    if(tipoEdicao === "cliente") {
+      await updateDoc(doc(db,"clientes",itemEdicao), {
+        nome: modalEditarNome.value.trim(),
+        telefone: modalEditarTelefone.value.trim()
       });
-    }
-    else if(tipoEdicao==="produto"){
-      await updateDoc(doc(db,"estoque",itemEdicao),{
+    } else if(tipoEdicao === "produto") {
+      await updateDoc(doc(db,"estoque",itemEdicao), {
         nome: modalEditarNome.value.trim(),
         quantidade: parseInt(modalEditarQuantidade.value) || 0
       });
@@ -1005,17 +1009,19 @@ btnSalvarEdicao.onclick = async () => {
       for(const s of snaps.docs){
         await updateDoc(doc(db,"precos",s.id), { produtoNome: modalEditarNome.value.trim() });
       }
-    } 
-    else if (tipoEdicao === "preco") {
-       await updateDoc(doc(precosCol, itemEdicao), {
-        produtoNome: modalEditarNome.value.trim(),
-        valor: parseFloat(modalEditarPreco.value) || 0
-      });
+    } else if(tipoEdicao === "preco") {
+      const precoDoc = precos.find(p => p.id === itemEdicao);
+      if(precoDoc){
+        await updateDoc(doc(precosCol,itemEdicao), {
+          produtoNome: modalEditarNome.value.trim(),
+          valor: parseFloat(modalEditarPreco.value) || 0
+        });
+      }
     }
-    renderEstoque();
-    renderTabelaPrecos();
 
     modalEditar.style.display = "none";
+    renderEstoque();
+    renderTabelaPrecos();
   } catch(err) {
     console.error(err);
     alert("Erro ao salvar edição: " + err);
@@ -1257,6 +1263,7 @@ window.excluirOrcamento = excluirOrcamento;
 
 // Torna funções acessíveis no escopo global (para uso no HTML onclick)
 window.mostrar = mostrar
+window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
 window.excluirCliente = excluirCliente;
 window.excluirProduto = excluirProduto;
@@ -1267,13 +1274,3 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
-
-
-
-
-
-
-
-
-
-
