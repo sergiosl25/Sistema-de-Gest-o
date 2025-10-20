@@ -1,10 +1,3 @@
-/* script.js - Versão reescrita e corrigida
-   Requisitos: já importou firebase-config.js e libs (auth/firestore/jsPDF) no HTML.
-*/
-
-/* =========================
-   Imports (usa seu firebase-config.js)
-   ========================= */
 import { db, auth } from "./firebase-config.js";
 import {
   onAuthStateChanged,
@@ -890,22 +883,31 @@ function renderOrcamentosSalvos() {
     const tr = document.createElement("tr");
     const produtosText = o.produtos.map(p => p.nome).join(", ");
     const quantText = o.produtos.map(p => p.quantidade).join(", ");
-    const precUnit = o.produtos.map(p => "R$ " + (p.preco ?? 0).toFixed(2)).join(", ");
-    const precTot = o.produtos.map(p => "R$ " + (p.total ?? 0).toFixed(2)).join(", ");
-    tr.innerHTML = `
-      <td>${o.data}</td>
-      <td>${o.clienteNome}</td>
-      <td>${produtosText}</td>
-      <td>${quantText}</td>
-      <td>${precUnit}</td>
-      <td>${precTot}</td>
-      <td>
-        <button class="acao-btn pdf" onclick="reimprimirOrcamento('${o.id}')">PDF</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirOrcamento('${o.id}'))">Excluir</button>
-      </td>
-    `;
-    tabelaOrcamentosSalvos.appendChild(tr);
-  });
+    const precoUnitText = o.produtos.map(p => p.precoUnitario.toFixed(2)).join(", ");
+    const precoTotalText = o.produtos.map(p => p.precoTotal.toFixed(2)).join(", ");
+
+tbody.innerHTML += `
+  <tr>
+    <td>${dataFormatada}</td>
+    <td>${o.cliente}</td>
+    <td>${produtosText}</td>
+    <td>${quantText}</td>
+    <td>R$ ${precoUnitText}</td>
+    <td>R$ ${precoTotalText}</td>
+    <td>
+      <button onclick="excluirOrcamento(${index})"><i class="fa-solid fa-trash"></i></button>
+    </td>
+  </tr>
+`;
+});
+
+// Atualiza o total geral dos orçamentos
+const totalGeral = orcamentosSalvos.reduce((acc, o) => {
+  return acc + o.produtos.reduce((sum, p) => sum + p.precoTotal, 0);
+}, 0);
+
+document.getElementById("totalGeralRegistros").textContent = 
+  `R$ ${totalGeral.toFixed(2).replace(".", ",")}`;
 }
 
 /* =========================
@@ -1059,4 +1061,3 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
-
