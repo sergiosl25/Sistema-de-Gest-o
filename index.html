@@ -73,7 +73,7 @@
   </section>
 
   <!-- Vendas -->
-  <section id="vendas" class="view">
+<section id="vendas" class="view">
   <h2>Registrar Venda</h2>
   <div class="form">
     <select id="clienteSelect">
@@ -110,8 +110,26 @@
     <button id="btnDesconto">Desconto</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
   </div>
-</section>
 
+  <!-- TABELA DE VENDAS -->
+  <table id="tabelaVendas">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Cliente</th>
+        <th>Produto</th>
+        <th>Qtd</th>
+        <th>Preço Unitário</th>
+        <th>Desconto</th>
+        <th>Total Antes</th>
+        <th>Total Após</th>
+        <th>Pagamento</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
 
   <!-- Registros -->
   <section id="registrosVendas" class="view">
@@ -274,6 +292,7 @@
 <script type="module" src="script.js"></script>
 </body>
 </html>
+
 
 
 
