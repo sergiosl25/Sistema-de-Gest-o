@@ -50,7 +50,6 @@ let orcamentos = [];
 let precos = [];
 let itemEdicao = null;
 let tipoEdicao = null;
-let acaoExcluir = null;
 
 /* Guarda o desconto atual aplicado no formulário antes de registrar a venda */
 let currentSaleDiscount = {
@@ -84,7 +83,6 @@ const btnVender = document.getElementById("btnVender");
 const btnDesconto = document.getElementById("btnDesconto");
 const btnDescontoVenda = document.getElementById("btnDescontoVenda");
 
-const tabelaVendasUI = document.querySelector("#tabelaVendas tbody"); // tabela na view 'vendas'
 const tabelaRegistros = document.querySelector("#tabelaRegistros tbody"); // tabela registros (historico)
 const totalGeralRegistros = document.getElementById("totalGeralRegistros");
 
@@ -123,11 +121,6 @@ const tipoDescontoSelect = document.getElementById("tipoDesconto"); // 'percentu
 const valorDescontoInput = document.getElementById("valorDesconto");
 const btnAplicarDesconto = document.getElementById("btnAplicarDesconto");
 const btnCancelarDesconto = document.getElementById("btnCancelarDesconto");
-
-/* controle modal editar/excluir */
-let itemEdicao = null;
-let tipoEdicao = null;
-let acaoExcluir = null;
 
 /* =========================
    Small helpers
@@ -169,6 +162,25 @@ onSnapshot(estoqueCol, snapshot => {
   renderProdutoSelectOrcamento();
   renderProdutoSelectPreco();
 });
+
+// ==========================
+// FUNÇÃO DE TROCAR SEÇÕES
+// ==========================
+function mostrarSecao(secaoId) {
+  document.querySelectorAll(".secao").forEach(secao => {
+    secao.style.display = "none";
+  });
+
+  const secaoAtiva = document.getElementById(secaoId);
+  if (secaoAtiva) {
+    secaoAtiva.style.display = "block";
+  }
+}
+
+// Define a seção inicial ao carregar
+document.addEventListener("DOMContentLoaded", () => {
+  mostrarSecao("clientes"); // ou "vendas" se preferir
+}) 
 
 /* =========================
    CLIENTES
@@ -1010,5 +1022,4 @@ function reimprimirOrcamento(orcId) {
   imgLogo.onerror = function(){ doc.text("Orçamento", 105, 20, { align: "center" }); doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`); };
 }
 window.reimprimirOrcamento = reimprimirOrcamento;
-
 
