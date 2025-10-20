@@ -762,84 +762,62 @@ window.excluirPreco = excluirPreco;
 /* =========================
    Modal edição (cliente/produto/preco)
    ========================= */
-window.abrirModal = function(tipo, id) {
+window.abrirModal = function (tipo, id) {
   itemEdicao = id;
   tipoEdicao = tipo;
 
-  if (!modalEditar) {
-    console.warn("modalEditar não encontrado no DOM");
-    return;
-  }
+  if (!modalEditar) return;
 
-  // mostra modal
   modalEditar.style.display = "block";
 
-  // limpa e esconde todos os campos presentes (faz proteção caso algum input não exista)
-  const campos = {
-    nome: modalEditarNome,
-    telefone: modalEditarTelefone,
-    quantidade: modalEditarQuantidade,
-    compra: modalEditarCompra,
-    venda: modalEditarVenda,
-    preco: modalEditarPreco
-  };
+  // Oculta todos os campos antes
+  [modalEditarNome, modalEditarTelefone, modalEditarQuantidade, modalEditarCompra, modalEditarVenda, modalEditarPreco]
+    .forEach(inp => inp && (inp.parentElement.style.display = "none"));
 
-  Object.values(campos).forEach(inp => {
-    if (!inp) return;
-    // se estiver dentro de um wrapper (label/div) mostramos/escondemos esse wrapper,
-    // senão mostramos o próprio input.
-    const wrapper = inp.parentElement;
-    if (wrapper) wrapper.style.display = "none";
-    else inp.style.display = "none";
-    // limpa valor antigo (opcional)
-    // inp.value = "";
-  });
-
+  // CLIENTE
   if (tipo === "cliente") {
     modalEditarTitulo.textContent = "Editar Cliente";
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
-    else if (modalEditarNome) modalEditarNome.style.display = "";
-    if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "";
-    else if (modalEditarTelefone) modalEditarTelefone.style.display = "";
+    modalEditarNome.parentElement.style.display = "";
+    modalEditarTelefone.parentElement.style.display = "";
 
-    const cliente = clientes.find(c => c.id === id);
-    if (cliente) {
-      if (modalEditarNome) modalEditarNome.value = cliente.nome || "";
-      if (modalEditarTelefone) modalEditarTelefone.value = cliente.telefone || "";
+    const c = clientes.find(c => c.id === id);
+    if (c) {
+      modalEditarNome.value = c.nome || "";
+      modalEditarTelefone.value = c.telefone || "";
     }
-  } else if (tipo === "produto") {
+  }
+
+  // PRODUTO
+  else if (tipo === "produto") {
     modalEditarTitulo.textContent = "Editar Produto";
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
-    else if (modalEditarNome) modalEditarNome.style.display = "";
-    if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "";
-    else if (modalEditarQuantidade) modalEditarQuantidade.style.display = "";
+    modalEditarNome.parentElement.style.display = "";
+    modalEditarQuantidade.parentElement.style.display = "";
 
-    const produto = produtos.find(p => p.id === id);
-    if (produto) {
-      if (modalEditarNome) modalEditarNome.value = produto.nome || "";
-      if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade ?? 0;
+    const p = produtos.find(p => p.id === id);
+    if (p) {
+      modalEditarNome.value = p.nome || "";
+      modalEditarQuantidade.value = p.quantidade ?? 0;
     }
-  } else if (tipo === "preco") {
+  }
+
+  // PREÇO
+  else if (tipo === "preco") {
     modalEditarTitulo.textContent = "Editar Preço";
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
-    else if (modalEditarNome) modalEditarNome.style.display = "";
-    if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "";
-    else if (modalEditarPreco) modalEditarPreco.style.display = "";
+    modalEditarNome.parentElement.style.display = "";
+    modalEditarPreco.parentElement.style.display = "";
 
-    const preco = precos.find(p => p.id === id);
-    if (preco) {
-      if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
-      // alguns registros usam 'valor' ou 'preco' — tenta ambos
-      if (modalEditarPreco) modalEditarPreco.value = (preco.valor ?? preco.preco ?? 0);
+    const pr = precos.find(p => p.id === id);
+    if (pr) {
+      modalEditarNome.value = pr.produtoNome || "";
+      modalEditarPreco.value = pr.preco ?? pr.valor ?? 0;
     }
-  } else {
-    console.warn("abrirModal chamado com tipo desconhecido:", tipo);
   }
 };
 
+// SALVAR EDIÇÃO (corrigido)
 btnSalvarEdicao.onclick = async () => {
   if (!itemEdicao || !tipoEdicao) {
-    alert("Nenhum item selecionado para editar.");
+    alert("Nenhum item selecionado para edição.");
     return;
   }
 
@@ -848,37 +826,39 @@ btnSalvarEdicao.onclick = async () => {
       const nome = modalEditarNome.value.trim();
       const telefone = modalEditarTelefone.value.trim();
       if (!nome) return alert("Informe o nome do cliente.");
-
       await updateDoc(doc(db, "clientes", itemEdicao), { nome, telefone });
       alert("Cliente atualizado com sucesso!");
-    } 
+    }
 
     else if (tipoEdicao === "produto") {
       const nome = modalEditarNome.value.trim();
       const quantidade = parseInt(modalEditarQuantidade.value) || 0;
       if (!nome) return alert("Informe o nome do produto.");
-
       await updateDoc(doc(db, "estoque", itemEdicao), { nome, quantidade });
       alert("Produto atualizado com sucesso!");
-    } 
+    }
 
     else if (tipoEdicao === "preco") {
       const produtoNome = modalEditarNome.value.trim();
-      const valor = parseFloat(modalEditarPreco.value) || 0;
-
-      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor, valor });
+      const preco = parseFloat(modalEditarPreco.value) || 0;
+      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco, valor: preco });
       alert("Preço atualizado com sucesso!");
     }
 
-    // Fechar modal e resetar variáveis
     modalEditar.style.display = "none";
     itemEdicao = null;
     tipoEdicao = null;
-
   } catch (err) {
-    console.error("Erro ao salvar edição:", err);
-    alert("Erro ao salvar: " + err.message);
+    console.error(err);
+    alert("Erro ao salvar edição: " + err.message);
   }
+};
+
+// CANCELAR
+btnCancelarEdicao.onclick = () => {
+  modalEditar.style.display = "none";
+  itemEdicao = null;
+  tipoEdicao = null;
 };
 
 btnCancelarEdicao.onclick = () => modalEditar.style.display = "none";
@@ -1030,4 +1010,5 @@ function reimprimirOrcamento(orcId) {
   imgLogo.onerror = function(){ doc.text("Orçamento", 105, 20, { align: "center" }); doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`); };
 }
 window.reimprimirOrcamento = reimprimirOrcamento;
+
 
