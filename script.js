@@ -432,7 +432,7 @@ const valorDesconto = document.getElementById("valorDesconto");
 const btnConfirmarDesconto = document.getElementById("btnConfirmarDesconto");
 const btnCancelarDesconto = document.getElementById("btnCancelarDesconto");
 
-let tipoDescontoAtual = ""; // 'produto' ou 'venda'
+tipoDescontoAtual = "produto"; 
 
 // Mostrar modal ao clicar nos botões
 document.getElementById("btnDesconto").addEventListener("click", () => {
@@ -1267,6 +1267,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
