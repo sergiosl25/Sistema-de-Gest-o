@@ -1248,14 +1248,19 @@ function mostrar(viewId) {
 // =========================
 // 🔹 Funções de controle de modal (edição/exclusão)
 // =========================
-function abrirModal(id) {
-  const modal = document.getElementById(id);
+function abrirModal(modalId) {
+  const modal = document.getElementById(modalId);
   if (modal) modal.style.display = "block";
 }
 
-function fecharModal(id) {
-  const modal = document.getElementById(id);
+function fecharModal(modalId) {
+  const modal = document.getElementById(modalId);
   if (modal) modal.style.display = "none";
+}
+
+function validarNumero(valor, defaultValue = 0) {
+  const numero = Number(valor);
+  return isNaN(numero) ? defaultValue : numero;
 }
 
 // Torna acessível no HTML
@@ -1274,3 +1279,4 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+window.validarNumero = validarNumero;
