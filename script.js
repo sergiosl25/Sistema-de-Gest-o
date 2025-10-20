@@ -1,6 +1,3 @@
-// script.js (substitua completamente o seu file por este)
-
-// IMPORTS FIREBASE (mantém o mesmo formato que você já usava)
 import { db, auth } from "./firebase-config.js";
 import {
   onAuthStateChanged,
@@ -679,35 +676,61 @@ function renderProdutoSelectPreco(){
   });
 }
 
+// === substituir renderTabelaPrecos por esta versão robusta ===
 function renderTabelaPrecos() {
   if (!tabelaPrecos) return;
   tabelaPrecos.innerHTML = "";
+
   precos.forEach(p => {
     const tr = document.createElement("tr");
+
+    // usa Json.stringify/Number para evitar 'undefined' no innerText
+    const cellProduto = p.produtoNome || "";
+    const cPreco = p.preco ?? p.valor ?? 0;
+    const cEstampaFrente = p.estampaFrente ?? 0;
+    const cEstampaFrenteVerso = p.estampaFrenteVerso ?? 0;
+    const cBranca = p.branca ?? 0;
+    const cInterior = p.interiorCores ?? 0;
+    const cMagicaFosca = p.magicaFosca ?? 0;
+    const cMagicaBrilho = p.magicaBrilho ?? 0;
+
     tr.innerHTML = `
-      <td>${p.produtoNome || ""}</td>
-      <td contenteditable data-field="preco">${p.preco || 0}</td>
-      <td contenteditable data-field="estampaFrente">${p.estampaFrente || 0}</td>
-      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso || 0}</td>
-      <td contenteditable data-field="branca">${p.branca || 0}</td>
-      <td contenteditable data-field="interiorCores">${p.interiorCores || 0}</td>
-      <td contenteditable data-field="magicaFosca">${p.magicaFosca || 0}</td>
-      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho || 0}</td>
+      <td>${cellProduto}</td>
+      <td contenteditable data-field="preco">${cPreco}</td>
+      <td contenteditable data-field="estampaFrente">${cEstampaFrente}</td>
+      <td contenteditable data-field="estampaFrenteVerso">${cEstampaFrenteVerso}</td>
+      <td contenteditable data-field="branca">${cBranca}</td>
+      <td contenteditable data-field="interiorCores">${cInterior}</td>
+      <td contenteditable data-field="magicaFosca">${cMagicaFosca}</td>
+      <td contenteditable data-field="magicaBrilho">${cMagicaBrilho}</td>
       <td>
-        <button onclick="abrirModal('preco','${p.id}')">Editar</button>
-        <button onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
+        <button class="acao-btn editar" onclick="abrirModal('preco','${p.id}')">Editar</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
       </td>
     `;
+
     tabelaPrecos.appendChild(tr);
 
+    // adiciona listener para atualizar firestore ao perder foco
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
-        const num = parseFloat(td.textContent) || 0;
         const field = td.dataset.field;
+        // retira caracteres que não são números (permite vírgula/.) e converte
+        const raw = td.textContent.trim().replace(",", ".");
+        const num = parseFloat(raw);
+        const valueToSave = isNaN(num) ? 0 : num;
         try {
-          await updateDoc(doc(db,"precos",p.id), { [field]: num });
-        } catch(e) { console.error("Erro atualizando preço:", e); }
+          // usa doc(db,"precos", p.id) (forma consistente)
+          await updateDoc(doc(db, "precos", p.id), { [field]: valueToSave });
+        } catch (err) {
+          console.error("Erro ao atualizar preço no Firestore:", err);
+          alert("Erro ao salvar preço. Veja o console.");
+        }
       };
+      // evita que o ENTER crie nova linha no contenteditable
+      td.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); td.blur(); }
+      });
     });
   });
 }
@@ -735,62 +758,119 @@ window.excluirPreco = excluirPreco;
 window.abrirModal = function(tipo, id) {
   itemEdicao = id;
   tipoEdicao = tipo;
-  if(!modalEditar) return;
+
+  if (!modalEditar) {
+    console.warn("modalEditar não encontrado no DOM");
+    return;
+  }
+
+  // mostra modal
   modalEditar.style.display = "block";
 
-  // Esconde todos os campos (assume que os inputs existem)
-  const allFields = [modalEditarNome, modalEditarTelefone, modalEditarQuantidade, modalEditarCompra, modalEditarVenda, modalEditarPreco];
-  allFields.forEach(f => { if (f && f.parentElement) f.parentElement.style.display = "none"; });
+  // limpa e esconde todos os campos presentes (faz proteção caso algum input não exista)
+  const campos = {
+    nome: modalEditarNome,
+    telefone: modalEditarTelefone,
+    quantidade: modalEditarQuantidade,
+    compra: modalEditarCompra,
+    venda: modalEditarVenda,
+    preco: modalEditarPreco
+  };
+
+  Object.values(campos).forEach(inp => {
+    if (!inp) return;
+    // se estiver dentro de um wrapper (label/div) mostramos/escondemos esse wrapper,
+    // senão mostramos o próprio input.
+    const wrapper = inp.parentElement;
+    if (wrapper) wrapper.style.display = "none";
+    else inp.style.display = "none";
+    // limpa valor antigo (opcional)
+    // inp.value = "";
+  });
 
   if (tipo === "cliente") {
     modalEditarTitulo.textContent = "Editar Cliente";
-    modalEditarNome.parentElement.style.display = "block";
-    modalEditarTelefone.parentElement.style.display = "block";
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
+    else if (modalEditarNome) modalEditarNome.style.display = "";
+    if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "";
+    else if (modalEditarTelefone) modalEditarTelefone.style.display = "";
+
     const cliente = clientes.find(c => c.id === id);
-    if (cliente) { modalEditarNome.value = cliente.nome; modalEditarTelefone.value = cliente.telefone || ""; }
+    if (cliente) {
+      if (modalEditarNome) modalEditarNome.value = cliente.nome || "";
+      if (modalEditarTelefone) modalEditarTelefone.value = cliente.telefone || "";
+    }
   } else if (tipo === "produto") {
     modalEditarTitulo.textContent = "Editar Produto";
-    modalEditarNome.parentElement.style.display = "block";
-    modalEditarQuantidade.parentElement.style.display = "block";
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
+    else if (modalEditarNome) modalEditarNome.style.display = "";
+    if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "";
+    else if (modalEditarQuantidade) modalEditarQuantidade.style.display = "";
+
     const produto = produtos.find(p => p.id === id);
-    if (produto) { modalEditarNome.value = produto.nome; modalEditarQuantidade.value = produto.quantidade || 0; }
+    if (produto) {
+      if (modalEditarNome) modalEditarNome.value = produto.nome || "";
+      if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade ?? 0;
+    }
   } else if (tipo === "preco") {
     modalEditarTitulo.textContent = "Editar Preço";
-    modalEditarNome.parentElement.style.display = "block";
-    modalEditarPreco.parentElement.style.display = "block";
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
+    else if (modalEditarNome) modalEditarNome.style.display = "";
+    if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "";
+    else if (modalEditarPreco) modalEditarPreco.style.display = "";
+
     const preco = precos.find(p => p.id === id);
-    if (preco) { modalEditarNome.value = preco.produtoNome || ""; modalEditarPreco.value = preco.valor || preco.preco || 0; }
+    if (preco) {
+      if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
+      // alguns registros usam 'valor' ou 'preco' — tenta ambos
+      if (modalEditarPreco) modalEditarPreco.value = (preco.valor ?? preco.preco ?? 0);
+    }
+  } else {
+    console.warn("abrirModal chamado com tipo desconhecido:", tipo);
   }
 };
 
 btnSalvarEdicao.onclick = async () => {
-  if(!itemEdicao) return;
+  if (!itemEdicao || !tipoEdicao) return alert("Nenhum item selecionado para editar.");
+
   try {
     if (tipoEdicao === "cliente") {
-      await updateDoc(doc(db,"clientes",itemEdicao), {
-        nome: (modalEditarNome.value||"").trim(),
-        telefone: (modalEditarTelefone.value||"").trim()
-      });
+      const nome = (modalEditarNome.value || "").trim();
+      const telefone = (modalEditarTelefone.value || "").trim();
+      if (!nome) return alert("Nome do cliente não pode ficar vazio.");
+      await updateDoc(doc(db, "clientes", itemEdicao), { nome, telefone });
     } else if (tipoEdicao === "produto") {
-      await updateDoc(doc(db,"estoque",itemEdicao), {
-        nome: (modalEditarNome.value||"").trim(),
-        quantidade: parseInt(modalEditarQuantidade.value) || 0
-      });
-      // sincroniza nome no precos
-      const q = query(precosCol, where("produtoId","==",itemEdicao));
+      const nome = (modalEditarNome.value || "").trim();
+      const quantidade = parseInt(modalEditarQuantidade.value) || 0;
+      if (!nome) return alert("Nome do produto não pode ficar vazio.");
+      await updateDoc(doc(db, "estoque", itemEdicao), { nome, quantidade });
+
+      // sincroniza nome no precos (caso haja)
+      const q = query(precosCol, where("produtoId", "==", itemEdicao));
       const snaps = await getDocs(q);
-      for(const s of snaps.docs) {
-        await updateDoc(doc(db,"precos",s.id), { produtoNome: (modalEditarNome.value||"").trim() });
+      for (const s of snaps.docs) {
+        await updateDoc(doc(db, "precos", s.id), { produtoNome: nome });
       }
     } else if (tipoEdicao === "preco") {
-      await updateDoc(doc(precosCol,itemEdicao), {
-        produtoNome: (modalEditarNome.value||"").trim(),
-        valor: parseFloat(modalEditarPreco.value) || 0
-      });
+      const produtoNome = (modalEditarNome.value || "").trim();
+      const valor = parseFloat(modalEditarPreco.value) || 0;
+      // salva em 'valor' e também em 'preco' para compatibilidade
+      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, valor, preco: valor });
+    } else {
+      throw new Error("Tipo de edição desconhecido: " + tipoEdicao);
     }
-    modalEditar.style.display = "none";
-  } catch(err) {
-    console.error(err); alert("Erro ao salvar edição: "+(err.message||err));
+
+    // fecha modal e limpa estado
+    if (modalEditar) modalEditar.style.display = "none";
+    itemEdicao = null;
+    tipoEdicao = null;
+    // re-render opcional (onSnapshot geralmente cuida disso)
+    renderEstoque();
+    renderClientes();
+    renderTabelaPrecos();
+  } catch (err) {
+    console.error("Erro ao salvar edição:", err);
+    alert("Erro ao salvar edição: " + (err.message || err));
   }
 };
 
@@ -943,8 +1023,3 @@ function reimprimirOrcamento(orcId) {
   imgLogo.onerror = function(){ doc.text("Orçamento", 105, 20, { align: "center" }); doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`); };
 }
 window.reimprimirOrcamento = reimprimirOrcamento;
-
-/* =========================
-   FIM
-   ========================= */
-
