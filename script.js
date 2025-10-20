@@ -443,6 +443,89 @@ async function excluirVenda(id){
   }catch(err){ console.error(err); alert("Erro ao excluir venda: "+err);}
 }
 
+/* ===========================
+   🔹 DESCONTO E DESCONTO NA VENDA
+=========================== */
+
+let tipoDescontoAtual = null; // "unitario" ou "venda"
+let linhaSelecionada = null;  // Guarda referência da linha na tabela (se já existir)
+
+// Abrir modal conforme botão clicado
+document.querySelectorAll('.btn-desconto, .btn-desconto-venda').forEach(botao => {
+  botao.addEventListener('click', function() {
+    tipoDescontoAtual = this.classList.contains('btn-desconto-venda') ? 'venda' : 'unitario';
+    document.getElementById('tituloModalDesconto').textContent =
+      tipoDescontoAtual === 'venda' ? 'Desconto na Venda' : 'Desconto Unitário';
+    document.getElementById('modalDesconto').classList.add('active');
+  });
+});
+
+// Fechar modal
+document.getElementById('btnCancelarDesconto').addEventListener('click', () => {
+  document.getElementById('modalDesconto').classList.remove('active');
+  document.getElementById('valorDesconto').value = '';
+});
+
+// Aplicar desconto
+document.getElementById('btnAplicarDesconto').addEventListener('click', () => {
+  const tipo = document.getElementById('tipoDesconto').value;
+  const valor = parseFloat(document.getElementById('valorDesconto').value) || 0;
+
+  if (valor <= 0) {
+    alert('Informe um valor de desconto válido!');
+    return;
+  }
+
+  let precoUnitario = parseFloat(document.getElementById('precoVenda').value) || 0;
+  let quantidade = parseFloat(document.getElementById('quantidade').value) || 1;
+
+  let totalAntes = precoUnitario * quantidade;
+  let descontoAplicado = 0;
+  let totalDepois = totalAntes;
+
+  if (tipoDescontoAtual === 'unitario') {
+    // desconto sobre o preço unitário
+    descontoAplicado = tipo === 'percentual'
+      ? (precoUnitario * valor / 100)
+      : valor;
+    precoUnitario -= descontoAplicado;
+    totalDepois = precoUnitario * quantidade;
+  } else {
+    // desconto sobre o total da venda
+    descontoAplicado = tipo === 'percentual'
+      ? (totalAntes * valor / 100)
+      : valor;
+    totalDepois = totalAntes - descontoAplicado;
+  }
+
+  // Fechar modal
+  document.getElementById('modalDesconto').classList.remove('active');
+
+  // Atualiza campos na tela (se desejar mostrar no formulário)
+  document.getElementById('precoVenda').value = precoUnitario.toFixed(2);
+
+  // Inserir nova linha na tabela de vendas
+  const tabela = document.querySelector('#tabelaVendas tbody') || document.querySelector('#tabelaRegistros tbody');
+  if (!tabela) return;
+
+  const novaLinha = document.createElement('tr');
+  novaLinha.innerHTML = `
+    <td>${new Date().toLocaleDateString()}</td>
+    <td>Cliente</td>
+    <td>Produto</td>
+    <td>${quantidade}</td>
+    <td>R$ ${totalAntes.toFixed(2)}</td>
+    <td>${tipo === 'percentual' ? valor + '%' : 'R$ ' + valor.toFixed(2)}</td>
+    <td>R$ ${totalAntes.toFixed(2)}</td>
+    <td>R$ ${totalDepois.toFixed(2)}</td>
+    <td>-</td>
+    <td><button class="acao-btn excluir">Excluir</button></td>
+  `;
+  tabela.appendChild(novaLinha);
+
+  // Limpar modal
+  document.getElementById('valorDesconto').value = '';
+});
 
 function gerarRecibo(vendaId) {
   const venda = vendas.find(v => v.id === vendaId);
@@ -1105,6 +1188,7 @@ window.reimprimirOrcamento = reimprimirOrcamento;
 window.gerarRecibo = gerarRecibo;
 window.salvarOrcamento = salvarOrcamento;
 window.abrirModalPreco = abrirModalPreco;
+
 
 
 
