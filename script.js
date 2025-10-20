@@ -1,3 +1,10 @@
+/* script.js - Versão reescrita e corrigida
+   Requisitos: já importou firebase-config.js e libs (auth/firestore/jsPDF) no HTML.
+*/
+
+/* =========================
+   Imports (usa seu firebase-config.js)
+   ========================= */
 import { db, auth } from "./firebase-config.js";
 import {
   onAuthStateChanged,
@@ -22,10 +29,12 @@ import {
    ========================= */
 onAuthStateChanged(auth, user => {
   if (!user) window.location.href = "login.html";
-  else document.getElementById("userEmail").textContent = user.email;
+  else {
+    const el = document.getElementById("userEmail");
+    if (el) el.textContent = user.email;
+  }
 });
 
-// Logout
 window.logout = async () => {
   await signOut(auth);
   window.location.href = "login.html";
@@ -48,150 +57,147 @@ let produtos = [];
 let vendas = [];
 let orcamentos = [];
 let precos = [];
+
+/* item selecionado para edição (uma única declaração) */
 let itemEdicao = null;
 let tipoEdicao = null;
 
-/* Guarda o desconto atual aplicado no formulário antes de registrar a venda */
+/* desconto provisório aplicado antes de gravar venda */
 let currentSaleDiscount = {
-  tipoAplicado: null, // 'produto' | 'venda' | null
-  tipoValor: null,    // 'percentual' | 'valor' | null
+  tipoAplicado: null, // 'produto' | 'venda'
+  tipoValor: null, // 'percentual' | 'valor'
   valor: 0
 };
 
 /* =========================
-   Helpers / Elementos DOM
+   Helpers / DOM refs (verifica presença)
    ========================= */
-// Tabelas e inputs (IDs do seu HTML)
+const $ = id => document.getElementById(id);
+
 const tabelaClientes = document.querySelector("#tabelaClientes tbody");
-const nomeCliente = document.getElementById("nomeCliente");
-const telefoneCliente = document.getElementById("telefoneCliente");
-const btnCadastrarCliente = document.getElementById("btnCadastrarCliente");
-const clienteSelect = document.getElementById("clienteSelect");
+const nomeCliente = $("nomeCliente");
+const telefoneCliente = $("telefoneCliente");
+const btnCadastrarCliente = $("btnCadastrarCliente");
+const clienteSelect = $("clienteSelect");
 
 const tabelaEstoque = document.querySelector("#tabelaEstoque tbody");
-const nomeProduto = document.getElementById("nomeProduto");
-const quantidadeProduto = document.getElementById("quantidadeProduto");
-const btnCadastrarProduto = document.getElementById("btnCadastrarProduto");
-const produtoSelect = document.getElementById("produtoSelect");
-const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
-const precoVendaInput = document.getElementById("precoVenda");
-const produtoSelectPreco = document.getElementById("produtoSelectPreco");
+const nomeProduto = $("nomeProduto");
+const quantidadeProduto = $("quantidadeProduto");
+const btnCadastrarProduto = $("btnCadastrarProduto");
+const produtoSelect = $("produtoSelect");
+const tipoPrecoSelect = $("tipoPrecoSelect");
+const precoVendaInput = $("precoVenda");
+const produtoSelectPreco = $("produtoSelectPreco");
 
-const quantidadeVenda = document.getElementById("quantidadeVenda");
-const formaPagamento = document.getElementById("formaPagamento");
-const btnVender = document.getElementById("btnVender");
-const btnDesconto = document.getElementById("btnDesconto");
-const btnDescontoVenda = document.getElementById("btnDescontoVenda");
+const quantidadeVenda = $("quantidadeVenda");
+const formaPagamento = $("formaPagamento");
+const btnVender = $("btnVender");
+const btnDesconto = $("btnDesconto");
+const btnDescontoVenda = $("btnDescontoVenda");
 
-const tabelaRegistros = document.querySelector("#tabelaRegistros tbody"); // tabela registros (historico)
-const totalGeralRegistros = document.getElementById("totalGeralRegistros");
+const tabelaRegistros = document.querySelector("#tabelaRegistros tbody");
+const totalGeralRegistros = $("totalGeralRegistros");
 
-// Orçamentos / preços (mantive suas refs)
 const tabelaOrcamento = document.querySelector("#tabelaOrcamento tbody");
-const clienteInputOrcamento = document.getElementById("clienteInputOrcamento");
-const produtoSelectOrcamento = document.getElementById("produtoSelectOrcamento");
-const quantidadeOrcamento = document.getElementById("quantidadeOrcamento");
-const btnAdicionarProduto = document.getElementById("btnAdicionarProduto");
-const btnGerarPDF = document.getElementById("btnGerarPDF");
+const clienteInputOrcamento = $("clienteInputOrcamento");
+const produtoSelectOrcamento = $("produtoSelectOrcamento");
+const quantidadeOrcamento = $("quantidadeOrcamento");
+const btnAdicionarProduto = $("btnAdicionarProduto");
+const btnGerarPDF = $("btnGerarPDF");
 const tabelaOrcamentosSalvos = document.querySelector("#tabelaOrcamentosSalvos tbody");
 
 const tabelaPrecos = document.querySelector("#tabelaPrecos tbody");
-const btnNovaLinhaPreco = document.getElementById("btnNovaLinhaPreco");
+const btnNovaLinhaPreco = $("btnNovaLinhaPreco");
 
-// Modais edição/exclusão (mantive)
-const modalEditar = document.getElementById("modalEditar");
-const modalEditarTitulo = document.getElementById("modalEditarTitulo");
-const modalEditarNome = document.getElementById("modalEditarNome");
-const modalEditarTelefone = document.getElementById("modalEditarTelefone");
-const modalEditarQuantidade = document.getElementById("modalEditarQuantidade");
-const modalEditarCompra = document.getElementById("modalEditarCompra");
-const modalEditarVenda = document.getElementById("modalEditarVenda");
-const modalEditarPreco = document.getElementById("modalEditarPreco");
-const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
-const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
+// modais
+const modalEditar = $("modalEditar");
+const modalEditarTitulo = $("modalEditarTitulo");
+const modalEditarNome = $("modalEditarNome");
+const modalEditarTelefone = $("modalEditarTelefone");
+const modalEditarQuantidade = $("modalEditarQuantidade");
+const modalEditarCompra = $("modalEditarCompra");
+const modalEditarVenda = $("modalEditarVenda");
+const modalEditarPreco = $("modalEditarPreco");
+const btnSalvarEdicao = $("btnSalvarEdicao");
+const btnCancelarEdicao = $("btnCancelarEdicao");
 
-const modalExcluir = document.getElementById("modalExcluir");
-const btnConfirmarExcluir = document.getElementById("btnConfirmarExcluir");
-const btnCancelarExcluir = document.getElementById("btnCancelarExcluir");
+const modalExcluir = $("modalExcluir");
+const btnConfirmarExcluir = $("btnConfirmarExcluir");
+const btnCancelarExcluir = $("btnCancelarExcluir");
 
-// Modal de desconto (IDs do seu HTML)
-const modalDesconto = document.getElementById("modalDesconto");
-const tituloModalDesconto = document.getElementById("tituloModalDesconto");
-const tipoDescontoSelect = document.getElementById("tipoDesconto"); // 'percentual' | 'valor'
-const valorDescontoInput = document.getElementById("valorDesconto");
-const btnAplicarDesconto = document.getElementById("btnAplicarDesconto");
-const btnCancelarDesconto = document.getElementById("btnCancelarDesconto");
+// modal desconto
+const modalDesconto = $("modalDesconto");
+const tituloModalDesconto = $("tituloModalDesconto");
+const tipoDescontoSelect = $("tipoDesconto"); // 'percentual' | 'valor'
+const valorDescontoInput = $("valorDesconto");
+const btnAplicarDesconto = $("btnAplicarDesconto");
+const btnCancelarDesconto = $("btnCancelarDesconto");
 
 /* =========================
-   Small helpers
+   Pequenos helpers utilitários
    ========================= */
 function sanitizeFileName(name){ return name ? name.replace(/[\/\\?%*:|"<>]/g,"_") : "cliente"; }
 function money(val){ return Number(val||0).toFixed(2); }
 function formatCurrency(val){ return Number(val||0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 function nowDateTime(){ return new Date().toLocaleString(); }
-function toNumber(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
-
-function mostrarSecao(secaoId) {
-  const selector = ".view"; 
-  document.querySelectorAll(selector).forEach(sec => {
-    sec.style.display = sec.id === secaoId ? "block" : "none";
-  });
-}
-
-window.mostrarSecao = mostrarSecao;
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (!document.querySelector(".view[style*='display: block']")) mostrarSecao("clientes");
-});
+function toNumber(v){ const n = Number(String(v).replace(",", ".")); return isNaN(n) ? 0 : n; }
 
 /* =========================
    Real-time listeners (Firestore)
    ========================= */
 onSnapshot(clientesCol, snapshot => {
-  clientes = snapshot.docs.map(d=>({id:d.id,...d.data()}));
+  clientes = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
   renderClientes();
 });
 
 onSnapshot(precosCol, snapshot => {
-  precos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  precos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
   renderTabelaPrecos();
 });
 
 onSnapshot(vendasCol, snapshot => {
-  vendas = snapshot.docs.map(d=>({id:d.id,...d.data()}));
-  renderVendas(); // histórico
+  vendas = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
+  renderVendas();
 });
 
 onSnapshot(orcamentosCol, snapshot => {
-  orcamentos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  // filtra inválidos
+  orcamentos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
+  // filtra orçamentos inválidos
   orcamentos = orcamentos.filter(o => o && o.clienteNome && Array.isArray(o.produtos) && o.produtos.length>0);
   renderOrcamentosSalvos();
 });
 
 onSnapshot(estoqueCol, snapshot => {
-  produtos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  produtos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
   renderEstoque();
   renderProdutoSelectOrcamento();
   renderProdutoSelectPreco();
 });
 
 /* =========================
-   CLIENTES
+   CLIENTES (CRUD)
    ========================= */
-btnCadastrarCliente.onclick = async () => {
-  const nome = (nomeCliente.value||"").trim();
-  if(!nome) return alert("Informe o nome do cliente");
-  const telefone = (telefoneCliente.value||"").trim();
+if (btnCadastrarCliente) btnCadastrarCliente.onclick = async () => {
+  const nome = (nomeCliente?.value || "").trim();
+  if (!nome) return alert("Informe o nome do cliente");
+  const telefone = (telefoneCliente?.value || "").trim();
   try {
     await addDoc(clientesCol, { nome, telefone });
-    nomeCliente.value = telefoneCliente.value = "";
-  } catch(err) { console.error(err); alert("Erro ao salvar cliente: "+err.message); }
+    if (nomeCliente) nomeCliente.value = "";
+    if (telefoneCliente) telefoneCliente.value = "";
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao salvar cliente: " + (err.message || err));
+  }
 };
 
 function renderClientes(){
+  if (!tabelaClientes) return;
   tabelaClientes.innerHTML = "";
-  clienteSelect.innerHTML = "<option value=''>Selecione o cliente</option>";
+  if (clienteSelect) {
+    clienteSelect.innerHTML = "<option value=''>Selecione o cliente</option>";
+  }
+
   clientes.forEach(c => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -204,29 +210,34 @@ function renderClientes(){
     `;
     tabelaClientes.appendChild(tr);
 
-    const opt = document.createElement("option");
-    opt.value = c.id; opt.textContent = c.nome;
-    clienteSelect.appendChild(opt);
+    if (clienteSelect) {
+      const opt = document.createElement("option");
+      opt.value = c.id; opt.textContent = c.nome;
+      clienteSelect.appendChild(opt);
+    }
   });
 }
 
 async function excluirCliente(id){
   try {
-    await deleteDoc(doc(db,"clientes",id));
-  } catch(err){ console.error(err); alert("Erro ao excluir cliente: "+err.message); }
+    await deleteDoc(doc(db, "clientes", id));
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao excluir cliente: " + (err.message || err));
+  }
 }
 window.excluirCliente = excluirCliente;
 
 /* =========================
-   PRODUTOS
+   PRODUTOS (CRUD)
    ========================= */
-btnCadastrarProduto.onclick = async () => {
-  const nome = (nomeProduto.value||"").trim();
-  const quantidade = parseInt(quantidadeProduto.value) || 0;
-  if(!nome) return alert("Informe nome do produto");
+if (btnCadastrarProduto) btnCadastrarProduto.onclick = async () => {
+  const nome = (nomeProduto?.value || "").trim();
+  const quantidade = parseInt(quantidadeProduto?.value) || 0;
+  if (!nome) return alert("Informe nome do produto");
   try {
     const ref = await addDoc(estoqueCol, { nome, quantidade });
-    // cria linha padrão na coleção de preços
+    // cria linha padrão em 'precos' para esse produto
     await addDoc(precosCol, {
       produtoId: ref.id,
       produtoNome: nome,
@@ -238,18 +249,24 @@ btnCadastrarProduto.onclick = async () => {
       magicaFosca: 0,
       magicaBrilho: 0
     });
-    nomeProduto.value = quantidadeProduto.value = "";
-  } catch(err){ console.error(err); alert("Erro ao cadastrar produto: "+err.message); }
+    if (nomeProduto) nomeProduto.value = "";
+    if (quantidadeProduto) quantidadeProduto.value = "";
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao cadastrar produto: " + (err.message || err));
+  }
 };
 
-function renderEstoque() {
+function renderEstoque(){
+  if (!tabelaEstoque) return;
   tabelaEstoque.innerHTML = "";
-  produtoSelect.innerHTML = "<option value=''>Selecione o produto</option>";
+  if (produtoSelect) produtoSelect.innerHTML = "<option value=''>Selecione o produto</option>";
+
   produtos.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${p.nome}</td>
-      <td>${p.quantidade || 0}</td>
+      <td>${p.quantidade ?? 0}</td>
       <td>
         <button class="acao-btn editar" onclick="abrirModal('produto','${p.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirProduto('${p.id}'))">Excluir</button>
@@ -257,33 +274,39 @@ function renderEstoque() {
     `;
     tabelaEstoque.appendChild(tr);
 
-    const opt = document.createElement("option");
-    opt.value = p.id;
-    opt.textContent = p.nome;
-    produtoSelect.appendChild(opt);
+    if (produtoSelect) {
+      const opt = document.createElement("option");
+      opt.value = p.id; opt.textContent = p.nome;
+      produtoSelect.appendChild(opt);
+    }
   });
 }
 
 async function excluirProduto(id){
   try {
+    // apaga linhas de precos referenciando esse produto
     const q = query(precosCol, where("produtoId","==",id));
     const snaps = await getDocs(q);
-    for(const s of snaps.docs) await deleteDoc(doc(precosCol, s.id));
-    await deleteDoc(doc(db,"estoque",id));
-  } catch(err){ console.error(err); alert("Erro ao excluir produto: "+err.message); }
+    for (const s of snaps.docs) await deleteDoc(doc(precosCol, s.id));
+    await deleteDoc(doc(db, "estoque", id));
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao excluir produto: " + (err.message || err));
+  }
 }
 window.excluirProduto = excluirProduto;
 
 /* =========================
-   PREÇOS e selects
+   PREÇOS / selects
    ========================= */
-produtoSelect.onchange = () => {
+if (produtoSelect) produtoSelect.onchange = () => {
   const produtoId = produtoSelect.value;
+  if (!tipoPrecoSelect) return;
   tipoPrecoSelect.innerHTML = "<option value=''>Selecione tipo de preço</option>";
-  precoVendaInput.value = "";
-  if(!produtoId) return;
+  if (precoVendaInput) precoVendaInput.value = "";
+  if (!produtoId) return;
   const precoDoProduto = precos.find(p => p.produtoId === produtoId);
-  if(!precoDoProduto) return;
+  if (!precoDoProduto) return;
   const tipos = [
     { campo: "preco", texto: "Preço" },
     { campo: "estampaFrente", texto: "Estampa Frente" },
@@ -302,30 +325,27 @@ produtoSelect.onchange = () => {
       tipoPrecoSelect.appendChild(opt);
     }
   });
-};
+}
 
-tipoPrecoSelect.addEventListener("change", () => {
+if (tipoPrecoSelect) tipoPrecoSelect.addEventListener("change", () => {
   const tipo = tipoPrecoSelect.value;
-  const produtoId = produtoSelect.value;
+  const produtoId = produtoSelect?.value;
   if (!tipo || !produtoId) return;
   const precoDoProduto = precos.find(p => p.produtoId === produtoId);
   if (!precoDoProduto) return;
-  const valor = precoDoProduto[tipo];
-  const preco = Number(valor);
-  if (!isNaN(preco)) precoVendaInput.value = preco.toFixed(2);
-  else precoVendaInput.value = "";
+  const valor = toNumber(precoDoProduto[tipo]);
+  if (precoVendaInput) precoVendaInput.value = valor > 0 ? valor.toFixed(2) : "";
 });
 
 /* =========================
-   VENDAS (com transação) + integração do desconto
+   VENDAS (transação) + desconto
    ========================= */
-btnVender.onclick = async () => {
-  const clienteId = clienteSelect.value;
-  const produtoId = produtoSelect.value;
-  const qtd = parseInt(quantidadeVenda.value);
-  const tipoPreco = tipoPrecoSelect.value;
-
-  if (!clienteId || !produtoId || !qtd || qtd <= 0 || !tipoPreco) {
+if (btnVender) btnVender.onclick = async () => {
+  const clienteId = clienteSelect?.value;
+  const produtoId = produtoSelect?.value;
+  const qtd = parseInt(quantidadeVenda?.value) || 0;
+  const tipoPreco = tipoPrecoSelect?.value;
+  if (!clienteId || !produtoId || qtd <= 0 || !tipoPreco) {
     return alert("Preencha cliente, produto, tipo de preço e quantidade corretamente.");
   }
 
@@ -334,70 +354,60 @@ btnVender.onclick = async () => {
     const clienteSnap = await getDoc(doc(db, "clientes", clienteId));
     const clienteNome = clienteSnap.exists() ? clienteSnap.data().nome : "Cliente";
 
-    // pega preço do documento de precos local em cache
     const precoDoc = precos.find(p => p.produtoId === produtoId);
-    if (!precoDoc) return alert("Tabela de preços para esse produto não encontrada.");
-
-    const precoUnitarioBase = Number(precoDoc[tipoPreco]) || 0;
+    if (!precoDoc) return alert("Tabela de preços não encontrada para esse produto.");
+    const precoUnitarioBase = toNumber(precoDoc[tipoPreco]);
     if (precoUnitarioBase <= 0) return alert("Preço inválido. Verifique a tabela de preços.");
 
-    // Calcula total antes e depois aplicando desconto em currentSaleDiscount
-    const qtdNum = qtd;
-    const totalAntes = precoUnitarioBase * qtdNum;
+    const totalAntes = precoUnitarioBase * qtd;
     let totalDepois = totalAntes;
     let descontoSalvo = { tipoAplicado: null, tipoValor: null, valor: 0 };
 
     if (currentSaleDiscount && currentSaleDiscount.tipoAplicado) {
       descontoSalvo = { ...currentSaleDiscount };
       if (descontoSalvo.tipoAplicado === 'produto') {
-        // aplicar sobre unitário
         if (descontoSalvo.tipoValor === 'percentual') {
-          const descontoUnit = precoUnitarioBase * (descontoSalvo.valor/100);
-          totalDepois = (precoUnitarioBase - descontoUnit) * qtdNum;
+          const descontoUnit = precoUnitarioBase * (descontoSalvo.valor / 100);
+          totalDepois = Math.max(0, (precoUnitarioBase - descontoUnit) * qtd);
         } else {
           const descontoUnit = descontoSalvo.valor;
-          totalAfterUnit = Math.max(0, precoUnitarioBase - descontoUnit);
-          totalDepois = totalAfterUnit * qtdNum;
+          const afterUnit = Math.max(0, precoUnitarioBase - descontoUnit);
+          totalDepois = afterUnit * qtd;
         }
       } else {
-        // aplicado sobre venda (total)
         if (descontoSalvo.tipoValor === 'percentual') {
-          totalDepois = totalAntes - (totalAntes * (descontoSalvo.valor/100));
+          totalDepois = Math.max(0, totalAntes - (totalAntes * (descontoSalvo.valor / 100)));
         } else {
-          totalDepois = totalAntes - descontoSalvo.valor;
+          totalDepois = Math.max(0, totalAntes - descontoSalvo.valor);
         }
       }
-      if (totalDepois < 0) totalDepois = 0;
     }
 
-    // Transação: atualiza estoque e grava venda com campos de desconto
     await runTransaction(db, async tx => {
       const produtoSnapTx = await tx.get(produtoRef);
-      if (!produtoSnapTx.exists()) throw "Produto não encontrado";
+      if (!produtoSnapTx.exists()) throw new Error("Produto não encontrado");
       const estoqueAtual = produtoSnapTx.data().quantidade || 0;
-      if (estoqueAtual < qtdNum) throw "Estoque insuficiente";
-
-      tx.update(produtoRef, { quantidade: estoqueAtual - qtdNum });
+      if (estoqueAtual < qtd) throw new Error("Estoque insuficiente");
+      tx.update(produtoRef, { quantidade: estoqueAtual - qtd });
 
       const vendaDoc = {
         data: nowDateTime(),
         clienteId,
         cliente: clienteNome,
         produtoId,
-        produto: precoDoc.produtoNome || produtoSelect.options[produtoSelect.selectedIndex].text || "Produto",
-        quantidade: qtdNum,
+        produto: precoDoc.produtoNome || (produtoSelect?.options[produtoSelect.selectedIndex]?.text || "Produto"),
+        quantidade: qtd,
         preco: precoUnitarioBase,
         totalAntes,
         totalDepois,
-        desconto: descontoSalvo, // { tipoAplicado, tipoValor, valor }
-        pagamento: formaPagamento.value || "Não informado"
+        desconto: descontoSalvo,
+        pagamento: (formaPagamento?.value) || "Não informado"
       };
-
       tx.set(doc(vendasCol), vendaDoc);
     });
 
-    // limpa formulário e desconto atual
-    quantidadeVenda.value = "";
+    // limpa form e desconto
+    if (quantidadeVenda) quantidadeVenda.value = "";
     currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
 
     alert("Venda registrada com sucesso!");
@@ -408,88 +418,78 @@ btnVender.onclick = async () => {
 };
 
 /* =========================
-   Modal de desconto (genérico) — abre para 'produto' ou 'venda'
+   Modal desconto (produto ou venda)
    ========================= */
-let tipoDescontoAtual = null; // 'produto' ou 'venda'
+let tipoDescontoAtual = null; // 'produto' | 'venda' | null
 
-btnDesconto && btnDesconto.addEventListener('click', () => {
+if (btnDesconto) btnDesconto.addEventListener('click', () => {
   tipoDescontoAtual = 'produto';
-  tituloModalDesconto.textContent = "Desconto no Produto";
-  tipoDescontoSelect.value = "percentual";
-  valorDescontoInput.value = "";
-  modalDesconto.classList.add("active");
+  if (tituloModalDesconto) tituloModalDesconto.textContent = "Desconto no Produto";
+  if (tipoDescontoSelect) tipoDescontoSelect.value = "percentual";
+  if (valorDescontoInput) valorDescontoInput.value = "";
+  if (modalDesconto) modalDesconto.classList.add("active");
 });
 
-btnDescontoVenda && btnDescontoVenda.addEventListener('click', () => {
+if (btnDescontoVenda) btnDescontoVenda.addEventListener('click', () => {
   tipoDescontoAtual = 'venda';
-  tituloModalDesconto.textContent = "Desconto na Venda";
-  tipoDescontoSelect.value = "percentual";
-  valorDescontoInput.value = "";
-  modalDesconto.classList.add("active");
+  if (tituloModalDesconto) tituloModalDesconto.textContent = "Desconto na Venda";
+  if (tipoDescontoSelect) tipoDescontoSelect.value = "percentual";
+  if (valorDescontoInput) valorDescontoInput.value = "";
+  if (modalDesconto) modalDesconto.classList.add("active");
 });
 
-// cancelar
-btnCancelarDesconto && btnCancelarDesconto.addEventListener('click', () => {
-  modalDesconto.classList.remove("active");
-  valorDescontoInput.value = "";
+if (btnCancelarDesconto) btnCancelarDesconto.addEventListener('click', () => {
+  if (modalDesconto) modalDesconto.classList.remove("active");
+  if (valorDescontoInput) valorDescontoInput.value = "";
   tipoDescontoAtual = null;
 });
 
-// aplicar desconto: atualiza currentSaleDiscount e, se for desconto unitário, atualiza precoVendaInput na UI
-btnAplicarDesconto && btnAplicarDesconto.addEventListener('click', () => {
-  const tipoValor = tipoDescontoSelect.value; // 'percentual' | 'valor'
-  const valor = parseFloat(valorDescontoInput.value);
-  if (isNaN(valor) || valor <= 0) return alert("Digite um valor de desconto válido.");
+if (btnAplicarDesconto) btnAplicarDesconto.addEventListener('click', () => {
+  if (!tipoDescontoAtual) return alert("Tipo de desconto não definido.");
+  const tipoValor = tipoDescontoSelect?.value;
+  const raw = (valorDescontoInput?.value || "").trim();
+  const valor = toNumber(raw);
+  if (!valor || valor <= 0) return alert("Informe um valor de desconto válido.");
 
-  // salva no estado da venda atual
   currentSaleDiscount = {
     tipoAplicado: tipoDescontoAtual === 'produto' ? 'produto' : 'venda',
     tipoValor: tipoValor === 'percentual' ? 'percentual' : 'valor',
     valor: Number(valor)
   };
 
-  // Se for desconto no produto, atualiza o preço unitário mostrado no formulário (apenas visual)
+  // se desconto no produto, atualizar visual do preço unit (apenas UI)
   if (currentSaleDiscount.tipoAplicado === 'produto') {
-    const precoBase = toNumber(precoVendaInput.value);
-    if (precoBase <= 0) {
-      // tenta recuperar preço a partir do produto selection + tipo preco
-      const produtoId = produtoSelect.value;
-      const tipoPreco = tipoPrecoSelect.value;
-      const precoDoc = precos.find(p => p.produtoId === produtoId);
-      if (precoDoc && tipoPreco) {
-        const base = toNumber(precoDoc[tipoPreco]);
-        if (base > 0) {
-          // calcula desconto
-          const desconto = currentSaleDiscount.tipoValor === 'percentual' ? base * (currentSaleDiscount.valor/100) : currentSaleDiscount.valor;
-          const novo = Math.max(0, base - desconto);
-          precoVendaInput.value = novo.toFixed(2);
-        }
-      }
-    } else {
-      const base = precoBase;
+    const produtoId = produtoSelect?.value;
+    const tipoPreco = tipoPrecoSelect?.value;
+    let base = toNumber(precoVendaInput?.value);
+    if (!base && produtoId && tipoPreco) {
+      const pdoc = precos.find(p => p.produtoId === produtoId);
+      if (pdoc) base = toNumber(pdoc[tipoPreco]);
+    }
+    if (base > 0) {
       const desconto = currentSaleDiscount.tipoValor === 'percentual' ? base * (currentSaleDiscount.valor/100) : currentSaleDiscount.valor;
       const novo = Math.max(0, base - desconto);
-      precoVendaInput.value = novo.toFixed(2);
+      if (precoVendaInput) precoVendaInput.value = novo.toFixed(2);
     }
   }
 
-  // Fecha o modal
-  modalDesconto.classList.remove("active");
-  valorDescontoInput.value = "";
+  if (modalDesconto) modalDesconto.classList.remove("active");
+  if (valorDescontoInput) valorDescontoInput.value = "";
   tipoDescontoAtual = null;
 
-  // Exibe um resumo rápido para o usuário
   alert(`Desconto aplicado: ${currentSaleDiscount.tipoValor === 'percentual' ? currentSaleDiscount.valor + '%' : formatCurrency(currentSaleDiscount.valor)} (${currentSaleDiscount.tipoAplicado})`);
 });
 
 /* =========================
-   RENDERIZAÇÕES: vendas/histórico
+   RENDER: vendas/histórico
    ========================= */
 function renderVendas(){
+  if (!tabelaRegistros) return;
   tabelaRegistros.innerHTML = "";
   let total = 0;
   vendas.forEach(v => {
-    total += Number(v.totalDepois ?? v.total ?? 0);
+    const totalAfter = toNumber(v.totalDepois ?? v.total ?? 0);
+    total += totalAfter;
     const descontoTxt = v.desconto && v.desconto.tipoAplicado
       ? (v.desconto.tipoValor === 'percentual' ? `${v.desconto.valor}% (${v.desconto.tipoAplicado})` : `${formatCurrency(v.desconto.valor)} (${v.desconto.tipoAplicado})`)
       : "-";
@@ -512,14 +512,14 @@ function renderVendas(){
     `;
     tabelaRegistros.appendChild(tr);
   });
-  totalGeralRegistros.textContent = formatCurrency(total);
+  if (totalGeralRegistros) totalGeralRegistros.textContent = formatCurrency(total);
 }
 
 async function excluirVenda(id){
   try {
     const vendaRef = doc(db,"vendas",id);
     const vendaSnap = await getDoc(vendaRef);
-    if(!vendaSnap.exists()) return;
+    if (!vendaSnap.exists()) return;
     const venda = vendaSnap.data();
     await runTransaction(db, async tx => {
       const produtoRef = doc(db,"estoque",venda.produtoId);
@@ -530,15 +530,18 @@ async function excluirVenda(id){
       }
       tx.delete(vendaRef);
     });
-  } catch(err){ console.error(err); alert("Erro ao excluir venda: " + err.message || err); }
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao excluir venda: " + (err.message || err));
+  }
 }
 window.excluirVenda = excluirVenda;
 
 /* =========================
-   ORÇAMENTOS (mantive suas funções)
+   ORÇAMENTOS (renders e PDF)
    ========================= */
 function renderProdutoSelectOrcamento(){
-  if(!produtoSelectOrcamento) return;
+  if (!produtoSelectOrcamento) return;
   produtoSelectOrcamento.innerHTML = "<option value=''>Selecione o produto</option>";
   produtos.forEach(p => {
     const opt = document.createElement("option");
@@ -547,26 +550,23 @@ function renderProdutoSelectOrcamento(){
   });
 }
 
-btnAdicionarProduto && (btnAdicionarProduto.onclick = () => {
-  const clienteNome = (clienteInputOrcamento.value||"").trim();
-  const produtoId = produtoSelectOrcamento.value;
-  const qtd = parseInt(quantidadeOrcamento.value) || 0;
+if (btnAdicionarProduto) btnAdicionarProduto.onclick = () => {
+  const clienteNome = (clienteInputOrcamento?.value || "").trim();
+  const produtoId = produtoSelectOrcamento?.value;
+  const qtd = parseInt(quantidadeOrcamento?.value) || 0;
   if (!clienteNome) return alert("Informe o nome do cliente antes de adicionar o produto.");
   if (!produtoId || qtd <= 0) return alert("Selecione um produto e informe a quantidade.");
   const produto = produtos.find(p => p.id === produtoId);
   if (!produto) return alert("Produto não encontrado.");
-  if (!orcamentos) orcamentos = [];
 
-  // assegura orcamentoAtual
-  if (!window.orcamentoAtual || !Array.isArray(window.orcamentoAtual?.produtos)) {
+  if (!window.orcamentoAtual || !Array.isArray(window.orcamentoAtual.produtos)) {
     window.orcamentoAtual = { clienteNome, produtos: [], data: new Date().toLocaleDateString("pt-BR") };
   }
-  // garante existência
   window.orcamentoAtual.clienteNome = clienteNome;
   window.orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
 
   const precoDoc = precos.find(pr => pr.produtoId === produtoId);
-  const precoAtual = precoDoc ? (precoDoc.estampaFrente || 0) : 0;
+  const precoAtual = precoDoc ? toNumber(precoDoc.estampaFrente || precoDoc.preco || 0) : 0;
 
   window.orcamentoAtual.produtos.push({
     produtoId,
@@ -577,13 +577,14 @@ btnAdicionarProduto && (btnAdicionarProduto.onclick = () => {
   });
 
   renderTabelaOrcamentoAtual();
-  produtoSelectOrcamento.value = "";
-  quantidadeOrcamento.value = "";
-});
+  if (produtoSelectOrcamento) produtoSelectOrcamento.value = "";
+  if (quantidadeOrcamento) quantidadeOrcamento.value = "";
+};
 
 function renderTabelaOrcamentoAtual(){
-  if(!window.orcamentoAtual) return;
+  if (!tabelaOrcamento) return;
   tabelaOrcamento.innerHTML = "";
+  if (!window.orcamentoAtual) return;
   window.orcamentoAtual.produtos.forEach((p,i) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -598,15 +599,15 @@ function renderTabelaOrcamentoAtual(){
     tabelaOrcamento.appendChild(tr);
   });
 }
-
 function removerProduto(index){
+  if (!window.orcamentoAtual) return;
   window.orcamentoAtual.produtos.splice(index,1);
   renderTabelaOrcamentoAtual();
 }
 window.removerProduto = removerProduto;
 
-btnGerarPDF && (btnGerarPDF.onclick = async () => {
-  if (!window.orcamentoAtual || !window.orcamentoAtual.clienteNome || window.orcamentoAtual.produtos.length === 0) {
+if (btnGerarPDF) btnGerarPDF.onclick = async () => {
+  if (!window.orcamentoAtual || !window.orcamentoAtual.clienteNome || !window.orcamentoAtual.produtos.length) {
     return alert("Informe o nome do cliente e adicione produtos");
   }
   if (!window.orcamentoAtual.data) window.orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
@@ -615,11 +616,12 @@ btnGerarPDF && (btnGerarPDF.onclick = async () => {
     await addDoc(orcamentosCol, copia);
     window.orcamentoAtual = { clienteNome: "", produtos: [], data: null };
     renderTabelaOrcamentoAtual();
-    clienteInputOrcamento.value = "";
-    produtoSelectOrcamento.value = "";
-    quantidadeOrcamento.value = "";
+    if (clienteInputOrcamento) clienteInputOrcamento.value = "";
+    if (produtoSelectOrcamento) produtoSelectOrcamento.value = "";
+    if (quantidadeOrcamento) quantidadeOrcamento.value = "";
 
-    // gerar PDF (idêntico ao seu padrão)
+    // gerar PDF (igual ao seu padrão)
+    if (!window.jspdf) return alert("Biblioteca jsPDF não está carregada.");
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const imgLogo = new Image();
@@ -640,8 +642,8 @@ btnGerarPDF && (btnGerarPDF.onclick = async () => {
       copia.produtos.forEach(p => {
         doc.text(p.nome, 10, y);
         doc.text(String(p.quantidade), 90, y);
-        doc.text("R$ " + p.preco.toFixed(2), 120, y);
-        doc.text("R$ " + p.total.toFixed(2), 170, y);
+        doc.text("R$ " + Number(p.preco).toFixed(2), 120, y);
+        doc.text("R$ " + Number(p.total).toFixed(2), 170, y);
         totalGeral += p.total; y += 10;
         if (y > 260) { doc.addPage(); y = 20; }
       });
@@ -654,17 +656,18 @@ btnGerarPDF && (btnGerarPDF.onclick = async () => {
       doc.text("Orçamento", 105, 20, { align: "center" });
       doc.save(`orcamento_${sanitizeFileName(copia.clienteNome)}.pdf`);
     };
-  } catch(err) {
+
+  } catch (err) {
     console.error(err);
-    alert("Erro ao salvar orçamento: " + err.message || err);
+    alert("Erro ao salvar orçamento: " + (err.message || err));
   }
 });
 
 /* =========================
    TABELA DE PREÇOS (editável)
    ========================= */
-btnNovaLinhaPreco && (btnNovaLinhaPreco.onclick = async () => {
-  const prodId = produtoSelectPreco.value;
+if (btnNovaLinhaPreco) btnNovaLinhaPreco.onclick = async () => {
+  const prodId = produtoSelectPreco?.value;
   const prod = produtos.find(p=>p.id===prodId);
   try {
     await addDoc(precosCol, {
@@ -673,28 +676,25 @@ btnNovaLinhaPreco && (btnNovaLinhaPreco.onclick = async () => {
       preco:0, estampaFrente:0, estampaFrenteVerso:0, branca:0,
       interiorCores:0, magicaFosca:0, magicaBrilho:0
     });
-  } catch(err){ console.error(err); alert("Erro ao adicionar linha de preço: "+err.message || err); }
-});
+  } catch (err) { console.error(err); alert("Erro ao adicionar linha de preço: " + (err.message || err)); }
+}
 
 function renderProdutoSelectPreco(){
-  if(!produtoSelectPreco) return;
+  if (!produtoSelectPreco) return;
   produtoSelectPreco.innerHTML = "<option value=''>— Selecione produto —</option>";
-  produtos.forEach(p=>{
-    const opt=document.createElement("option"); opt.value=p.id; opt.textContent=p.nome;
+  produtos.forEach(p=> {
+    const opt = document.createElement("option"); opt.value = p.id; opt.textContent = p.nome;
     produtoSelectPreco.appendChild(opt);
   });
 }
 
-// === substituir renderTabelaPrecos por esta versão robusta ===
 function renderTabelaPrecos() {
   if (!tabelaPrecos) return;
   tabelaPrecos.innerHTML = "";
 
   precos.forEach(p => {
     const tr = document.createElement("tr");
-
-    // usa Json.stringify/Number para evitar 'undefined' no innerText
-    const cellProduto = p.produtoNome || "";
+    const produtoNome = p.produtoNome || "";
     const cPreco = p.preco ?? p.valor ?? 0;
     const cEstampaFrente = p.estampaFrente ?? 0;
     const cEstampaFrenteVerso = p.estampaFrenteVerso ?? 0;
@@ -704,7 +704,7 @@ function renderTabelaPrecos() {
     const cMagicaBrilho = p.magicaBrilho ?? 0;
 
     tr.innerHTML = `
-      <td>${cellProduto}</td>
+      <td>${produtoNome}</td>
       <td contenteditable data-field="preco">${cPreco}</td>
       <td contenteditable data-field="estampaFrente">${cEstampaFrente}</td>
       <td contenteditable data-field="estampaFrenteVerso">${cEstampaFrenteVerso}</td>
@@ -717,59 +717,188 @@ function renderTabelaPrecos() {
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
       </td>
     `;
-
     tabelaPrecos.appendChild(tr);
 
-    // adiciona listener para atualizar firestore ao perder foco
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
         const field = td.dataset.field;
-        // retira caracteres que não são números (permite vírgula/.) e converte
         const raw = td.textContent.trim().replace(",", ".");
         const num = parseFloat(raw);
         const valueToSave = isNaN(num) ? 0 : num;
         try {
-          // usa doc(db,"precos", p.id) (forma consistente)
           await updateDoc(doc(db, "precos", p.id), { [field]: valueToSave });
         } catch (err) {
-          console.error("Erro ao atualizar preço no Firestore:", err);
-          alert("Erro ao salvar preço. Veja o console.");
+          console.error("Erro ao atualizar preço:", err);
+          alert("Erro ao salvar preço. Veja console.");
         }
       };
-      // evita que o ENTER crie nova linha no contenteditable
-      td.addEventListener("keydown", (e) => {
+      td.addEventListener("keydown", e => {
         if (e.key === "Enter") { e.preventDefault(); td.blur(); }
       });
     });
   });
 }
 
+function abrirModalPreco(id) {
+  const preco = precos.find(p => p.id === id);
+  if (!preco) return alert("Preço não encontrado");
+  itemEdicao = id; tipoEdicao = "preco";
+  if (!modalEditar) return;
+  modalEditar.style.display = "block";
+  if (modalEditarTitulo) modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome || ""}`;
+  if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
+  if (modalEditarPreco) modalEditarPreco.value = (preco.valor ?? preco.preco ?? 0);
+}
+window.abrirModalPreco = abrirModalPreco;
+
+async function excluirPreco(id) {
+  try {
+    await deleteDoc(doc(precosCol, id));
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao excluir preço: " + (err.message || err));
+  }
+}
+window.excluirPreco = excluirPreco;
+
+/* =========================
+   Modal edição genérico (cliente/produto/preco)
+   ========================= */
+window.abrirModal = function(tipo, id) {
+  itemEdicao = id;
+  tipoEdicao = tipo;
+
+  if (!modalEditar) {
+    console.warn("modalEditar não encontrado");
+    return;
+  }
+
+  // esconde todos wrappers (se existirem) e limpa valores
+  const inputs = [modalEditarNome, modalEditarTelefone, modalEditarQuantidade, modalEditarCompra, modalEditarVenda, modalEditarPreco];
+  inputs.forEach(inp => {
+    if (!inp) return;
+    const wrapper = inp.parentElement;
+    if (wrapper) wrapper.style.display = "none";
+    else inp.style.display = "none";
+    inp.value = "";
+  });
+
+  if (tipo === "cliente") {
+    if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Cliente";
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
+    else if (modalEditarNome) modalEditarNome.style.display = "";
+    if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "";
+    else if (modalEditarTelefone) modalEditarTelefone.style.display = "";
+
+    const cliente = clientes.find(c => c.id === id);
+    if (cliente) {
+      if (modalEditarNome) modalEditarNome.value = cliente.nome || "";
+      if (modalEditarTelefone) modalEditarTelefone.value = cliente.telefone || "";
+    }
+  } else if (tipo === "produto") {
+    if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Produto";
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
+    else if (modalEditarNome) modalEditarNome.style.display = "";
+    if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "";
+    else if (modalEditarQuantidade) modalEditarQuantidade.style.display = "";
+
+    const produto = produtos.find(p => p.id === id);
+    if (produto) {
+      if (modalEditarNome) modalEditarNome.value = produto.nome || "";
+      if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade ?? 0;
+    }
+  } else if (tipo === "preco") {
+    if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Preço";
+    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
+    else if (modalEditarNome) modalEditarNome.style.display = "";
+    if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "";
+    else if (modalEditarPreco) modalEditarPreco.style.display = "";
+
+    const preco = precos.find(p => p.id === id);
+    if (preco) {
+      if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
+      if (modalEditarPreco) modalEditarPreco.value = (preco.valor ?? preco.preco ?? 0);
+    }
+  } else {
+    console.warn("abrirModal: tipo desconhecido", tipo);
+  }
+
+  modalEditar.style.display = "block";
+};
+
+if (btnSalvarEdicao) btnSalvarEdicao.onclick = async () => {
+  if (!itemEdicao || !tipoEdicao) {
+    alert("Nenhum item selecionado para editar.");
+    return;
+  }
+  try {
+    if (tipoEdicao === "cliente") {
+      const nome = (modalEditarNome?.value || "").trim();
+      const telefone = (modalEditarTelefone?.value || "").trim();
+      if (!nome) return alert("Informe o nome do cliente.");
+      await updateDoc(doc(db, "clientes", itemEdicao), { nome, telefone });
+      alert("Cliente atualizado com sucesso!");
+    } else if (tipoEdicao === "produto") {
+      const nome = (modalEditarNome?.value || "").trim();
+      const quantidade = parseInt(modalEditarQuantidade?.value) || 0;
+      if (!nome) return alert("Informe o nome do produto.");
+      await updateDoc(doc(db, "estoque", itemEdicao), { nome, quantidade });
+      // sincroniza nome no precos
+      const q = query(precosCol, where("produtoId","==",itemEdicao));
+      const snaps = await getDocs(q);
+      for (const s of snaps.docs) {
+        await updateDoc(doc(db,"precos",s.id), { produtoNome: nome });
+      }
+      alert("Produto atualizado com sucesso!");
+    } else if (tipoEdicao === "preco") {
+      const produtoNome = (modalEditarNome?.value || "").trim();
+      const valor = parseFloat(modalEditarPreco?.value) || 0;
+      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor, valor });
+      alert("Preço atualizado com sucesso!");
+    }
+
+    modalEditar.style.display = "none";
+    itemEdicao = null; tipoEdicao = null;
+  } catch (err) {
+    console.error("Erro ao salvar edição:", err);
+    alert("Erro ao salvar edição: " + (err.message || err));
+  }
+};
+
+if (btnCancelarEdicao) btnCancelarEdicao.onclick = () => {
+  if (modalEditar) modalEditar.style.display = "none";
+  itemEdicao = null; tipoEdicao = null;
+};
+
+/* =========================
+   Modal exclusão genérico
+   ========================= */
+window.abrirModalExclusao = function(callback) {
+  if (!modalExcluir) return;
+  modalExcluir.style.display = "block";
+  btnConfirmarExcluir.onclick = () => { try { if (callback) callback(); } finally { modalExcluir.style.display = "none"; } };
+  btnCancelarExcluir.onclick = () => { modalExcluir.style.display = "none"; };
+};
+
+/* =========================
+   Render orcamentos salvos (implementado)
+   ========================= */
 function renderOrcamentosSalvos() {
   if (!tabelaOrcamentosSalvos) return;
   tabelaOrcamentosSalvos.innerHTML = "";
-
-  // orcamentos deve estar em cache por onSnapshot; caso seja nulo, evita erro
-  const lista = Array.isArray(orcamentos) ? orcamentos : [];
-
-  lista.forEach(o => {
-    // validações defensivas
-    const data = o.data || o.dataCriacao || new Date().toLocaleDateString("pt-BR");
-    const clienteNome = o.clienteNome || o.cliente || "—";
-    const produtosN = Array.isArray(o.produtos) ? o.produtos : [];
-
-    const nomes = produtosN.map(p => p.nome || p.produtoNome || "—").join(", ");
-    const quantidades = produtosN.map(p => p.quantidade ?? p.qtd ?? "-").join(", ");
-    const precosUnit = produtosN.map(p => "R$ " + (Number(p.preco || 0).toFixed(2))).join(", ");
-    const precosTotal = produtosN.map(p => "R$ " + (Number(p.total || (p.preco||0) * (p.quantidade||1)).toFixed(2))).join(", ");
-
+  orcamentos.forEach(o => {
     const tr = document.createElement("tr");
+    const produtosText = o.produtos.map(p => p.nome).join(", ");
+    const quantText = o.produtos.map(p => p.quantidade).join(", ");
+    const precUnit = o.produtos.map(p => "R$ " + (p.preco ?? 0).toFixed(2)).join(", ");
+    const precTot = o.produtos.map(p => "R$ " + (p.total ?? 0).toFixed(2)).join(", ");
     tr.innerHTML = `
-      <td>${data}</td>
-      <td>${clienteNome}</td>
-      <td>${nomes}</td>
-      <td>${quantidades}</td>
-      <td>${precosUnit}</td>
-      <td>${precosTotal}</td>
+      <td>${o.data}</td>
+      <td>${o.clienteNome}</td>
+      <td>${produtosText}</td>
+      <td>${quantText}</td>
+      <td>${precUnit}</td>
+      <td>${precTot}</td>
       <td>
         <button class="acao-btn pdf" onclick="reimprimirOrcamento('${o.id}')">PDF</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirOrcamento('${o.id}'))">Excluir</button>
@@ -779,139 +908,57 @@ function renderOrcamentosSalvos() {
   });
 }
 
-function abrirModalPreco(id) {
-  const preco = precos.find(p => p.id === id);
-  if (!preco) return alert("Preço não encontrado");
-  itemEdicao = id; tipoEdicao = "preco";
-  modalEditar.style.display = "block";
-  modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome || ""}`;
-  modalEditarNome.value = preco.produtoNome || "";
-  modalEditarPreco.value = preco.valor || preco.preco || 0;
-}
-window.abrirModalPreco = abrirModalPreco;
-
-async function excluirPreco(id){
-  try{ await deleteDoc(doc(precosCol, id)); }
-  catch(err){ console.error(err); alert("Erro ao excluir preço: "+err.message || err); }
-}
-window.excluirPreco = excluirPreco;
-
 /* =========================
-   Modal edição (cliente/produto/preco)
+   Reimprimir orcamento / excluir
    ========================= */
-window.abrirModal = function (tipo, id) {
-  itemEdicao = id;
-  tipoEdicao = tipo;
+function reimprimirOrcamento(orcId) {
+  const orc = orcamentos.find(o => o.id === orcId);
+  if (!orc) return alert("Orçamento não encontrado");
+  if (!window.jspdf) return alert("Biblioteca jsPDF não está carregada.");
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const imgLogo = new Image(); imgLogo.src = "logo.png";
+  imgLogo.onload = function () {
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const logoWidth = 40, logoHeight = 40;
+    const logoX = (pageWidth - logoWidth) / 2;
+    doc.addImage(imgLogo, "PNG", logoX, 5, logoWidth, logoHeight);
+    doc.setFontSize(16); doc.text("Orçamento", pageWidth/2, 40, { align: "center" });
+    let y = 55; doc.setFontSize(12);
+    doc.text(`Data: ${orc.data}`, 10, y); y+=10;
+    doc.text(`Cliente: ${orc.clienteNome || "Cliente não informado"}`, 10, y); y+=10;
+    doc.text("Produto", 10, y); doc.text("Qtd", 90, y); doc.text("Preço Unit.", 120, y); doc.text("Total", 170, y);
+    y += 8; doc.line(10, y, 200, y); y += 8;
+    let totalGeral = 0;
+    orc.produtos.forEach(p => {
+      doc.text(p.nome, 10, y);
+      doc.text(String(p.quantidade), 90, y);
+      doc.text("R$ " + Number(p.preco).toFixed(2), 120, y);
+      doc.text("R$ " + Number(p.total).toFixed(2), 170, y);
+      totalGeral += p.total; y += 10;
+      if (y > 260) { doc.addPage(); y = 20; }
+    });
+    y += 5; doc.line(10, y, 200, y); y+=10;
+    doc.text(`Total Geral: R$ ${totalGeral.toFixed(2)}`, 10, y);
+    doc.setFontSize(10); doc.text("Obrigado pela preferência!", pageWidth/2, 280, { align: "center" });
+    doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`);
+  };
+  imgLogo.onerror = function(){ doc.text("Orçamento", 105, 20, { align: "center" }); doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`); };
+}
+window.reimprimirOrcamento = reimprimirOrcamento;
 
-  if (!modalEditar) return;
-
-  modalEditar.style.display = "block";
-
-  // Oculta todos os campos antes
-  [modalEditarNome, modalEditarTelefone, modalEditarQuantidade, modalEditarCompra, modalEditarVenda, modalEditarPreco]
-    .forEach(inp => inp && (inp.parentElement.style.display = "none"));
-
-  // CLIENTE
-  if (tipo === "cliente") {
-    modalEditarTitulo.textContent = "Editar Cliente";
-    modalEditarNome.parentElement.style.display = "";
-    modalEditarTelefone.parentElement.style.display = "";
-
-    const c = clientes.find(c => c.id === id);
-    if (c) {
-      modalEditarNome.value = c.nome || "";
-      modalEditarTelefone.value = c.telefone || "";
-    }
-  }
-
-  // PRODUTO
-  else if (tipo === "produto") {
-    modalEditarTitulo.textContent = "Editar Produto";
-    modalEditarNome.parentElement.style.display = "";
-    modalEditarQuantidade.parentElement.style.display = "";
-
-    const p = produtos.find(p => p.id === id);
-    if (p) {
-      modalEditarNome.value = p.nome || "";
-      modalEditarQuantidade.value = p.quantidade ?? 0;
-    }
-  }
-
-  // PREÇO
-  else if (tipo === "preco") {
-    modalEditarTitulo.textContent = "Editar Preço";
-    modalEditarNome.parentElement.style.display = "";
-    modalEditarPreco.parentElement.style.display = "";
-
-    const pr = precos.find(p => p.id === id);
-    if (pr) {
-      modalEditarNome.value = pr.produtoNome || "";
-      modalEditarPreco.value = pr.preco ?? pr.valor ?? 0;
-    }
-  }
-};
-
-// SALVAR EDIÇÃO (corrigido)
-btnSalvarEdicao.onclick = async () => {
-  if (!itemEdicao || !tipoEdicao) {
-    alert("Nenhum item selecionado para edição.");
-    return;
-  }
-
+async function excluirOrcamento(id) {
   try {
-    if (tipoEdicao === "cliente") {
-      const nome = modalEditarNome.value.trim();
-      const telefone = modalEditarTelefone.value.trim();
-      if (!nome) return alert("Informe o nome do cliente.");
-      await updateDoc(doc(db, "clientes", itemEdicao), { nome, telefone });
-      alert("Cliente atualizado com sucesso!");
-    }
-
-    else if (tipoEdicao === "produto") {
-      const nome = modalEditarNome.value.trim();
-      const quantidade = parseInt(modalEditarQuantidade.value) || 0;
-      if (!nome) return alert("Informe o nome do produto.");
-      await updateDoc(doc(db, "estoque", itemEdicao), { nome, quantidade });
-      alert("Produto atualizado com sucesso!");
-    }
-
-    else if (tipoEdicao === "preco") {
-      const produtoNome = modalEditarNome.value.trim();
-      const preco = parseFloat(modalEditarPreco.value) || 0;
-      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco, valor: preco });
-      alert("Preço atualizado com sucesso!");
-    }
-
-    modalEditar.style.display = "none";
-    itemEdicao = null;
-    tipoEdicao = null;
+    await deleteDoc(doc(db, "orcamentos", id));
   } catch (err) {
     console.error(err);
-    alert("Erro ao salvar edição: " + err.message);
+    alert("Erro ao excluir orçamento: " + (err.message || err));
   }
-};
-
-// CANCELAR
-btnCancelarEdicao.onclick = () => {
-  modalEditar.style.display = "none";
-  itemEdicao = null;
-  tipoEdicao = null;
-};
-
-btnCancelarEdicao.onclick = () => modalEditar.style.display = "none";
+}
+window.excluirOrcamento = excluirOrcamento;
 
 /* =========================
-   Modal de exclusão genérico
-   ========================= */
-window.abrirModalExclusao = function(callback){
-  if(!modalExcluir) return;
-  modalExcluir.style.display = "block";
-  btnConfirmarExcluir.onclick = () => { if(callback) callback(); modalExcluir.style.display = "none"; };
-  btnCancelarExcluir.onclick = () => { modalExcluir.style.display = "none"; };
-};
-
-/* =========================
-   Exportar PDF de vendas
+   Exportar PDF vendas
    ========================= */
 async function exportarPDF() {
   try {
@@ -925,28 +972,20 @@ async function exportarPDF() {
     const dados = [];
     for (let i = 0; i < tabela.rows.length; i++) {
       const cols = tabela.rows[i].cells;
-      dados.push([
-        cols[1].innerText, // Cliente
-        cols[2].innerText, // Produto
-        cols[3].innerText, // Quantidade
-        cols[7].innerText, // Total Após (coluna 7)
-        cols[0].innerText  // Data
-      ]);
+      dados.push([cols[1].innerText, cols[2].innerText, cols[3].innerText, cols[7].innerText, cols[0].innerText]);
     }
-    doc.autoTable({
-      head: [["Cliente", "Produto", "Qtd", "Total Após", "Data"]],
-      body: dados,
-      startY: 30,
-      styles: { fontSize: 10 }
-    });
+    doc.autoTable({ head: [["Cliente","Produto","Qtd","Total Após","Data"]], body: dados, startY: 30, styles: { fontSize: 10 }});
     doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, doc.internal.pageSize.height - 10);
     doc.save(`Relatorio_Vendas_${Date.now()}.pdf`);
-  } catch(e) { console.error("Erro ao exportar PDF:", e); alert("Erro ao exportar PDF. Veja o console."); }
+  } catch (e) {
+    console.error("Erro ao exportar PDF:", e);
+    alert("Erro ao exportar PDF. Veja o console.");
+  }
 }
 window.exportarPDF = exportarPDF;
 
 /* =========================
-   Recibo (gera PDF de 1 venda)
+   Gerar recibo (PDF de venda)
    ========================= */
 function gerarRecibo(vendaId) {
   const venda = vendas.find(v => v.id === vendaId);
@@ -954,8 +993,7 @@ function gerarRecibo(vendaId) {
   if (!window.jspdf) return alert("Biblioteca jsPDF não está carregada.");
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
-  const imgLogo = new Image();
-  imgLogo.src = "logo.png";
+  const imgLogo = new Image(); imgLogo.src = "logo.png";
   imgLogo.onload = function () {
     const pageWidth = doc.internal.pageSize.getWidth();
     const logoWidth = 40, logoHeight = 40;
@@ -979,15 +1017,12 @@ function gerarRecibo(vendaId) {
     doc.setFontSize(10); doc.text("Obrigado pela preferência!", pageWidth/2, 280, { align: "center" });
     doc.output("dataurlnewwindow");
   };
-  imgLogo.onerror = function () {
-    doc.text("Recibo de Venda", 105, 20, { align: "center" });
-    doc.output("dataurlnewwindow");
-  };
+  imgLogo.onerror = function(){ doc.text("Recibo de Venda", 105, 20, { align: "center" }); doc.output("dataurlnewwindow"); };
 }
 window.gerarRecibo = gerarRecibo;
 
 /* =========================
-   Utilidades expostas
+   Utilidades e exposição de funções globais
    ========================= */
 function mostrar(viewId) {
   document.querySelectorAll(".view").forEach(sec => {
@@ -995,59 +1030,32 @@ function mostrar(viewId) {
   });
 }
 window.mostrar = mostrar;
+// algumas versões do HTML usavam mostrarSecao - expomos alias
+window.mostrarSecao = mostrar;
 
-function abrirModal(id) { const modal = document.getElementById(id); if(modal) modal.style.display = "block"; }
-function fecharModal(id) { const modal = document.getElementById(id); if(modal) modal.style.display = "none"; }
+function abrirModal(id) { const modal = document.getElementById(id); if (modal) modal.style.display = "block"; }
+function fecharModal(id) { const modal = document.getElementById(id); if (modal) modal.style.display = "none"; }
 window.abrirModal = abrirModal;
 window.fecharModal = fecharModal;
 
-/* =========================
-   Expondo funções restantes (para onclick strings no HTML)
-   ========================= */
+// exposição restante (para onclick inline)
 window.abrirModalExclusao = window.abrirModalExclusao;
 window.removerProduto = removerProduto;
-window.reimprimirOrcamento = function(orcId){ /* reusa renderização e PDF */ reimprimirOrcamento(orcId); };
-window.salvarOrcamento = async function(){ /* opcional se usar btnGerarPDF */ return; };
+window.reimprimirOrcamento = reimprimirOrcamento;
+window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF */ return; };
 
 /* =========================
-   Função reimprimirOrcamento (mantida)
+   Inicialização final
    ========================= */
-function reimprimirOrcamento(orcId) {
-  const orc = orcamentos.find(o => o.id === orcId);
-  if (!orc) return alert("Orçamento não encontrado");
-  if (!window.jspdf) return alert("Biblioteca jsPDF não está carregada.");
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const imgLogo = new Image(); imgLogo.src = "logo.png";
-  imgLogo.onload = function () {
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const logoWidth = 40, logoHeight = 40;
-    const logoX = (pageWidth - logoWidth) / 2;
-    doc.addImage(imgLogo, "PNG", logoX, 5, logoWidth, logoHeight);
-    doc.setFontSize(16); doc.text("Orçamento", pageWidth/2, 40, { align: "center" });
-    let y = 55; doc.setFontSize(12);
-    doc.text(`Data: ${orc.data}`, 10, y); y+=10;
-    doc.text(`Cliente: ${orc.clienteNome || "Cliente não informado"}`, 10, y); y+=10;
-    doc.text("Produto", 10, y); doc.text("Qtd", 90, y); doc.text("Preço Unit.", 120, y); doc.text("Total", 170, y);
-    y += 8; doc.line(10, y, 200, y); y+=8;
-    let totalGeral = 0;
-    orc.produtos.forEach(p => {
-      doc.text(p.nome, 10, y);
-      doc.text(String(p.quantidade), 90, y);
-      doc.text("R$ " + p.preco.toFixed(2), 120, y);
-      doc.text("R$ " + p.total.toFixed(2), 170, y);
-      totalGeral += p.total; y+=10;
-      if (y > 260) { doc.addPage(); y = 20; }
-    });
-    y += 5; doc.line(10, y, 200, y); y+=10;
-    doc.text(`Total Geral: R$ ${totalGeral.toFixed(2)}`, 10, y);
-    doc.setFontSize(10); doc.text("Obrigado pela preferência!", pageWidth/2, 280, { align: "center" });
-    doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`);
-  };
-  imgLogo.onerror = function(){ doc.text("Orçamento", 105, 20, { align: "center" }); doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`); };
-}
-window.reimprimirOrcamento = reimprimirOrcamento;
-
-
-
-
+(function init() {
+  // instanciações seguras: esconde modais se existirem
+  if (modalEditar) modalEditar.style.display = "none";
+  if (modalExcluir) modalExcluir.style.display = "none";
+  if (modalDesconto) modalDesconto.classList.remove("active");
+  // render inicial (caso snapshots demorem)
+  renderClientes();
+  renderEstoque();
+  renderTabelaPrecos();
+  renderVendas();
+  renderOrcamentosSalvos();
+})();
