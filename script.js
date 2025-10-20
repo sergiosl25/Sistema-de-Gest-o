@@ -48,6 +48,9 @@ let produtos = [];
 let vendas = [];
 let orcamentos = [];
 let precos = [];
+let itemEdicao = null;
+let tipoEdicao = null;
+let acaoExcluir = null;
 
 /* Guarda o desconto atual aplicado no formulário antes de registrar a venda */
 let currentSaleDiscount = {
@@ -735,6 +738,10 @@ function renderTabelaPrecos() {
   });
 }
 
+function renderOrcamentosSalvos() {
+  console.log("renderOrcamentosSalvos() chamada — função ainda não implementada.");
+}
+
 function abrirModalPreco(id) {
   const preco = precos.find(p => p.id === id);
   if (!preco) return alert("Preço não encontrado");
@@ -831,46 +838,46 @@ window.abrirModal = function(tipo, id) {
 };
 
 btnSalvarEdicao.onclick = async () => {
-  if (!itemEdicao || !tipoEdicao) return alert("Nenhum item selecionado para editar.");
+  if (!itemEdicao || !tipoEdicao) {
+    alert("Nenhum item selecionado para editar.");
+    return;
+  }
 
   try {
     if (tipoEdicao === "cliente") {
-      const nome = (modalEditarNome.value || "").trim();
-      const telefone = (modalEditarTelefone.value || "").trim();
-      if (!nome) return alert("Nome do cliente não pode ficar vazio.");
-      await updateDoc(doc(db, "clientes", itemEdicao), { nome, telefone });
-    } else if (tipoEdicao === "produto") {
-      const nome = (modalEditarNome.value || "").trim();
-      const quantidade = parseInt(modalEditarQuantidade.value) || 0;
-      if (!nome) return alert("Nome do produto não pode ficar vazio.");
-      await updateDoc(doc(db, "estoque", itemEdicao), { nome, quantidade });
+      const nome = modalEditarNome.value.trim();
+      const telefone = modalEditarTelefone.value.trim();
+      if (!nome) return alert("Informe o nome do cliente.");
 
-      // sincroniza nome no precos (caso haja)
-      const q = query(precosCol, where("produtoId", "==", itemEdicao));
-      const snaps = await getDocs(q);
-      for (const s of snaps.docs) {
-        await updateDoc(doc(db, "precos", s.id), { produtoNome: nome });
-      }
-    } else if (tipoEdicao === "preco") {
-      const produtoNome = (modalEditarNome.value || "").trim();
+      await updateDoc(doc(db, "clientes", itemEdicao), { nome, telefone });
+      alert("Cliente atualizado com sucesso!");
+    } 
+
+    else if (tipoEdicao === "produto") {
+      const nome = modalEditarNome.value.trim();
+      const quantidade = parseInt(modalEditarQuantidade.value) || 0;
+      if (!nome) return alert("Informe o nome do produto.");
+
+      await updateDoc(doc(db, "estoque", itemEdicao), { nome, quantidade });
+      alert("Produto atualizado com sucesso!");
+    } 
+
+    else if (tipoEdicao === "preco") {
+      const produtoNome = modalEditarNome.value.trim();
       const valor = parseFloat(modalEditarPreco.value) || 0;
-      // salva em 'valor' e também em 'preco' para compatibilidade
-      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, valor, preco: valor });
-    } else {
-      throw new Error("Tipo de edição desconhecido: " + tipoEdicao);
+
+      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor, valor });
+      alert("Preço atualizado com sucesso!");
     }
 
-    // fecha modal e limpa estado
-    if (modalEditar) modalEditar.style.display = "none";
+    // Fechar modal e resetar variáveis
+    modalEditar.style.display = "none";
     itemEdicao = null;
     tipoEdicao = null;
-    // re-render opcional (onSnapshot geralmente cuida disso)
-    renderEstoque();
-    renderClientes();
-    renderTabelaPrecos();
+
   } catch (err) {
     console.error("Erro ao salvar edição:", err);
-    alert("Erro ao salvar edição: " + (err.message || err));
+    alert("Erro ao salvar: " + err.message);
   }
 };
 
@@ -1023,3 +1030,4 @@ function reimprimirOrcamento(orcId) {
   imgLogo.onerror = function(){ doc.text("Orçamento", 105, 20, { align: "center" }); doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`); };
 }
 window.reimprimirOrcamento = reimprimirOrcamento;
+
