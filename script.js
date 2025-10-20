@@ -131,6 +131,19 @@ function formatCurrency(val){ return Number(val||0).toLocaleString('pt-BR', { st
 function nowDateTime(){ return new Date().toLocaleString(); }
 function toNumber(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
 
+function mostrarSecao(secaoId) {
+  const selector = ".view"; 
+  document.querySelectorAll(selector).forEach(sec => {
+    sec.style.display = sec.id === secaoId ? "block" : "none";
+  });
+}
+
+window.mostrarSecao = mostrarSecao;
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!document.querySelector(".view[style*='display: block']")) mostrarSecao("clientes");
+});
+
 /* =========================
    Real-time listeners (Firestore)
    ========================= */
@@ -162,25 +175,6 @@ onSnapshot(estoqueCol, snapshot => {
   renderProdutoSelectOrcamento();
   renderProdutoSelectPreco();
 });
-
-// ==========================
-// FUNÇÃO DE TROCAR SEÇÕES
-// ==========================
-function mostrarSecao(secaoId) {
-  document.querySelectorAll(".secao").forEach(secao => {
-    secao.style.display = "none";
-  });
-
-  const secaoAtiva = document.getElementById(secaoId);
-  if (secaoAtiva) {
-    secaoAtiva.style.display = "block";
-  }
-}
-
-// Define a seção inicial ao carregar
-document.addEventListener("DOMContentLoaded", () => {
-  mostrarSecao("clientes"); // ou "vendas" se preferir
-}) 
 
 /* =========================
    CLIENTES
@@ -751,7 +745,38 @@ function renderTabelaPrecos() {
 }
 
 function renderOrcamentosSalvos() {
-  console.log("renderOrcamentosSalvos() chamada — função ainda não implementada.");
+  if (!tabelaOrcamentosSalvos) return;
+  tabelaOrcamentosSalvos.innerHTML = "";
+
+  // orcamentos deve estar em cache por onSnapshot; caso seja nulo, evita erro
+  const lista = Array.isArray(orcamentos) ? orcamentos : [];
+
+  lista.forEach(o => {
+    // validações defensivas
+    const data = o.data || o.dataCriacao || new Date().toLocaleDateString("pt-BR");
+    const clienteNome = o.clienteNome || o.cliente || "—";
+    const produtosN = Array.isArray(o.produtos) ? o.produtos : [];
+
+    const nomes = produtosN.map(p => p.nome || p.produtoNome || "—").join(", ");
+    const quantidades = produtosN.map(p => p.quantidade ?? p.qtd ?? "-").join(", ");
+    const precosUnit = produtosN.map(p => "R$ " + (Number(p.preco || 0).toFixed(2))).join(", ");
+    const precosTotal = produtosN.map(p => "R$ " + (Number(p.total || (p.preco||0) * (p.quantidade||1)).toFixed(2))).join(", ");
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${data}</td>
+      <td>${clienteNome}</td>
+      <td>${nomes}</td>
+      <td>${quantidades}</td>
+      <td>${precosUnit}</td>
+      <td>${precosTotal}</td>
+      <td>
+        <button class="acao-btn pdf" onclick="reimprimirOrcamento('${o.id}')">PDF</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirOrcamento('${o.id}'))">Excluir</button>
+      </td>
+    `;
+    tabelaOrcamentosSalvos.appendChild(tr);
+  });
 }
 
 function abrirModalPreco(id) {
@@ -1022,4 +1047,7 @@ function reimprimirOrcamento(orcId) {
   imgLogo.onerror = function(){ doc.text("Orçamento", 105, 20, { align: "center" }); doc.save(`orcamento_${sanitizeFileName(orc.clienteNome || "cliente_desconhecido")}.pdf`); };
 }
 window.reimprimirOrcamento = reimprimirOrcamento;
+
+
+
 
