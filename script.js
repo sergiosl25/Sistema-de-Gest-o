@@ -661,7 +661,7 @@ if (btnGerarPDF) btnGerarPDF.onclick = async () => {
     console.error(err);
     alert("Erro ao salvar orçamento: " + (err.message || err));
   }
-});
+};
 
 /* =========================
    TABELA DE PREÇOS (editável)
@@ -1059,3 +1059,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
