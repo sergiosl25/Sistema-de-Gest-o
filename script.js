@@ -754,9 +754,6 @@ async function excluirPreco(id) {
 }
 window.excluirPreco = excluirPreco;
 
-/* =========================
-   Modal edição genérico (cliente/produto/preco)
-   ========================= */
 window.abrirModal = function(tipo, id) {
   itemEdicao = id;
   tipoEdicao = tipo;
@@ -766,7 +763,6 @@ window.abrirModal = function(tipo, id) {
     return;
   }
 
-  // esconde todos wrappers (se existirem) e limpa valores
   const inputs = [modalEditarNome, modalEditarTelefone, modalEditarQuantidade, modalEditarCompra, modalEditarVenda, modalEditarPreco];
   inputs.forEach(inp => {
     if (!inp) return;
@@ -863,9 +859,6 @@ if (btnCancelarEdicao) btnCancelarEdicao.onclick = () => {
   itemEdicao = null; tipoEdicao = null;
 };
 
-/* =========================
-   Modal exclusão genérico
-   ========================= */
 window.abrirModalExclusao = function(callback) {
   if (!modalExcluir) return;
   modalExcluir.style.display = "block";
@@ -1033,13 +1026,12 @@ function mostrar(viewId) {
   });
 }
 window.mostrar = mostrar;
-// algumas versões do HTML usavam mostrarSecao - expomos alias
 window.mostrarSecao = mostrar;
 
-function abrirModal(id) { const modal = document.getElementById(id); if (modal) modal.style.display = "block"; }
-function fecharModal(id) { const modal = document.getElementById(id); if (modal) modal.style.display = "none"; }
-window.abrirModal = abrirModal;
-window.fecharModal = fecharModal;
+function abrirModalSimples { const modal = document.getElementById(id); if (modal) modal.style.display = "block"; }
+function fecharModalSimples { const modal = document.getElementById(id); if (modal) modal.style.display = "none"; }
+window.abrirModalSimples = abrirModalSimples;
+window.fecharModalSimples = fecharModalSimples;
 
 // exposição restante (para onclick inline)
 window.abrirModalExclusao = window.abrirModalExclusao;
