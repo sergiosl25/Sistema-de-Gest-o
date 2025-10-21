@@ -261,7 +261,7 @@ table td.acao {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0);
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(5px);
@@ -273,7 +273,7 @@ table td.acao {
 }
 
 .modal-content {
-  background: #fff !important;
+  background: #fff;
   padding: 25px 30px;
   border-radius: 14px;
   width: 90%;
@@ -422,6 +422,7 @@ table td.acao {
     padding: 6px 10px;
   }
 }
+
 
 
 
