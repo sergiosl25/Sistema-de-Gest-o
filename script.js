@@ -202,7 +202,6 @@ function renderClientes() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${c.nome}</td>
-      <td>${c.email ?? ""}</td>
       <td>${c.telefone ?? ""}</td>
       <td>
         <button class="acao-btn editar" onclick="abrirModal('cliente','${c.id}')">Editar</button>
@@ -1103,6 +1102,7 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
 
 
 
