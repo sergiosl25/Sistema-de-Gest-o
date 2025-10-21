@@ -273,7 +273,7 @@ table td.acao {
 }
 
 .modal-content {
-  background: #fff;
+  background: #fff !important;
   padding: 25px 30px;
   border-radius: 14px;
   width: 90%;
@@ -422,6 +422,7 @@ table td.acao {
     padding: 6px 10px;
   }
 }
+
 
 
 
