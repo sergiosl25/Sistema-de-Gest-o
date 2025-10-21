@@ -1033,8 +1033,16 @@ function mostrar(viewId) {
 window.mostrar = mostrar;
 window.mostrarSecao = mostrar;
 
-function abrirModalSimples { const modal = document.getElementById(id); if (modal) modal.style.display = "block" };
-function fecharModalSimples { const modal = document.getElementById(id); if (modal) modal.style.display = "none" };
+function abrirModalSimples(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = "block";
+}
+
+function fecharModalSimples(id) {
+  const modal = document.getElementById(id);
+  if (modal) modal.style.display = "none";
+}
+
 window.abrirModalSimples = abrirModalSimples;
 window.fecharModalSimples = fecharModalSimples;
 
@@ -1059,5 +1067,6 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
 
 
