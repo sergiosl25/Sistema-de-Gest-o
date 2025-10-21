@@ -169,7 +169,7 @@ table thead {
 
 table th,
 table td {
-  padding: 12px;
+  padding: 40px;
   text-align: center;
   border-bottom: 1px solid #eee;
   vertical-align: middle;
@@ -178,7 +178,7 @@ table td {
 /* Coluna de Ações */
 table th.acao,
 table td.acao {
-  min-width: 150px; /* evita que fique muito estreito */
+  min-width: 300px; /* evita que fique muito estreito */
   display: flex;
   justify-content: center; /* centraliza horizontalmente */
   gap: 6px; /* espaço entre botões */
@@ -422,4 +422,5 @@ table td.acao {
     padding: 6px 10px;
   }
 }
+
 
