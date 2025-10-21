@@ -189,31 +189,40 @@ if (btnCadastrarCliente) btnCadastrarCliente.onclick = async () => {
   }
 };
 
-function renderClientes(){
+function renderClientes() {
   if (!tabelaClientes) return;
   tabelaClientes.innerHTML = "";
-  if (clienteSelect) {
-    clienteSelect.innerHTML = "<option value=''>Selecione o cliente</option>";
-  }
 
-  clientes.forEach(c => {
+  // Ordena os clientes pelo nome
+  const clientesOrdenados = [...clientes].sort((a, b) =>
+    (a.nome || "").localeCompare(b.nome || "", "pt-BR")
+  );
+
+  clientesOrdenados.forEach(c => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${c.nome}</td>
-      <td>${c.telefone || ""}</td>
+      <td>${c.email ?? ""}</td>
+      <td>${c.telefone ?? ""}</td>
       <td>
         <button class="acao-btn editar" onclick="abrirModal('cliente','${c.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirCliente('${c.id}'))">Excluir</button>
       </td>
     `;
     tabelaClientes.appendChild(tr);
-
-    if (clienteSelect) {
-      const opt = document.createElement("option");
-      opt.value = c.id; opt.textContent = c.nome;
-      clienteSelect.appendChild(opt);
-    }
   });
+
+  // Se houver algum <select> de clientes, ordena também
+  const clienteSelect = document.getElementById("clienteSelect");
+  if (clienteSelect) {
+    clienteSelect.innerHTML = "<option value=''>Selecione o cliente</option>";
+    clientesOrdenados.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.nome || "";
+      clienteSelect.appendChild(opt);
+    });
+  }
 }
 
 async function excluirCliente(id){
@@ -259,7 +268,9 @@ function renderEstoque(){
   if (!tabelaEstoque) return;
   tabelaEstoque.innerHTML = "";
   if (produtoSelect) produtoSelect.innerHTML = "<option value=''>Selecione o produto</option>";
-
+  const produtosOrdenados = [...produtos].sort((a, b) =>
+    a.nome.localeCompare(b.nome, "pt-BR")
+  );
   produtos.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -690,7 +701,12 @@ function renderTabelaPrecos() {
   if (!tabelaPrecos) return;
   tabelaPrecos.innerHTML = "";
 
-  precos.forEach(p => {
+  // 🧠 Ordena alfabeticamente pelo nome do produto
+  const precosOrdenados = [...precos].sort((a, b) =>
+    (a.produtoNome || "").localeCompare(b.produtoNome || "", "pt-BR")
+  );
+
+  precosOrdenados.forEach(p => {
     const tr = document.createElement("tr");
     const produtoNome = p.produtoNome || "";
     const cPreco = p.preco ?? p.valor ?? 0;
@@ -731,10 +747,26 @@ function renderTabelaPrecos() {
         }
       };
       td.addEventListener("keydown", e => {
-        if (e.key === "Enter") { e.preventDefault(); td.blur(); }
+        if (e.key === "Enter") {
+          e.preventDefault();
+          td.blur();
+        }
       });
     });
   });
+
+  // 🧩 Atualiza o <select> de produtos (se existir)
+  const produtoSelectPreco = document.getElementById("produtoSelectPreco");
+  if (produtoSelectPreco) {
+    produtoSelectPreco.innerHTML = "<option value=''>Selecione o produto</option>";
+
+    precosOrdenados.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.produtoNome || "";
+      produtoSelectPreco.appendChild(opt);
+    });
+  }
 }
 
 function abrirModalPreco(id) {
@@ -1067,6 +1099,7 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
 
 
 
