@@ -167,6 +167,11 @@ onSnapshot(estoqueCol, snapshot => {
   renderProdutoSelectPreco();
 });
 
+function mostrarSecao(secaoId) {
+  document.querySelectorAll(".view").forEach(secao => secao.style.display = "none");
+  document.getElementById(secaoId).style.display = "block";
+}
+
 /* =========================
    CLIENTES (CRUD)
    ========================= */
@@ -1054,3 +1059,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
