@@ -264,14 +264,17 @@ if (btnCadastrarProduto) btnCadastrarProduto.onclick = async () => {
   }
 };
 
-function renderEstoque(){
+function renderEstoque() {
   if (!tabelaEstoque) return;
   tabelaEstoque.innerHTML = "";
   if (produtoSelect) produtoSelect.innerHTML = "<option value=''>Selecione o produto</option>";
+
+  // 🧠 Ordena os produtos por nome (A → Z, com suporte a acentos)
   const produtosOrdenados = [...produtos].sort((a, b) =>
     a.nome.localeCompare(b.nome, "pt-BR")
   );
-  produtos.forEach(p => {
+
+  produtosOrdenados.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${p.nome}</td>
@@ -285,7 +288,8 @@ function renderEstoque(){
 
     if (produtoSelect) {
       const opt = document.createElement("option");
-      opt.value = p.id; opt.textContent = p.nome;
+      opt.value = p.id;
+      opt.textContent = p.nome;
       produtoSelect.appendChild(opt);
     }
   });
@@ -1099,6 +1103,7 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
 
 
 
