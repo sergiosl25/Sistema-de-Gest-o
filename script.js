@@ -679,17 +679,45 @@ if (btnGerarPDF) btnGerarPDF.onclick = async () => {
    TABELA DE PREÇOS (editável)
    ========================= */
 if (btnNovaLinhaPreco) btnNovaLinhaPreco.onclick = async () => {
+  // Ordena produtos pelo nome
+  const produtosOrdenados = produtos.slice().sort((a, b) => {
+    if (!a.nome) return 1;
+    if (!b.nome) return -1;
+    return a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' });
+  });
+
+  // Atualiza o select com produtos ordenados
+  if (produtoSelectPreco) {
+    produtoSelectPreco.innerHTML = ""; // Limpa opções antigas
+    produtosOrdenados.forEach(prod => {
+      const option = document.createElement("option");
+      option.value = prod.id;
+      option.textContent = prod.nome;
+      produtoSelectPreco.appendChild(option);
+    });
+  }
+
+  // Pega o produto selecionado
   const prodId = produtoSelectPreco?.value;
-  const prod = produtos.find(p=>p.id===prodId);
+  const prod = produtos.find(p => p.id === prodId);
+
   try {
     await addDoc(precosCol, {
       produtoId: prodId || null,
       produtoNome: prod ? prod.nome : "Produto não informado",
-      preco:0, estampaFrente:0, estampaFrenteVerso:0, branca:0,
-      interiorCores:0, magicaFosca:0, magicaBrilho:0
+      preco: 0,
+      estampaFrente: 0,
+      estampaFrenteVerso: 0,
+      branca: 0,
+      interiorCores: 0,
+      magicaFosca: 0,
+      magicaBrilho: 0
     });
-  } catch (err) { console.error(err); alert("Erro ao adicionar linha de preço: " + (err.message || err)); }
-}
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao adicionar linha de preço: " + (err.message || err));
+  }
+};
 
 function renderProdutoSelectPreco(){
   if (!produtoSelectPreco) return;
@@ -1102,6 +1130,7 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
 
 
 
