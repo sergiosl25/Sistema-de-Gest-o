@@ -261,7 +261,7 @@ table td.acao {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 1);
+  background: rgba(0, 0, 0, 0);
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(8px);
@@ -422,6 +422,7 @@ table td.acao {
     padding: 6px 10px;
   }
 }
+
 
 
 
