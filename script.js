@@ -166,12 +166,12 @@ onSnapshot(estoqueCol, snapshot => {
 });
 
 function mostrarSecao(secaoId) {
-  document.querySelectorAll(".secao").forEach(sec => sec.style.display = "none");
+  const secoes = document.querySelectorAll(".secao");
+  secoes.forEach(sec => sec.style.display = "none");
+
   const secao = document.getElementById(secaoId);
   if (secao) secao.style.display = "block";
 }
-window.mostrar = mostrar;
-window.mostrarSecao = mostrar;
 
 /* =========================
    CLIENTES (CRUD)
@@ -1171,12 +1171,6 @@ window.gerarRecibo = gerarRecibo;
 /* =========================
    Utilidades e exposição de funções globais
    ========================= */
-function mostrar(viewId) {
-  document.querySelectorAll(".view").forEach(sec => {
-    sec.style.display = sec.id === viewId ? "block" : "none";
-  });
-}
-
 function abrirModalSimples(id) {
   const modal = document.getElementById(id);
   if (modal) modal.style.display = "block";
@@ -1210,6 +1204,11 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderTabelaPrecos();
   renderVendas();
   renderOrcamentosSalvos();
+
+  window.mostrar = mostrar
+  window.mostrarSecao = mostrarSecao;
+  
 })
 }
 };
+
