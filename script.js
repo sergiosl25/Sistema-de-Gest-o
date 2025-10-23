@@ -350,7 +350,40 @@ if (tipoPrecoSelect) tipoPrecoSelect.addEventListener("change", () => {
   if (precoVendaInput) precoVendaInput.value = valor > 0 ? valor.toFixed(2) : "";
 });
 
-function adicionarItemVenda(produtoId, produtoNome, tipoPreco, qtd, precoUnit) {
+function renderVendas() {
+  const lista = document.getElementById("listaVendas");
+  if (!lista) return;
+  tabelaRegistros.innerHTML = "";
+  let total = 0;
+  vendas.forEach(v => {
+    const totalAfter = toNumber(v.totalDepois ?? v.total ?? 0);
+    total += totalAfter;
+    const descontoTxt = v.desconto && v.desconto.tipoAplicado
+      ? (v.desconto.tipoValor === 'percentual' ? `${v.desconto.valor}% (${v.desconto.tipoAplicado})` : `${formatCurrency(v.desconto.valor)} (${v.desconto.tipoAplicado})`)
+      : "-";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${v.data}</td>
+      <td>${v.cliente}</td>
+      <td>${v.produto}</td>
+      <td>${v.quantidade}</td>
+      <td>R$ ${money(v.preco)}</td>
+      <td>${descontoTxt}</td>
+      <td>R$ ${money(v.totalAntes ?? v.total ?? 0)}</td>
+      <td>R$ ${money(v.totalDepois ?? v.total ?? 0)}</td>
+      <td>${v.pagamento || "-"}</td>
+      <td>
+        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
+      </td>
+    `;
+    tabelaRegistros.appendChild(tr);
+  });
+  if (totalGeralRegistros) totalGeralRegistros.textContent = formatCurrency(total);
+};
+
+function adicionarItemVenda (produtoId, produtoNome, tipoPreco, qtd, precoUnit) {
     qtd = parseInt(qtd) || 0;
     precoUnit = parseFloat(precoUnit) || 0;
     if (!produtoId || qtd <= 0 || precoUnit <= 0) return alert("Produto ou quantidade inválida.");
@@ -369,14 +402,6 @@ function adicionarItemVenda(produtoId, produtoNome, tipoPreco, qtd, precoUnit) {
         total: qtd * precoUnit
       });
     }
-    renderItensVenda();
-  }
-
-// ========================
-  // REMOVER ITEM
-  // ========================
-  function removerItemVenda(index) {
-    itensVendaAtual.splice(index, 1);
     renderItensVenda();
   }
 
@@ -578,53 +603,16 @@ if (btnVender) btnVender.onclick = async () => {
   }
 };
 
-/* ====================================
-   RENDER VENDAS/HISTÓRICO
-==================================== */
-window.renderVendas = function() {
-  if (!tabelaRegistros) return;
-  tabelaRegistros.innerHTML = "";
-  let total = 0;
-  vendas.forEach(v => {
-    const totalAfter = toNumber(v.totalDepois ?? v.total ?? 0);
-    total += totalAfter;
-    const descontoTxt = v.desconto && v.desconto.tipoAplicado
-      ? (v.desconto.tipoValor === 'percentual' ? `${v.desconto.valor}% (${v.desconto.tipoAplicado})` : `${formatCurrency(v.desconto.valor)} (${v.desconto.tipoAplicado})`)
-      : "-";
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${v.data}</td>
-      <td>${v.cliente}</td>
-      <td>${v.produto}</td>
-      <td>${v.quantidade}</td>
-      <td>R$ ${money(v.preco)}</td>
-      <td>${descontoTxt}</td>
-      <td>R$ ${money(v.totalAntes ?? v.total ?? 0)}</td>
-      <td>R$ ${money(v.totalDepois ?? v.total ?? 0)}</td>
-      <td>${v.pagamento || "-"}</td>
-      <td>
-        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
-      </td>
-    `;
-    tabelaRegistros.appendChild(tr);
-  });
-  if (totalGeralRegistros) totalGeralRegistros.textContent = formatCurrency(total);
-};
-
-
 /* =========================
    ORÇAMENTOS (renders e PDF)
    ========================= */
-function renderProdutoSelectOrcamento(){
-  if (!produtoSelectOrcamento) return;
-  produtoSelectOrcamento.innerHTML = "<option value=''>Selecione o produto</option>";
-  produtos.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.id; opt.textContent = p.nome;
-    produtoSelectOrcamento.appendChild(opt);
-  });
+function renderProdutoSelectOrcamento() {
+  const select = document.getElementById("produtoSelectOrcamento");
+  if (!select) return;
+
+  select.innerHTML = produtos.map(prod => `
+    <option value="${prod.id}">${prod.nome}</option>
+  `).join("");
 }
 
 if (btnAdicionarProduto) btnAdicionarProduto.onclick = () => {
@@ -793,11 +781,19 @@ function renderProdutoSelectPreco(){
   });
 }
 
+// Arquivo: script.js
+
+// Declarações globais
+let precos = [];
+let tabelaPrecos = document.getElementById("tabelaPrecos");
+
+// =====================================
+// FUNÇÃO: renderTabelaPrecos
+// =====================================
 function renderTabelaPrecos() {
   if (!tabelaPrecos) return;
   tabelaPrecos.innerHTML = "";
 
-  // 🧠 Ordena alfabeticamente pelo nome do produto
   const precosOrdenados = [...precos].sort((a, b) =>
     (a.produtoNome || "").localeCompare(b.produtoNome || "", "pt-BR")
   );
@@ -827,8 +823,10 @@ function renderTabelaPrecos() {
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
       </td>
     `;
+
     tabelaPrecos.appendChild(tr);
 
+    // Eventos de edição
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
         const field = td.dataset.field;
@@ -850,6 +848,7 @@ function renderTabelaPrecos() {
       });
     });
   });
+}
 
 const produtoSelectPreco = document.getElementById("produtoSelectPreco");
 if (produtoSelectPreco) {
@@ -1207,9 +1206,6 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 
   window.mostrar = mostrar
   window.mostrarSecao = mostrarSecao;
-  
+
 })
-}
 };
-
-
