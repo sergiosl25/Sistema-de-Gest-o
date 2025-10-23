@@ -50,6 +50,7 @@ let produtos = [];
 let vendas = [];
 let orcamentos = [];
 let precos = [];
+let itensVendaAtual = [];
 
 /* item selecionado para edição (uma única declaração) */
 let itemEdicao = null;
@@ -87,6 +88,8 @@ const formaPagamento = $("formaPagamento");
 const btnVender = $("btnVender");
 const btnDesconto = $("btnDesconto");
 const btnDescontoVenda = $("btnDescontoVenda");
+const btnAdicionarProdutoVenda = document.getElementById('btnAdicionarProdutoVenda');
+const tabelaItensVenda = document.getElementById('tabelaItensVenda')?.querySelector('tbody');
 
 const tabelaRegistros = document.querySelector("#tabelaRegistros tbody");
 const totalGeralRegistros = $("totalGeralRegistros");
@@ -394,7 +397,7 @@ if (btnVender) btnVender.onclick = async () => {
         }
       }
     }
-
+    
     await runTransaction(db, async tx => {
       const produtoSnapTx = await tx.get(produtoRef);
       if (!produtoSnapTx.exists()) throw new Error("Produto não encontrado");
@@ -427,6 +430,65 @@ if (btnVender) btnVender.onclick = async () => {
     console.error(err);
     alert("Erro ao registrar venda: " + (err.message || err));
   }
+};
+
+/* ====================================
+   ADICIONAR PRODUTO À VENDA ATUAL
+==================================== */
+if (btnAdicionarProdutoVenda) btnAdicionarProdutoVenda.onclick = () => {
+  const clienteId = clienteSelect?.value;
+  const produtoId = produtoSelect?.value;
+  const tipoPreco = tipoPrecoSelect?.value;
+  const qtd = parseInt(quantidadeVenda?.value) || 0;
+
+  if (!clienteId || !produtoId || qtd <= 0 || !tipoPreco) {
+    return alert("Preencha cliente, produto, tipo de preço e quantidade corretamente.");
+  }
+
+  const precoDoc = precos.find(p => p.produtoId === produtoId);
+  if (!precoDoc) return alert("Tabela de preços não encontrada.");
+  const precoUnit = toNumber(precoDoc[tipoPreco]);
+  if (precoUnit <= 0) return alert("Preço inválido.");
+
+  const produtoNome = precoDoc.produtoNome || (produtoSelect.options[produtoSelect.selectedIndex]?.text || "Produto");
+  const total = precoUnit * qtd;
+
+  itensVendaAtual.push({
+    produtoId, produtoNome, tipoPreco, qtd, precoUnit, total
+  });
+
+  renderItensVenda();
+
+  // Limpa campos
+  quantidadeVenda.value = "";
+  produtoSelect.value = "";
+  tipoPrecoSelect.value = "";
+};
+
+/* ====================================
+   RENDER ITENS DA VENDA ATUAL
+==================================== */
+function renderItensVenda() {
+  if (!tabelaItensVenda) return;
+  tabelaItensVenda.innerHTML = "";
+
+  itensVendaAtual.forEach((item, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.produtoNome}</td>
+      <td>${item.tipoPreco}</td>
+      <td>${item.qtd}</td>
+      <td>R$ ${money(item.precoUnit)}</td>
+      <td>R$ ${money(item.total)}</td>
+      <td><button onclick="removerItemVenda(${idx})">Remover</button></td>
+    `;
+    tabelaItensVenda.appendChild(tr);
+  });
+}
+
+window.removerItemVenda = (index) => {
+  itensVendaAtual.splice(index, 1);
+  renderItensVenda();
 };
 
 /* =========================
@@ -1130,6 +1192,7 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
 
 
 
