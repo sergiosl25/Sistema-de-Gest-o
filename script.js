@@ -40,7 +40,7 @@ const clientesCol = collection(db, "clientes");
 const estoqueCol = collection(db, "estoque");
 const vendasCol = collection(db, "vendas");
 const orcamentosCol = collection(db, "orcamentos");
-const precosCol = collection(db, "tabela de precos");
+const precosCol = collection(db, "precos");
 
 /* =========================
    Estado local (cache)
@@ -124,14 +124,51 @@ const valorDescontoInput = $("valorDesconto");
 const btnAplicarDesconto = $("btnAplicarDesconto");
 const btnCancelarDesconto = $("btnCancelarDesconto");
 
+// ===============================
+// 🧩 UTILITÁRIOS GLOBAIS
+// ===============================
+const utils = {
+  // Formata número para 2 casas decimais
+money(valor) {
+    return Number(valor || 0).toFixed(2);
+  },
+
+  // Formata número para moeda BRL (R$ 1.234,56)
+  formatCurrency(valor) {
+    return Number(valor || 0).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
+  },
+
+  // Converte string para número (aceita vírgula)
+  toNumber(valor) {
+    const n = Number(String(valor).replace(",", "."));
+    return isNaN(n) ? 0 : n;
+  },
+
+  // Retorna data e hora atual no formato brasileiro
+  nowDateTime() {
+    return new Date().toLocaleString("pt-BR");
+  },
+
+  // Mostra alerta estilizado no console
+  logInfo(msg) {
+    console.log(`🟢 ${msg}`);
+  },
+
+  // Mostra erro no console
+  logError(msg, err) {
+    console.error(`🔴 ${msg}`, err || "");
+  }
+};
+
+window.utils = utils;
+
 /* =========================
    Pequenos helpers utilitários
    ========================= */
 function sanitizeFileName(name){ return name ? name.replace(/[\/\\?%*:|"<>]/g,"_") : "cliente"; }
-function money(val){ return Number(val||0).toFixed(2); }
-function formatCurrency(val){ return Number(val||0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
-function nowDateTime(){ return new Date().toLocaleString(); }
-function toNumber(v){ const n = Number(String(v).replace(",", ".")); return isNaN(n) ? 0 : n; }
 
 /* =========================
    Real-time listeners (Firestore)
@@ -143,7 +180,7 @@ onSnapshot(clientesCol, snapshot => {
 
 onSnapshot(precosCol, snapshot => {
   precos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  renderTabelaPrecos();
+  rendertabelaPrecos();
 });
 
 onSnapshot(vendasCol, snapshot => {
@@ -346,7 +383,7 @@ if (tipoPrecoSelect) tipoPrecoSelect.addEventListener("change", () => {
   if (!tipo || !produtoId) return;
   const precoDoProduto = precos.find(p => p.produtoId === produtoId);
   if (!precoDoProduto) return;
-  const valor = toNumber(precoDoProduto[tipo]);
+  const valor = utils.toNumber(precoDoProduto[tipo]);
   if (precoVendaInput) precoVendaInput.value = valor > 0 ? valor.toFixed(2) : "";
 });
 
@@ -356,10 +393,10 @@ function renderVendas() {
   tabelaRegistros.innerHTML = "";
   let total = 0;
   vendas.forEach(v => {
-    const totalAfter = toNumber(v.totalDepois ?? v.total ?? 0);
+    const totalAfter = utils.toNumber(v.totalDepois ?? v.total ?? 0);
     total += totalAfter;
     const descontoTxt = v.desconto && v.desconto.tipoAplicado
-      ? (v.desconto.tipoValor === 'percentual' ? `${v.desconto.valor}% (${v.desconto.tipoAplicado})` : `${formatCurrency(v.desconto.valor)} (${v.desconto.tipoAplicado})`)
+      ? (v.desconto.tipoValor === 'percentual' ? `${v.desconto.valor}% (${v.desconto.tipoAplicado})` : `${utils.formatCurrency(v.desconto.valor)} (${v.desconto.tipoAplicado})`)
       : "-";
 
     const tr = document.createElement("tr");
@@ -368,10 +405,10 @@ function renderVendas() {
       <td>${v.cliente}</td>
       <td>${v.produto}</td>
       <td>${v.quantidade}</td>
-      <td>R$ ${money(v.preco)}</td>
+      <td>R$ ${utils.money(v.preco)}</td>
       <td>${descontoTxt}</td>
-      <td>R$ ${money(v.totalAntes ?? v.total ?? 0)}</td>
-      <td>R$ ${money(v.totalDepois ?? v.total ?? 0)}</td>
+      <td>R$ ${utils.money(v.totalAntes ?? v.total ?? 0)}</td>
+      <td>R$ ${utils.money(v.totalDepois ?? v.total ?? 0)}</td>
       <td>${v.pagamento || "-"}</td>
       <td>
         <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
@@ -380,7 +417,7 @@ function renderVendas() {
     `;
     tabelaRegistros.appendChild(tr);
   });
-  if (totalGeralRegistros) totalGeralRegistros.textContent = formatCurrency(total);
+  if (totalGeralRegistros) totalGeralRegistros.textContent = utils.formatCurrency(total);
 };
 
 function adicionarItemVenda (produtoId, produtoNome, tipoPreco, qtd, precoUnit) {
@@ -420,8 +457,8 @@ function adicionarItemVenda (produtoId, produtoNome, tipoPreco, qtd, precoUnit) 
         <td>${item.produtoNome}</td>
         <td>${item.tipoPreco}</td>
         <td>${item.qtd}</td>
-        <td>R$ ${money(item.precoUnit)}</td>
-        <td>R$ ${money(item.total)}</td>
+        <td>R$ ${utils.money(item.precoUnit)}</td>
+        <td>R$ ${utils.money(item.total)}</td>
         <td><button onclick="removerItemVenda(${idx})">Remover</button></td>
       `;
       tabelaItensVenda.appendChild(tr);
@@ -436,7 +473,7 @@ function adicionarItemVenda (produtoId, produtoNome, tipoPreco, qtd, precoUnit) 
 function atualizarTotalVenda(totalBruto) {
   const desconto = parseFloat((descontoInput.value || "0").replace(",", ".")) || 0;
   const totalComDesconto = totalBruto - desconto;
-  if (totalVendaInput) totalVendaInput.textContent = `R$ ${money(totalComDesconto)}`;
+  if (totalVendaInput) totalVendaInput.textContent = `R$ $utils.money(totalComDesconto)}`;
 }
 
 // ========================
@@ -478,7 +515,7 @@ if (btnAdicionarProdutoVenda) btnAdicionarProdutoVenda.onclick = () => {
 
   const precoDoc = precos.find(p => p.produtoId === produtoId);
   if (!precoDoc) return alert("Tabela de preços não encontrada.");
-  const precoUnit = toNumber(precoDoc[tipoPreco]);
+  const precoUnit = utils.toNumber(precoDoc[tipoPreco]);
   if (precoUnit <= 0) return alert("Preço inválido.");
 
   const produtoNome = precoDoc.produtoNome || (produtoSelect.options[produtoSelect.selectedIndex]?.text || "Produto");
@@ -508,8 +545,8 @@ function renderItensVenda() {
       <td>${item.produtoNome}</td>
       <td>${item.tipoPreco}</td>
       <td>${item.qtd}</td>
-      <td>R$ ${money(item.precoUnit)}</td>
-      <td>R$ ${money(item.total)}</td>
+      <td>R$ ${utils.money(item.precoUnit)}</td>
+      <td>R$ ${utils.money(item.total)}</td>
       <td><button onclick="removerItemVenda(${idx})">Remover</button></td>
     `;
     tabelaItensVenda.appendChild(tr);
@@ -572,7 +609,7 @@ if (btnVender) btnVender.onclick = async () => {
         }
 
         const vendaDoc = {
-          data: nowDateTime(),
+          data: utils.nowDateTime(),
           clienteId,
           cliente: clienteNome,
           produtoId: item.produtoId,
@@ -631,7 +668,7 @@ if (btnAdicionarProduto) btnAdicionarProduto.onclick = () => {
   window.orcamentoAtual.data = new Date().toLocaleDateString("pt-BR");
 
   const precoDoc = precos.find(pr => pr.produtoId === produtoId);
-  const precoAtual = precoDoc ? toNumber(precoDoc.estampaFrente || precoDoc.preco || 0) : 0;
+  const precoAtual = precoDoc ? utils.toNumber(precoDoc.estampaFrente || precoDoc.preco || 0) : 0;
 
   window.orcamentoAtual.produtos.push({
     produtoId,
@@ -657,8 +694,8 @@ function renderTabelaOrcamentoAtual(){
       <td>${window.orcamentoAtual.clienteNome || "-"}</td>
       <td>${p.nome}</td>
       <td>${p.quantidade}</td>
-      <td>R$ ${money(p.preco)}</td>
-      <td>R$ ${money(p.total)}</td>
+      <td>R$ ${utils.money(p.preco)}</td>
+      <td>R$ ${utils.money(p.total)}</td>
       <td><button class="acao-btn excluir" onclick="removerProduto(${i})">Remover</button></td>
     `;
     tabelaOrcamento.appendChild(tr);
@@ -746,7 +783,7 @@ if (btnNovaLinhaPreco) btnNovaLinhaPreco.onclick = async () => {
       const option = document.createElement("option");
       option.value = prod.id;
       option.textContent = prod.nome;
-      produtoSelectPreco.appendChild("option");
+      produtoSelectPreco.appendChild(option);
     });
   }
 
@@ -1156,7 +1193,7 @@ function gerarRecibo(vendaId) {
     doc.text(`Total Antes: R$ ${Number(venda.totalAntes ?? venda.total ?? 0).toFixed(2)}`, 10, y); y += 10;
     doc.text(`Total Após: R$ ${Number(venda.totalDepois ?? venda.total ?? 0).toFixed(2)}`, 10, y); y += 10;
     const descontoTxt = venda.desconto && venda.desconto.tipoAplicado
-      ? (venda.desconto.tipoValor === 'percentual' ? `${venda.desconto.valor}% (${venda.desconto.tipoAplicado})` : `${formatCurrency(venda.desconto.valor)} (${venda.desconto.tipoAplicado})`)
+      ? (venda.desconto.tipoValor === 'percentual' ? `${venda.desconto.valor}% (${venda.desconto.tipoAplicado})` : `${utils.formatCurrency(venda.desconto.valor)} (${venda.desconto.tipoAplicado})`)
       : "-";
     doc.text(`Desconto: ${descontoTxt}`, 10, y); y += 10;
     doc.text(`Forma de Pagamento: ${venda.pagamento || "-"}`, 10, y); y += 10;
@@ -1209,4 +1246,5 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 
 })
 };
+
 
