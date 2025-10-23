@@ -856,7 +856,6 @@ if (preco) {
   if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
   if (modalEditarPreco) modalEditarPreco.value = preco.preco ?? 0;
 
-  // Para salvar, coloque isso dentro de uma função async
   const salvarEdicaoPreco = async () => {
     const produtoNome = modalEditarNome?.value.trim() || "";
     const valor = parseFloat(modalEditarPreco?.value) || 0;
@@ -865,7 +864,6 @@ if (preco) {
     alert("Preço atualizado com sucesso!");
   };
 
-  // Aqui você pode chamar salvarEdicaoPreco quando o usuário clicar no botão "Salvar"
   btnSalvarEdicao.onclick = salvarEdicaoPreco;
 
 } else {
@@ -1128,5 +1126,6 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })};
+
 
 
