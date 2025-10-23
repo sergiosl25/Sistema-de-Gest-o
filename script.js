@@ -403,6 +403,24 @@ window.removerItemVenda = (index) => {
   renderItensVenda();
 };
 
+/* =========================
+   Atualiza desconto e total da venda atual
+========================= */
+function atualizarDescontoVenda() {
+  if (!descontoInput) return; // input do desconto
+  const desconto = parseFloat(descontoInput.value.replace(",", ".")) || 0;
+
+  // soma total dos itens
+  const totalItens = itensVendaAtual.reduce((acc, item) => acc + (item.total || 0), 0);
+
+  // aplica desconto
+  const totalComDesconto = Math.max(totalItens - desconto, 0);
+
+  if (totalVendaInput) totalVendaInput.textContent = `R$ ${totalComDesconto.toFixed(2).replace(".", ",")}`;
+}
+
+descontoInput?.addEventListener("input", atualizarDescontoVenda);
+
 /* ====================================
    FINALIZAR VENDA (MULTI PRODUTOS)
 ==================================== */
@@ -457,7 +475,6 @@ if (btnVender) btnVender.onclick = async () => {
     alert("Venda finalizada com sucesso!");
 
     // Atualiza histórico
-    await carregarVendas(); // função que busca vendas do banco
     renderVendas();
 
     currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
@@ -466,6 +483,15 @@ if (btnVender) btnVender.onclick = async () => {
     console.error(err);
     alert("Erro ao registrar venda: " + (err.message || err));
   }
+};
+
+const desconto = parseFloat(descontoInput.value.replace(",", ".")) || 0;
+
+const vendaFinal = {
+  itens: [...itensVendaAtual],
+  desconto,
+  total: itensVendaAtual.reduce((acc, item) => acc + (item.total || 0), 0) - desconto,
+  data: new Date(),
 };
 
 /* ====================================
@@ -741,18 +767,17 @@ function renderTabelaPrecos() {
     });
   });
 
-  // 🧩 Atualiza o <select> de produtos (se existir)
-  const produtoSelectPreco = document.getElementById("produtoSelectPreco");
-  if (produtoSelectPreco) {
-    produtoSelectPreco.innerHTML = "<option value=''>Selecione o produto</option>";
-
-    precosOrdenados.forEach(p => {
-      const opt = document.createElement("option");
-      opt.value = p.id;
-      opt.textContent = p.produtoNome || "";
-      produtoSelectPreco.appendChild(opt);
-    });
-  }
+const produtoSelectPreco = document.getElementById("produtoSelectPreco");
+if (produtoSelectPreco) {
+  const valorAtual = produtoSelectPreco.value; // salva seleção
+  produtoSelectPreco.innerHTML = "<option value=''>Selecione o produto</option>";
+  precosOrdenados.forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.produtoNome || "";
+    produtoSelectPreco.appendChild(opt);
+  });
+  produtoSelectPreco.value = valorAtual; // restaura seleção
 }
 
 function abrirModalPreco(id) {
@@ -829,7 +854,9 @@ window.abrirModal = function(tipo, id) {
     const preco = precos.find(p => p.id === id);
     if (preco) {
       if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
-      if (modalEditarPreco) modalEditarPreco.value = (preco.valor ?? preco.preco ?? 0);
+      if (modalEditarPreco) modalEditarPreco.value = (preco.preco ?? 0);
+      // ao salvar
+      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
     }
   } else {
     console.warn("abrirModal: tipo desconhecido", tipo);
@@ -864,8 +891,9 @@ if (btnSalvarEdicao) btnSalvarEdicao.onclick = async () => {
       alert("Produto atualizado com sucesso!");
     } else if (tipoEdicao === "preco") {
       const produtoNome = (modalEditarNome?.value || "").trim();
-      const valor = parseFloat(modalEditarPreco?.value) || 0;
-      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor, valor });
+      if (modalEditarPreco) modalEditarPreco.value = (preco.preco ?? 0);
+      // ao salvar
+      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
       alert("Preço atualizado com sucesso!");
     }
 
@@ -919,13 +947,18 @@ function renderOrcamentosSalvos() {
   });
 }
 
-// Atualiza o total geral dos orçamentos
-const totalGeral = orcamentos.reduce((acc, o) => {
-  return acc + o.produtos.reduce((sum, p) => sum + p.precoTotal, 0);
-}, 0);
-
-document.getElementById("totalGeralRegistros").textContent = 
-  `R$ ${totalGeral.toFixed(2).replace(".", ",")}`;
+/* =========================
+   Atualiza total geral dos orçamentos
+========================= */
+function atualizarTotalGeralOrcamentos() {
+  if (!totalGeralRegistros) return;
+  const totalGeral = orcamentos.reduce((acc, o) => {
+    return acc + (o.produtos?.reduce((sum, p) => sum + (p.total || 0), 0) || 0);
+  }, 0);
+  totalGeralRegistros.textContent = `R$ ${totalGeral.toFixed(2).replace(".", ",")}`;
+}
+renderOrcamentosSalvos();
+atualizarTotalGeralOrcamentos();
 
 /* =========================
    Reimprimir orcamento / excluir
@@ -1084,4 +1117,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderTabelaPrecos();
   renderVendas();
   renderOrcamentosSalvos();
-});
+})};
