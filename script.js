@@ -173,10 +173,6 @@ function mostrarSecao(secaoId) {
 window.mostrar = mostrar;
 window.mostrarSecao = mostrar;
 
-function money(valor) {
-  return Number(valor).toFixed(2).replace(".", ",");
-}
-
 /* =========================
    CLIENTES (CRUD)
    ========================= */
@@ -1219,3 +1215,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 };
 window.mostrar = mostrar
 window.mostrarSecao = mostrarSecao;
+
