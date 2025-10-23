@@ -51,17 +51,11 @@ let vendas = [];
 let orcamentos = [];
 let precos = [];
 let itensVendaAtual = [];
+let currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
 
 /* item selecionado para edição (uma única declaração) */
 let itemEdicao = null;
 let tipoEdicao = null;
-
-/* desconto provisório aplicado antes de gravar venda */
-let currentSaleDiscount = {
-  tipoAplicado: null, // 'produto' | 'venda'
-  tipoValor: null, // 'percentual' | 'valor'
-  valor: 0
-};
 
 /* =========================
    Helpers / DOM refs (verifica presença)
@@ -90,9 +84,8 @@ const btnDesconto = $("btnDesconto");
 const btnDescontoVenda = $("btnDescontoVenda");
 const btnAdicionarProdutoVenda = document.getElementById('btnAdicionarProdutoVenda');
 const tabelaItensVenda = document.getElementById('tabelaItensVenda')?.querySelector('tbody');
-
-const tabelaRegistros = document.querySelector("#tabelaRegistros tbody");
-const totalGeralRegistros = $("totalGeralRegistros");
+const tabelaRegistros = document.getElementById('tabelaVendas')?.querySelector('tbody');
+const totalGeralRegistros = document.getElementById('totalGeralVendas');
 
 const tabelaOrcamento = document.querySelector("#tabelaOrcamento tbody");
 const clienteInputOrcamento = $("clienteInputOrcamento");
@@ -379,7 +372,6 @@ if (btnAdicionarProdutoVenda) btnAdicionarProdutoVenda.onclick = () => {
 
   renderItensVenda();
 
-  // limpa campos
   quantidadeVenda.value = "";
   produtoSelect.value = "";
   tipoPrecoSelect.value = "";
@@ -425,7 +417,6 @@ if (btnVender) btnVender.onclick = async () => {
     const clienteSnap = await getDoc(doc(db, "clientes", clienteId));
     const clienteNome = clienteSnap.exists() ? clienteSnap.data().nome : "Cliente";
 
-    // Registrar cada produto da venda
     await runTransaction(db, async (tx) => {
       for (const item of itensVendaAtual) {
         const produtoRef = doc(db, "estoque", item.produtoId);
@@ -434,6 +425,15 @@ if (btnVender) btnVender.onclick = async () => {
         const estoqueAtual = produtoSnapTx.data().quantidade || 0;
         if (estoqueAtual < item.qtd) throw new Error(`Estoque insuficiente para ${item.produtoNome}`);
         tx.update(produtoRef, { quantidade: estoqueAtual - item.qtd });
+
+        let totalDepois = item.total;
+        if (currentSaleDiscount.tipoAplicado === "venda") {
+          if (currentSaleDiscount.tipoValor === "percentual") {
+            totalDepois = Math.max(0, item.total - (item.total * (currentSaleDiscount.valor / 100)));
+          } else {
+            totalDepois = Math.max(0, item.total - currentSaleDiscount.valor);
+          }
+        }
 
         const vendaDoc = {
           data: nowDateTime(),
@@ -444,24 +444,65 @@ if (btnVender) btnVender.onclick = async () => {
           quantidade: item.qtd,
           preco: item.precoUnit,
           totalAntes: item.total,
-          totalDepois: item.total,
-          desconto: { tipoAplicado: null, tipoValor: null, valor: 0 },
+          totalDepois,
+          desconto: { ...currentSaleDiscount },
           pagamento
         };
         tx.set(doc(vendasCol), vendaDoc);
       }
     });
 
-    // Limpa tudo após finalizar
     itensVendaAtual = [];
     renderItensVenda();
     alert("Venda finalizada com sucesso!");
+
+    // Atualiza histórico
+    await carregarVendas(); // função que busca vendas do banco
+    renderVendas();
+
+    currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
 
   } catch (err) {
     console.error(err);
     alert("Erro ao registrar venda: " + (err.message || err));
   }
 };
+
+/* ====================================
+   RENDER VENDAS/HISTÓRICO
+==================================== */
+window.renderVendas = function() {
+  if (!tabelaRegistros) return;
+  tabelaRegistros.innerHTML = "";
+  let total = 0;
+  vendas.forEach(v => {
+    const totalAfter = toNumber(v.totalDepois ?? v.total ?? 0);
+    total += totalAfter;
+    const descontoTxt = v.desconto && v.desconto.tipoAplicado
+      ? (v.desconto.tipoValor === 'percentual' ? `${v.desconto.valor}% (${v.desconto.tipoAplicado})` : `${formatCurrency(v.desconto.valor)} (${v.desconto.tipoAplicado})`)
+      : "-";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${v.data}</td>
+      <td>${v.cliente}</td>
+      <td>${v.produto}</td>
+      <td>${v.quantidade}</td>
+      <td>R$ ${money(v.preco)}</td>
+      <td>${descontoTxt}</td>
+      <td>R$ ${money(v.totalAntes ?? v.total ?? 0)}</td>
+      <td>R$ ${money(v.totalDepois ?? v.total ?? 0)}</td>
+      <td>${v.pagamento || "-"}</td>
+      <td>
+        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
+      </td>
+    `;
+    tabelaRegistros.appendChild(tr);
+  });
+  if (totalGeralRegistros) totalGeralRegistros.textContent = formatCurrency(total);
+};
+
 
 /* =========================
    ORÇAMENTOS (renders e PDF)
@@ -1043,13 +1084,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderTabelaPrecos();
   renderVendas();
   renderOrcamentosSalvos();
-})();
-
-
-
-
-
-
-
-
-
+});
