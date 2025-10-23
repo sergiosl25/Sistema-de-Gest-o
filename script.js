@@ -80,10 +80,12 @@ const produtoSelectPreco = $("produtoSelectPreco");
 const quantidadeVenda = $("quantidadeVenda");
 const formaPagamento = $("formaPagamento");
 const btnVender = $("btnVender");
+const descontoInput = document.getElementById("descontoInput");
 const btnDesconto = $("btnDesconto");
 const btnDescontoVenda = $("btnDescontoVenda");
 const btnAdicionarProdutoVenda = document.getElementById('btnAdicionarProdutoVenda');
 const tabelaItensVenda = document.getElementById('tabelaItensVenda')?.querySelector('tbody');
+const totalVendaInput = document.getElementById("totalVenda");
 const tabelaRegistros = document.getElementById('tabelaVendas')?.querySelector('tbody');
 const totalGeralRegistros = document.getElementById('totalGeralVendas');
 
@@ -164,8 +166,15 @@ onSnapshot(estoqueCol, snapshot => {
 });
 
 function mostrarSecao(secaoId) {
-  document.querySelectorAll(".view").forEach(secao => secao.style.display = "none");
-  document.getElementById(secaoId).style.display = "block";
+  document.querySelectorAll(".secao").forEach(sec => sec.style.display = "none");
+  const secao = document.getElementById(secaoId);
+  if (secao) secao.style.display = "block";
+}
+window.mostrar = mostrar;
+window.mostrarSecao = mostrar;
+
+function money(valor) {
+  return Number(valor).toFixed(2).replace(".", ",");
 }
 
 /* =========================
@@ -345,6 +354,94 @@ if (tipoPrecoSelect) tipoPrecoSelect.addEventListener("change", () => {
   if (precoVendaInput) precoVendaInput.value = valor > 0 ? valor.toFixed(2) : "";
 });
 
+function adicionarItemVenda(produtoId, produtoNome, tipoPreco, qtd, precoUnit) {
+    qtd = parseInt(qtd) || 0;
+    precoUnit = parseFloat(precoUnit) || 0;
+    if (!produtoId || qtd <= 0 || precoUnit <= 0) return alert("Produto ou quantidade inválida.");
+
+    const existente = itensVendaAtual.find(i => i.produtoId === produtoId && i.tipoPreco === tipoPreco);
+    if (existente) {
+      existente.qtd += qtd;
+      existente.total = existente.qtd * existente.precoUnit;
+    } else {
+      itensVendaAtual.push({
+        produtoId,
+        produtoNome,
+        tipoPreco,
+        qtd,
+        precoUnit,
+        total: qtd * precoUnit
+      });
+    }
+    renderItensVenda();
+  }
+
+// ========================
+  // REMOVER ITEM
+  // ========================
+  function removerItemVenda(index) {
+    itensVendaAtual.splice(index, 1);
+    renderItensVenda();
+  }
+
+   // ========================
+  // RENDERIZA TABELA
+  // ========================
+  function renderItensVenda() {
+    if (!tabelaItensVenda) return;
+
+    tabelaItensVenda.innerHTML = "";
+    let total = 0;
+
+    itensVendaAtual.forEach((item, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.produtoNome}</td>
+        <td>${item.tipoPreco}</td>
+        <td>${item.qtd}</td>
+        <td>R$ ${money(item.precoUnit)}</td>
+        <td>R$ ${money(item.total)}</td>
+        <td><button onclick="removerItemVenda(${idx})">Remover</button></td>
+      `;
+      tabelaItensVenda.appendChild(tr);
+      total += item.total;
+    });
+    atualizarTotalVenda(total);
+  }
+
+  // ========================
+// ATUALIZA TOTAL COM DESCONTO
+// ========================
+function atualizarTotalVenda(totalBruto) {
+  const desconto = parseFloat((descontoInput.value || "0").replace(",", ".")) || 0;
+  const totalComDesconto = totalBruto - desconto;
+  if (totalVendaInput) totalVendaInput.textContent = `R$ ${money(totalComDesconto)}`;
+}
+
+// ========================
+// ATUALIZA TOTAL AO ALTERAR DESCONTO
+// ========================
+if (descontoInput) {
+  descontoInput.addEventListener("input", () => {
+    const totalBruto = itensVendaAtual.reduce((acc, item) => acc + item.total, 0);
+    atualizarTotalVenda(totalBruto);
+  });
+
+  // ========================
+// FINALIZAR VENDA
+// ========================
+function finalizarVenda() {
+  if (itensVendaAtual.length === 0) return alert("Adicione produtos à venda.");
+  
+  const desconto = parseFloat((descontoInput.value || "0").replace(",", ".")) || 0;
+  const total = itensVendaAtual.reduce((acc, item) => acc + item.total, 0) - desconto;
+
+  const vendaFinal = {
+    itens: [...itensVendaAtual],
+    desconto,
+    total,
+    data: new Date()
+  }
 /* ====================================
    ADICIONAR PRODUTO À VENDA ATUAL
 ==================================== */
@@ -483,15 +580,6 @@ if (btnVender) btnVender.onclick = async () => {
     console.error(err);
     alert("Erro ao registrar venda: " + (err.message || err));
   }
-};
-
-const desconto = parseFloat(descontoInput.value.replace(",", ".")) || 0;
-
-const vendaFinal = {
-  itens: [...itensVendaAtual],
-  desconto,
-  total: itensVendaAtual.reduce((acc, item) => acc + (item.total || 0), 0) - desconto,
-  data: new Date(),
 };
 
 /* ====================================
@@ -802,7 +890,7 @@ async function excluirPreco(id) {
 }
 window.excluirPreco = excluirPreco;
 
-window.abrirModal = function(tipo, id) {
+window.abrirModal = async function(tipo, id) {
   itemEdicao = id;
   tipoEdicao = tipo;
 
@@ -844,18 +932,20 @@ window.abrirModal = function(tipo, id) {
       if (modalEditarNome) modalEditarNome.value = produto.nome || "";
       if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade ?? 0;
     }
-  } else if (tipo === "preco") {
-    if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Preço";
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
-    else if (modalEditarNome) modalEditarNome.style.display = "";
-    if (modalEditarPreco?.parentElement) modalEditarPreco.parentElement.style.display = "";
-    else if (modalEditarPreco) modalEditarPreco.style.display = "";
+  } else if (tipoEdicao === "preco") {
+  const produtoNome = (modalEditarNome?.value || "").trim();
+  const valor = parseFloat(modalEditarPreco?.value) || 0;
+  if (!produtoNome) return alert("Informe o nome do produto.");
+  await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
+  alert("Preço atualizado com sucesso!");
+}
 
     const preco = precos.find(p => p.id === id);
 if (preco) {
   if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
   if (modalEditarPreco) modalEditarPreco.value = preco.preco ?? 0;
 
+  // Para salvar, coloque isso dentro de uma função async
   const salvarEdicaoPreco = async () => {
     const produtoNome = modalEditarNome?.value.trim() || "";
     const valor = parseFloat(modalEditarPreco?.value) || 0;
@@ -864,6 +954,7 @@ if (preco) {
     alert("Preço atualizado com sucesso!");
   };
 
+  // Aqui você pode chamar salvarEdicaoPreco quando o usuário clicar no botão "Salvar"
   btnSalvarEdicao.onclick = salvarEdicaoPreco;
 
 } else {
@@ -1089,8 +1180,6 @@ function mostrar(viewId) {
     sec.style.display = sec.id === viewId ? "block" : "none";
   });
 }
-window.mostrar = mostrar;
-window.mostrarSecao = mostrar;
 
 function abrirModalSimples(id) {
   const modal = document.getElementById(id);
@@ -1128,7 +1217,5 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 })
 }
 };
-
-
-
-
+window.mostrar = mostrar
+window.mostrarSecao = mostrarSecao;
