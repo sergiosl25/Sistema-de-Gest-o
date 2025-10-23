@@ -40,7 +40,7 @@ const clientesCol = collection(db, "clientes");
 const estoqueCol = collection(db, "estoque");
 const vendasCol = collection(db, "vendas");
 const orcamentosCol = collection(db, "orcamentos");
-const precosCol = collection(db, "precos");
+const precosCol = collection(db, "tabela de precos");
 
 /* =========================
    Estado local (cache)
@@ -143,7 +143,7 @@ onSnapshot(clientesCol, snapshot => {
 
 onSnapshot(precosCol, snapshot => {
   precos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  rendertabelaPrecos();
+  renderTabelaPrecos();
 });
 
 onSnapshot(vendasCol, snapshot => {
@@ -746,7 +746,7 @@ if (btnNovaLinhaPreco) btnNovaLinhaPreco.onclick = async () => {
       const option = document.createElement("option");
       option.value = prod.id;
       option.textContent = prod.nome;
-      produtoSelectPreco.appendChild(option);
+      produtoSelectPreco.appendChild("option");
     });
   }
 
@@ -1209,3 +1209,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 
 })
 };
+
