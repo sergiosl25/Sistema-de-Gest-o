@@ -369,9 +369,6 @@ function adicionarItemVenda(produtoId, produtoNome, tipoPreco, qtd, precoUnit) {
         total: qtd * precoUnit
       });
     }
-    renderItensVenda();
-  }
-
 // ========================
   // REMOVER ITEM
   // ========================
@@ -1213,6 +1210,3 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 })
 }
 };
-window.mostrar = mostrar
-window.mostrarSecao = mostrarSecao;
-
