@@ -646,10 +646,14 @@ if (btnVender) btnVender.onclick = async () => {
 function renderProdutoSelectOrcamento() {
   const select = document.getElementById("produtoSelectOrcamento");
   if (!select) return;
+  select.innerHTML = `<option value="">Selecione o produto</option>`;
 
-  select.innerHTML = produtos.map(prod => `
-    <option value="${prod.id}">${prod.nome}</option>
-  `).join("");
+  (window.precos || []).forEach(p => {
+    const opt = document.createElement("option");
+    opt.value = p.produtoNome || "";
+    opt.textContent = p.produtoNome || "";
+    select.appendChild(opt);
+  });
 }
 
 if (btnAdicionarProduto) btnAdicionarProduto.onclick = () => {
@@ -828,17 +832,19 @@ let tabelaPrecos = document.getElementById("tabelaPrecos");
 // FUNÇÃO: renderTabelaPrecos
 // =====================================
 function renderTabelaPrecos() {
+  const tabelaPrecos = document.getElementById("tabelaPrecos");
   if (!tabelaPrecos) return;
   tabelaPrecos.innerHTML = "";
 
-  const precosOrdenados = [...precos].sort((a, b) =>
+  // Ordena alfabeticamente
+  const precosOrdenados = [...(window.precos || [])].sort((a, b) =>
     (a.produtoNome || "").localeCompare(b.produtoNome || "", "pt-BR")
   );
 
   precosOrdenados.forEach(p => {
     const tr = document.createElement("tr");
     const produtoNome = p.produtoNome || "";
-    const cPreco = p.preco ?? p.valor ?? 0;
+    const cPreco = p.preco ?? 0;
     const cEstampaFrente = p.estampaFrente ?? 0;
     const cEstampaFrenteVerso = p.estampaFrenteVerso ?? 0;
     const cBranca = p.branca ?? 0;
@@ -860,10 +866,9 @@ function renderTabelaPrecos() {
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
       </td>
     `;
-
     tabelaPrecos.appendChild(tr);
 
-    // Eventos de edição
+    // Atualiza o Firestore quando o usuário edita um valor
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
         const field = td.dataset.field;
@@ -1052,29 +1057,24 @@ window.abrirModalExclusao = function(callback) {
    Render orcamentos salvos (implementado)
    ========================= */
 function renderOrcamentosSalvos() {
-  if (!tabelaOrcamentosSalvos) return;
-  tabelaOrcamentosSalvos.innerHTML = "";
+  const tabela = document.getElementById("tabelaOrcamentosSalvos");
+  if (!tabela) return;
+  tabela.innerHTML = "";
 
-  orcamentos.forEach((o) => {
-    const produtosText = o.produtos.map(p => p.nome).join(", ");
-    const quantText = o.produtos.map(p => p.quantidade).join(", ");
-    const precoUnitText = o.produtos.map(p => (p.preco ?? 0).toFixed(2)).join(", ");
-    const precoTotalText = o.produtos.map(p => (p.total ?? 0).toFixed(2)).join(", ");
-
+  (window.orcamentosSalvos || []).forEach(o => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${o.data}</td>
-      <td>${o.clienteNome}</td>
-      <td>${produtosText}</td>
-      <td>${quantText}</td>
-      <td>R$ ${precoUnitText}</td>
-      <td>R$ ${precoTotalText}</td>
+      <td>${o.data || ""}</td>
+      <td>${o.cliente || ""}</td>
+      <td>${o.produto || ""}</td>
+      <td>${o.quantidade || 0}</td>
+      <td>${o.precoUnitario || 0}</td>
+      <td>${o.precoTotal || 0}</td>
       <td>
-        <button class="acao-btn pdf" onclick="reimprimirOrcamento('${o.id}')">PDF</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirOrcamento('${o.id}'))">Excluir</button>
       </td>
     `;
-    tabelaOrcamentosSalvos.appendChild(tr);
+    tabela.appendChild(tr);
   });
 }
 
@@ -1250,7 +1250,3 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 
 })
 };
-
-
-
-
