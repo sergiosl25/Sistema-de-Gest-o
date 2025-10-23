@@ -143,7 +143,7 @@ onSnapshot(clientesCol, snapshot => {
 
 onSnapshot(precosCol, snapshot => {
   precos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  renderTabelaPrecos();
+  rendertabelaPrecos();
 });
 
 onSnapshot(vendasCol, snapshot => {
@@ -1211,4 +1211,5 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 })
 }
 };
+
 
