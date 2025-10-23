@@ -852,15 +852,25 @@ window.abrirModal = function(tipo, id) {
     else if (modalEditarPreco) modalEditarPreco.style.display = "";
 
     const preco = precos.find(p => p.id === id);
-    if (preco) {
-      if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
-      if (modalEditarPreco) modalEditarPreco.value = (preco.preco ?? 0);
-      // ao salvar
-      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
-    }
-  } else {
-    console.warn("abrirModal: tipo desconhecido", tipo);
-  }
+if (preco) {
+  if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
+  if (modalEditarPreco) modalEditarPreco.value = preco.preco ?? 0;
+
+  // Para salvar, coloque isso dentro de uma função async
+  const salvarEdicaoPreco = async () => {
+    const produtoNome = modalEditarNome?.value.trim() || "";
+    const valor = parseFloat(modalEditarPreco?.value) || 0;
+    if (!produtoNome) return alert("Informe o nome do produto.");
+    await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
+    alert("Preço atualizado com sucesso!");
+  };
+
+  // Aqui você pode chamar salvarEdicaoPreco quando o usuário clicar no botão "Salvar"
+  btnSalvarEdicao.onclick = salvarEdicaoPreco;
+
+} else {
+  console.warn("abrirModal: tipo desconhecido", tipo);
+}
 
   modalEditar.style.display = "block";
 };
@@ -1118,4 +1128,5 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })};
+
 
