@@ -419,7 +419,8 @@ if (descontoInput) {
     const totalBruto = itensVendaAtual.reduce((acc, item) => acc + item.total, 0);
     atualizarTotalVenda(totalBruto);
   });
-
+}
+  
   // ========================
 // FINALIZAR VENDA
 // ========================
@@ -1210,3 +1211,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 })
 }
 };
+
