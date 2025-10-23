@@ -352,86 +352,6 @@ if (tipoPrecoSelect) tipoPrecoSelect.addEventListener("change", () => {
   if (precoVendaInput) precoVendaInput.value = valor > 0 ? valor.toFixed(2) : "";
 });
 
-/* =========================
-   VENDAS (transação) + desconto
-   ========================= */
-if (btnVender) btnVender.onclick = async () => {
-  const clienteId = clienteSelect?.value;
-  const produtoId = produtoSelect?.value;
-  const qtd = parseInt(quantidadeVenda?.value) || 0;
-  const tipoPreco = tipoPrecoSelect?.value;
-  if (!clienteId || !produtoId || qtd <= 0 || !tipoPreco) {
-    return alert("Preencha cliente, produto, tipo de preço e quantidade corretamente.");
-  }
-
-  try {
-    const produtoRef = doc(db, "estoque", produtoId);
-    const clienteSnap = await getDoc(doc(db, "clientes", clienteId));
-    const clienteNome = clienteSnap.exists() ? clienteSnap.data().nome : "Cliente";
-
-    const precoDoc = precos.find(p => p.produtoId === produtoId);
-    if (!precoDoc) return alert("Tabela de preços não encontrada para esse produto.");
-    const precoUnitarioBase = toNumber(precoDoc[tipoPreco]);
-    if (precoUnitarioBase <= 0) return alert("Preço inválido. Verifique a tabela de preços.");
-
-    const totalAntes = precoUnitarioBase * qtd;
-    let totalDepois = totalAntes;
-    let descontoSalvo = { tipoAplicado: null, tipoValor: null, valor: 0 };
-
-    if (currentSaleDiscount && currentSaleDiscount.tipoAplicado) {
-      descontoSalvo = { ...currentSaleDiscount };
-      if (descontoSalvo.tipoAplicado === 'produto') {
-        if (descontoSalvo.tipoValor === 'percentual') {
-          const descontoUnit = precoUnitarioBase * (descontoSalvo.valor / 100);
-          totalDepois = Math.max(0, (precoUnitarioBase - descontoUnit) * qtd);
-        } else {
-          const descontoUnit = descontoSalvo.valor;
-          const afterUnit = Math.max(0, precoUnitarioBase - descontoUnit);
-          totalDepois = afterUnit * qtd;
-        }
-      } else {
-        if (descontoSalvo.tipoValor === 'percentual') {
-          totalDepois = Math.max(0, totalAntes - (totalAntes * (descontoSalvo.valor / 100)));
-        } else {
-          totalDepois = Math.max(0, totalAntes - descontoSalvo.valor);
-        }
-      }
-    }
-    
-    await runTransaction(db, async tx => {
-      const produtoSnapTx = await tx.get(produtoRef);
-      if (!produtoSnapTx.exists()) throw new Error("Produto não encontrado");
-      const estoqueAtual = produtoSnapTx.data().quantidade || 0;
-      if (estoqueAtual < qtd) throw new Error("Estoque insuficiente");
-      tx.update(produtoRef, { quantidade: estoqueAtual - qtd });
-
-      const vendaDoc = {
-        data: nowDateTime(),
-        clienteId,
-        cliente: clienteNome,
-        produtoId,
-        produto: precoDoc.produtoNome || (produtoSelect?.options[produtoSelect.selectedIndex]?.text || "Produto"),
-        quantidade: qtd,
-        preco: precoUnitarioBase,
-        totalAntes,
-        totalDepois,
-        desconto: descontoSalvo,
-        pagamento: (formaPagamento?.value) || "Não informado"
-      };
-      tx.set(doc(vendasCol), vendaDoc);
-    });
-
-    // limpa form e desconto
-    if (quantidadeVenda) quantidadeVenda.value = "";
-    currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
-
-    alert("Venda registrada com sucesso!");
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao registrar venda: " + (err.message || err));
-  }
-};
-
 /* ====================================
    ADICIONAR PRODUTO À VENDA ATUAL
 ==================================== */
@@ -459,7 +379,7 @@ if (btnAdicionarProdutoVenda) btnAdicionarProdutoVenda.onclick = () => {
 
   renderItensVenda();
 
-  // Limpa campos
+  // limpa campos
   quantidadeVenda.value = "";
   produtoSelect.value = "";
   tipoPrecoSelect.value = "";
@@ -491,125 +411,57 @@ window.removerItemVenda = (index) => {
   renderItensVenda();
 };
 
-/* =========================
-   Modal desconto (produto ou venda)
-   ========================= */
-let tipoDescontoAtual = null; // 'produto' | 'venda' | null
+/* ====================================
+   FINALIZAR VENDA (MULTI PRODUTOS)
+==================================== */
+if (btnVender) btnVender.onclick = async () => {
+  const clienteId = clienteSelect?.value;
+  const pagamento = formaPagamento?.value || "Não informado";
 
-if (btnDesconto) btnDesconto.addEventListener('click', () => {
-  tipoDescontoAtual = 'produto';
-  if (tituloModalDesconto) tituloModalDesconto.textContent = "Desconto no Produto";
-  if (tipoDescontoSelect) tipoDescontoSelect.value = "percentual";
-  if (valorDescontoInput) valorDescontoInput.value = "";
-  if (modalDesconto) modalDesconto.classList.add("active");
-});
+  if (!clienteId) return alert("Selecione o cliente antes de finalizar.");
+  if (itensVendaAtual.length === 0) return alert("Adicione pelo menos um produto antes de finalizar.");
 
-if (btnDescontoVenda) btnDescontoVenda.addEventListener('click', () => {
-  tipoDescontoAtual = 'venda';
-  if (tituloModalDesconto) tituloModalDesconto.textContent = "Desconto na Venda";
-  if (tipoDescontoSelect) tipoDescontoSelect.value = "percentual";
-  if (valorDescontoInput) valorDescontoInput.value = "";
-  if (modalDesconto) modalDesconto.classList.add("active");
-});
-
-if (btnCancelarDesconto) btnCancelarDesconto.addEventListener('click', () => {
-  if (modalDesconto) modalDesconto.classList.remove("active");
-  if (valorDescontoInput) valorDescontoInput.value = "";
-  tipoDescontoAtual = null;
-});
-
-if (btnAplicarDesconto) btnAplicarDesconto.addEventListener('click', () => {
-  if (!tipoDescontoAtual) return alert("Tipo de desconto não definido.");
-  const tipoValor = tipoDescontoSelect?.value;
-  const raw = (valorDescontoInput?.value || "").trim();
-  const valor = toNumber(raw);
-  if (!valor || valor <= 0) return alert("Informe um valor de desconto válido.");
-
-  currentSaleDiscount = {
-    tipoAplicado: tipoDescontoAtual === 'produto' ? 'produto' : 'venda',
-    tipoValor: tipoValor === 'percentual' ? 'percentual' : 'valor',
-    valor: Number(valor)
-  };
-
-  // se desconto no produto, atualizar visual do preço unit (apenas UI)
-  if (currentSaleDiscount.tipoAplicado === 'produto') {
-    const produtoId = produtoSelect?.value;
-    const tipoPreco = tipoPrecoSelect?.value;
-    let base = toNumber(precoVendaInput?.value);
-    if (!base && produtoId && tipoPreco) {
-      const pdoc = precos.find(p => p.produtoId === produtoId);
-      if (pdoc) base = toNumber(pdoc[tipoPreco]);
-    }
-    if (base > 0) {
-      const desconto = currentSaleDiscount.tipoValor === 'percentual' ? base * (currentSaleDiscount.valor/100) : currentSaleDiscount.valor;
-      const novo = Math.max(0, base - desconto);
-      if (precoVendaInput) precoVendaInput.value = novo.toFixed(2);
-    }
-  }
-
-  if (modalDesconto) modalDesconto.classList.remove("active");
-  if (valorDescontoInput) valorDescontoInput.value = "";
-  tipoDescontoAtual = null;
-
-  alert(`Desconto aplicado: ${currentSaleDiscount.tipoValor === 'percentual' ? currentSaleDiscount.valor + '%' : formatCurrency(currentSaleDiscount.valor)} (${currentSaleDiscount.tipoAplicado})`);
-});
-
-/* =========================
-   RENDER: vendas/histórico
-   ========================= */
-function renderVendas(){
-  if (!tabelaRegistros) return;
-  tabelaRegistros.innerHTML = "";
-  let total = 0;
-  vendas.forEach(v => {
-    const totalAfter = toNumber(v.totalDepois ?? v.total ?? 0);
-    total += totalAfter;
-    const descontoTxt = v.desconto && v.desconto.tipoAplicado
-      ? (v.desconto.tipoValor === 'percentual' ? `${v.desconto.valor}% (${v.desconto.tipoAplicado})` : `${formatCurrency(v.desconto.valor)} (${v.desconto.tipoAplicado})`)
-      : "-";
-
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${v.data}</td>
-      <td>${v.cliente}</td>
-      <td>${v.produto}</td>
-      <td>${v.quantidade}</td>
-      <td>R$ ${money(v.preco)}</td>
-      <td>${descontoTxt}</td>
-      <td>R$ ${money(v.totalAntes ?? v.total ?? 0)}</td>
-      <td>R$ ${money(v.totalDepois ?? v.total ?? 0)}</td>
-      <td>${v.pagamento || "-"}</td>
-      <td>
-        <button class="acao-btn pdf" onclick="gerarRecibo('${v.id}')">Recibo</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirVenda('${v.id}'))">Excluir</button>
-      </td>
-    `;
-    tabelaRegistros.appendChild(tr);
-  });
-  if (totalGeralRegistros) totalGeralRegistros.textContent = formatCurrency(total);
-}
-
-async function excluirVenda(id){
   try {
-    const vendaRef = doc(db,"vendas",id);
-    const vendaSnap = await getDoc(vendaRef);
-    if (!vendaSnap.exists()) return;
-    const venda = vendaSnap.data();
-    await runTransaction(db, async tx => {
-      const produtoRef = doc(db,"estoque",venda.produtoId);
-      const produtoSnap = await tx.get(produtoRef);
-      if (produtoSnap.exists()) {
-        const atual = produtoSnap.data().quantidade || 0;
-        tx.update(produtoRef, { quantidade: atual + (venda.quantidade || 0) });
+    const clienteSnap = await getDoc(doc(db, "clientes", clienteId));
+    const clienteNome = clienteSnap.exists() ? clienteSnap.data().nome : "Cliente";
+
+    // Registrar cada produto da venda
+    await runTransaction(db, async (tx) => {
+      for (const item of itensVendaAtual) {
+        const produtoRef = doc(db, "estoque", item.produtoId);
+        const produtoSnapTx = await tx.get(produtoRef);
+        if (!produtoSnapTx.exists()) throw new Error(`Produto não encontrado: ${item.produtoNome}`);
+        const estoqueAtual = produtoSnapTx.data().quantidade || 0;
+        if (estoqueAtual < item.qtd) throw new Error(`Estoque insuficiente para ${item.produtoNome}`);
+        tx.update(produtoRef, { quantidade: estoqueAtual - item.qtd });
+
+        const vendaDoc = {
+          data: nowDateTime(),
+          clienteId,
+          cliente: clienteNome,
+          produtoId: item.produtoId,
+          produto: item.produtoNome,
+          quantidade: item.qtd,
+          preco: item.precoUnit,
+          totalAntes: item.total,
+          totalDepois: item.total,
+          desconto: { tipoAplicado: null, tipoValor: null, valor: 0 },
+          pagamento
+        };
+        tx.set(doc(vendasCol), vendaDoc);
       }
-      tx.delete(vendaRef);
     });
+
+    // Limpa tudo após finalizar
+    itensVendaAtual = [];
+    renderItensVenda();
+    alert("Venda finalizada com sucesso!");
+
   } catch (err) {
     console.error(err);
-    alert("Erro ao excluir venda: " + (err.message || err));
+    alert("Erro ao registrar venda: " + (err.message || err));
   }
-}
-window.excluirVenda = excluirVenda;
+};
 
 /* =========================
    ORÇAMENTOS (renders e PDF)
@@ -1192,6 +1044,7 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderVendas();
   renderOrcamentosSalvos();
 })();
+
 
 
 
