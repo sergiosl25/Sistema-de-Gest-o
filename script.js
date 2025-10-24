@@ -997,24 +997,6 @@ window.removerProduto = removerProduto;
 window.reimprimirOrcamento = reimprimirOrcamento;
 window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF */ return; };
 
-// Função para mostrar uma seção e ocultar as outras
-function mostrarSecao(secaoId) {
-  const secoes = document.querySelectorAll("section.secao");
-  secoes.forEach(sec => {
-    if (sec.id === secaoId) {
-      sec.style.display = "block";
-    } else {
-      sec.style.display = "none";
-    }
-  });
-}
-
-// Expor globalmente para os botões HTML
-window.mostrarSecao = mostrarSecao;
-
-// Inicialmente mostrar a primeira seção (Clientes)
-mostrarSecao('clientes');
-
 /* =========================
    Inicialização final
    ========================= */
@@ -1035,6 +1017,7 @@ mostrarSecao('clientes');
   window.mostrarSecao = mostrarSecao; // já que o HTML chama mostrarSecao(...)
 
 })
+
 
 
 
