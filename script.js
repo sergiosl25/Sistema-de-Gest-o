@@ -17,18 +17,12 @@ import {
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-// Mostrar apenas a seção selecionada
-function mostrarSecao(secaoId) {
-  document.querySelectorAll(".secao").forEach(sec => {
-    sec.style.display = sec.id === secaoId ? "" : "none";
+function mostrarSecao(id) {
+  document.querySelectorAll(".secao").forEach(secao => {
+    secao.style.display = "none";
   });
+  document.getElementById(id).style.display = "block";
 }
-
-// Expor globalmente para os onclick do HTML
-window.mostrarSecao = mostrarSecao;
-
-// Inicializa mostrando a primeira seção (Clientes)
-mostrarSecao("clientes");
 
 /* =========================
    Proteção de acesso
@@ -67,7 +61,6 @@ const orcamentosCol = collection(db, "orcamentos");
 let itemEdicao = null;
 let tipoEdicao = null;
 let itensVendaAtual = [];
-let currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
 let precos = [];
 let orcamentos = [];
 let orcamentosSalvos = [];
@@ -150,15 +143,6 @@ onSnapshot(collection(db, "produtos"), snapshot => {
   }));
   renderProdutoSelectOrcamento(); // nome correto e função global
 });
-
-
-function mostrarSecao(secaoId) {
-  const secoes = document.querySelectorAll(".secao");
-  secoes.forEach(sec => sec.style.display = "none");
-
-  const secao = document.getElementById(secaoId);
-  if (secao) secao.style.display = "block";
-}
 
 /* =========================
    CLIENTES CRUD
@@ -320,15 +304,57 @@ function removerItemVenda(index){
   atualizarTotalVenda();
 }
 window.removerItemVenda = removerItemVenda;
-async function finalizarVenda(cliente){
-  if(itensVendaAtual.length===0) return alert("Adicione produtos");
-  try{
-    const docRef = await addDoc(vendasCol,{ cliente, produtos:itensVendaAtual, data:nowDateTime() });
+
+async function finalizarVenda() {
+  if (itensVendaAtual.length === 0) {
+    alert("Adicione ao menos um produto à venda.");
+    return;
+  }
+
+  const clienteId = document.getElementById("clienteSelect").value;
+  if (!clienteId) {
+    alert("Selecione um cliente.");
+    return;
+  }
+
+  const formaPagamento = document.getElementById("formaPagamento").value || "Dinheiro";
+  const vendasCol = collection(db, "vendas");
+
+  try {
+    await runTransaction(db, async (tx) => {
+      for (const item of itensVendaAtual) {
+        const estoqueRef = doc(db, "estoque", item.produtoId);
+        const estoqueSnap = await tx.get(estoqueRef);
+        if (!estoqueSnap.exists()) throw new Error("Produto não encontrado no estoque.");
+        const estoqueAtual = estoqueSnap.data().quantidade || 0;
+        if (estoqueAtual < item.quantidade) throw new Error(`Estoque insuficiente para ${item.nome}.`);
+        tx.update(estoqueRef, { quantidade: estoqueAtual - item.quantidade });
+
+        const vendaRef = doc(vendasCol);
+        tx.set(vendaRef, {
+          clienteId,
+          produto: item.nome,
+          produtoId: item.produtoId,
+          quantidade: item.quantidade,
+          precoUnitario: item.preco,
+          desconto: item.desconto || 0,
+          totalAntes: item.totalAntes || item.preco * item.quantidade,
+          totalApos: item.totalApos || (item.preco * item.quantidade - (item.desconto || 0)),
+          formaPagamento,
+          data: new Date().toISOString(),
+        });
+      }
+    });
+
     alert("Venda registrada com sucesso!");
-    itensVendaAtual=[]; renderItensVenda(); atualizarTotalVenda();
-  }catch(err){ console.error(err); alert("Erro ao registrar venda: "+(err.message||err)); }
+    itensVendaAtual = [];
+    atualizarTabelaItensVenda();
+    carregarRegistrosVendas();
+  } catch (err) {
+    console.error("Erro ao registrar venda:", err);
+    alert("Falha ao registrar venda: " + err.message);
+  }
 }
-window.finalizarVenda = finalizarVenda;
 
 function renderVendas() {
   const lista = document.getElementById("listaVendas");
@@ -366,84 +392,39 @@ function renderVendas() {
   // atualiza total visível (se tiver componente)
   if (totalVendaInput) totalVendaInput.textContent = `R$ ${utils.money(total)}`;
 
-// ========================
-// ATUALIZA TOTAL AO ALTERAR DESCONTO
-// ========================
-if (descontoInput) {
-  descontoInput.addEventListener("input", () => {
-    const totalBruto = itensVendaAtual.reduce((acc, item) => acc + item.total, 0);
-    atualizarTotalVenda(totalBruto);
-  });
-}
-  // ========================
-// FINALIZAR VENDA
-// ========================
-function finalizarVenda() {
-  if (itensVendaAtual.length === 0) return alert("Adicione produtos à venda.");
-  
-  const desconto = parseFloat((descontoInput.value || "0").replace(",", ".")) || 0;
-  const total = itensVendaAtual.reduce((acc, item) => acc + item.total, 0) - desconto;
+// ✅ Controle de desconto unificado
+let currentSaleDiscount = { tipoValor: "percentual", valor: 0 };
 
-  const vendaFinal = {
-    itens: [...itensVendaAtual],
-    desconto,
-    total,
-    data: new Date()
-  }
-/* ====================================
-   ADICIONAR PRODUTO À VENDA ATUAL
-==================================== */
-if (btnAdicionarProdutoVenda) btnAdicionarProdutoVenda.onclick = () => {
-  const clienteId = clienteSelect?.value;
-  const produtoId = produtoSelect?.value;
-  const tipoPreco = tipoPrecoSelect?.value;
-  const qtd = parseInt(quantidadeVenda?.value) || 0;
+// Abrir modal de desconto
+document.getElementById("btnDescontoVenda").addEventListener("click", () => {
+  document.getElementById("modalDesconto").style.display = "flex";
+});
 
-  if (!clienteId || !produtoId || qtd <= 0 || !tipoPreco) {
-    return alert("Preencha cliente, produto, tipo de preço e quantidade corretamente.");
-  }
+// Cancelar
+document.getElementById("btnCancelarDesconto").addEventListener("click", () => {
+  document.getElementById("modalDesconto").style.display = "none";
+});
 
-  const precoDoc = precos.find(p => p.produtoId === produtoId);
-  if (!precoDoc) return alert("Tabela de preços não encontrada.");
-  const precoUnit = utils.toNumber(precoDoc[tipoPreco]);
-  if (precoUnit <= 0) return alert("Preço inválido.");
+// Aplicar desconto
+document.getElementById("btnAplicarDesconto").addEventListener("click", () => {
+  const tipo = document.getElementById("tipoDesconto").value;
+  const valor = parseFloat(document.getElementById("valorDesconto").value) || 0;
 
-  const produtoNome = precoDoc.produtoNome || (produtoSelect.options[produtoSelect.selectedIndex]?.text || "Produto");
-  const total = precoUnit * qtd;
+  currentSaleDiscount = { tipoValor: tipo, valor };
 
-  itensVendaAtual.push({
-    produtoId, produtoNome, tipoPreco, qtd, precoUnit, total
+  itensVendaAtual = itensVendaAtual.map(item => {
+    const totalAntes = item.preco * item.quantidade;
+    let totalApos = totalAntes;
+
+    if (tipo === "percentual") totalApos -= totalAntes * (valor / 100);
+    else totalApos -= valor;
+
+    return { ...item, totalAntes, totalApos, desconto: totalAntes - totalApos };
   });
 
-  renderItensVenda();
-
-  quantidadeVenda.value = "";
-  produtoSelect.value = "";
-  tipoPrecoSelect.value = "";
-};
-
-window.removerItemVenda = (index) => {
-  itensVendaAtual.splice(index, 1);
-  renderItensVenda();
-};
-
-/* =========================
-   Atualiza desconto e total da venda atual
-========================= */
-function atualizarDescontoVenda() {
-  if (!descontoInput) return; // input do desconto
-  const desconto = parseFloat(descontoInput.value.replace(",", ".")) || 0;
-
-  // soma total dos itens
-  const totalItens = itensVendaAtual.reduce((acc, item) => acc + (item.total || 0), 0);
-
-  // aplica desconto
-  const totalComDesconto = Math.max(totalItens - desconto, 0);
-
-  if (totalVendaInput) totalVendaInput.textContent = `R$ ${totalComDesconto.toFixed(2).replace(".", ",")}`;
-}
-
-descontoInput?.addEventListener("input", atualizarDescontoVenda);
+  atualizarTabelaItensVenda();
+  document.getElementById("modalDesconto").style.display = "none";
+});
 
 /* ====================================
    FINALIZAR VENDA (MULTI PRODUTOS)
@@ -659,7 +640,7 @@ if (btnGerarPDF) btnGerarPDF.onclick = async () => {
         }
       });
     });
-  };
+
 
 
 // =========================
@@ -915,28 +896,34 @@ window.excluirOrcamento = excluirOrcamento;
    Exportar PDF vendas
    ========================= */
 async function exportarPDF() {
-  try {
-    if (!window.jspdf) { alert("Biblioteca jsPDF não está carregada."); return; }
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("Relatório de Vendas", 14, 20);
-    const tabela = document.querySelector("#tabelaRegistros tbody");
-    if (!tabela || tabela.rows.length === 0) { alert("Nenhum registro de venda encontrado."); return; }
-    const dados = [];
-    for (let i = 0; i < tabela.rows.length; i++) {
-      const cols = tabela.rows[i].cells;
-      dados.push([cols[1].innerText, cols[2].innerText, cols[3].innerText, cols[7].innerText, cols[0].innerText]);
-    }
-    doc.autoTable({ head: [["Cliente","Produto","Qtd","Total Após","Data"]], body: dados, startY: 30, styles: { fontSize: 10 }});
-    doc.text(`Gerado em: ${new Date().toLocaleString()}`, 14, doc.internal.pageSize.height - 10);
-    doc.save(`Relatorio_Vendas_${Date.now()}.pdf`);
-  } catch (e) {
-    console.error("Erro ao exportar PDF:", e);
-    alert("Erro ao exportar PDF. Veja o console.");
-  }
+  const { jsPDF } = window.jspdf;
+  const docPDF = new jsPDF();
+
+  const logo = new Image();
+  logo.src = "logo.png";
+
+  await new Promise(resolve => {
+    logo.onload = resolve;
+    logo.onerror = resolve;
+  });
+
+  if (logo.complete) docPDF.addImage(logo, "PNG", 10, 10, 30, 30);
+  docPDF.setFontSize(18);
+  docPDF.text("Relatório de Vendas", 70, 20);
+
+  const tabela = document.getElementById("tabelaRegistros");
+  const linhas = [...tabela.querySelectorAll("tbody tr")].map(tr => [
+    ...[...tr.querySelectorAll("td")].map(td => td.textContent.trim())
+  ]);
+
+  docPDF.autoTable({
+    head: [["Data", "Cliente", "Produto", "Qtd", "Preço Unit.", "Desconto", "Total", "Forma"]],
+    body: linhas,
+    startY: 50,
+  });
+
+  docPDF.save("Relatorio_Vendas.pdf");
 }
-window.exportarPDF = exportarPDF;
 
 /* =========================
    Gerar recibo (PDF de venda)
@@ -1014,10 +1001,13 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   window.renderTabelaPrecos = renderTabelaPrecos;
   window.renderOrcamentosSalvos = renderOrcamentosSalvos;
   window.renderProdutoSelectOrcamento = renderProdutoSelectOrcamento;
-  window.mostrarSecao = mostrarSecao; // já que o HTML chama mostrarSecao(...)
+  window.mostrarSecao = mostrarSecao; 
 
+window.addEventListener("DOMContentLoaded", () => {
+  mostrarSecao("clientes");
+  carregarClientes();
+  carregarEstoque();
+  carregarTabelaPrecos();
+  carregarRegistrosVendas();
+});
 })
-
-
-
-
