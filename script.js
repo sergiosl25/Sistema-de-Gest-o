@@ -173,33 +173,31 @@ function sanitizeFileName(name){ return name ? name.replace(/[\/\\?%*:|"<>]/g,"_
 /* =========================
    Real-time listeners (Firestore)
    ========================= */
-onSnapshot(clientesCol, snapshot => {
-  clientes = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  renderClientes();
+// --- LISTA DE PREÇOS ---
+onSnapshot(collection(db, "precos"), snapshot => {
+  window.precos = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+  renderTabelaPrecos(); // nome correto e função global
 });
 
-onSnapshot(precosCol, snapshot => {
-  precos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  renderTabelaPrecos();
+// --- ORÇAMENTOS SALVOS ---
+onSnapshot(collection(db, "orcamentos"), snapshot => {
+  window.orcamentosSalvos = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+  renderOrcamentosSalvos(); // nome correto e função global
 });
 
-onSnapshot(vendasCol, snapshot => {
-  vendas = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  renderVendas();
-});
-
-onSnapshot(orcamentosCol, snapshot => {
-  orcamentos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  // filtra orçamentos inválidos
-  orcamentos = orcamentos.filter(o => o && o.clienteNome && Array.isArray(o.produtos) && o.produtos.length>0);
-  renderOrcamentosSalvos();
-});
-
-onSnapshot(estoqueCol, snapshot => {
-  produtos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  renderEstoque();
-  produtoSelectOrcamento();
-  produtoSelectPreco();
+// --- PRODUTOS PARA ORÇAMENTO ---
+onSnapshot(collection(db, "produtos"), snapshot => {
+  window.produtos = snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }));
+  renderProdutoSelectOrcamento(); // nome correto e função global
 });
 
 function mostrarSecao(secaoId) {
@@ -1251,4 +1249,5 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   window.renderProdutoSelectPreco = renderProdutoSelectPreco;
 })
 };
+
 
