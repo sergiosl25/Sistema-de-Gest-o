@@ -87,22 +87,25 @@ async function carregarTabelaPrecos() {
   });
 }
 
-function mostrarSecao(id) {
+// Torna a função global para que os onclick inline possam acessá-la
+window.mostrarSecao = function(id) {
+  // Esconde todas as seções
   document.querySelectorAll(".secao").forEach(secao => {
     secao.style.display = "none";
   });
-  document.getElementById(id).style.display = "block";
 
-  // Chama a função de popular tabela correspondente
-  if(id === "orcamentos") carregarOrcamentos();
-  if(id === "clientes") carregarClientes();
-  if(id === "estoque") carregarEstoque();
-  if(id === "vendas") carregarVendas();
-  if(id === "tabelaprecos") carregarTabelaPrecos();
+  // Mostra apenas a seção clicada
+  const secaoAtual = document.getElementById(id);
+  if (secaoAtual) secaoAtual.style.display = "block";
+
+  // Chama as funções para carregar dados conforme a seção
+  if (id === "clientes") carregarClientes();
+  else if (id === "estoque") carregarEstoque();
+  else if (id === "vendas") carregarVendas();
+  else if (id === "orcamentos") carregarOrcamentos();
+  else if (id === "registrosVendas") carregarRegistrosVendas(); // se existir
+  else if (id === "precos") carregarTabelaPrecos();
 }
-
-// ✅ Deixa a função visível pro HTML
-window.mostrarSecao = mostrarSecao;
 
 /* =========================
    Proteção de acesso
@@ -634,19 +637,6 @@ function renderTabelaOrcamentoAtual(){
     `;
     tabelaOrcamento.appendChild(tr);
   });
-}
-
-async function carregarOrcamentos() {
-  const tabela = document.getElementById("tabela-orcamentos");
-  tabela.innerHTML = ""; // Limpa linhas antigas
-  const snapshot = await getDocs(collection(db, "orcamentos"));
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${data.cliente}</td><td>${data.valor}</td>`;
-    tabela.appendChild(tr);
-  });
-  console.log("Orçamentos carregados:", snapshot.size);
 }
 
 function removerProduto(index){
