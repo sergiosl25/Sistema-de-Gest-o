@@ -24,6 +24,9 @@ function mostrarSecao(id) {
   document.getElementById(id).style.display = "block";
 }
 
+// ✅ Torna acessível para os botões no HTML
+window.mostrarSecao = mostrarSecao;
+
 /* =========================
    Proteção de acesso
    ========================= */
@@ -987,4 +990,5 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
 
