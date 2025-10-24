@@ -21,8 +21,14 @@ function mostrarSecao(id) {
   document.querySelectorAll(".secao").forEach(secao => {
     secao.style.display = "none";
   });
-  const alvo = document.getElementById(id);
-  if (alvo) alvo.style.display = "block";
+  document.getElementById(id).style.display = "block";
+
+  // Chama a função de popular tabela correspondente
+  if(id === "orcamentos") carregarOrcamentos();
+  if(id === "clientes") carregarClientes();
+  if(id === "estoque") carregarEstoque();
+  if(id === "vendas") carregarVendas();
+  if(id === "tabela-precos") carregarTabelaPrecos();
 }
 
 // ✅ Deixa a função visível pro HTML
@@ -559,6 +565,20 @@ function renderTabelaOrcamentoAtual(){
     tabelaOrcamento.appendChild(tr);
   });
 }
+
+async function carregarOrcamentos() {
+  const tabela = document.getElementById("tabela-orcamentos");
+  tabela.innerHTML = ""; // Limpa linhas antigas
+  const snapshot = await getDocs(collection(db, "orcamentos"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.cliente}</td><td>${data.valor}</td>`;
+    tabela.appendChild(tr);
+  });
+  console.log("Orçamentos carregados:", snapshot.size);
+}
+
 function removerProduto(index){
   if (!window.orcamentoAtual) return;
   window.orcamentoAtual.produtos.splice(index,1);
@@ -622,7 +642,7 @@ if (btnGerarPDF) btnGerarPDF.onclick = async () => {
     alert("Erro ao salvar orçamento: " + (err.message || err));
   }
 };
-
+   
 // =========================
 // Abrir modal de Cliente
 // =========================
@@ -991,6 +1011,3 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
-
-
-
