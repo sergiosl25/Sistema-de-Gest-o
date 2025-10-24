@@ -38,137 +38,68 @@ window.logout = async () => {
    ========================= */
 const clientesCol = collection(db, "clientes");
 const estoqueCol = collection(db, "estoque");
+const precosCol = collection(db, "precos");
 const vendasCol = collection(db, "vendas");
 const orcamentosCol = collection(db, "orcamentos");
-const precosCol = collection(db, "precos");
-
 /* =========================
    Estado local (cache)
    ========================= */
+let itemEdicao = null;
+let tipoEdicao = null;
+let itensVendaAtual = [];
+let currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
+let precos = [];
+let orcamentos = [];
+let orcamentosSalvos = [];
 let clientes = [];
 let produtos = [];
 let vendas = [];
-let orcamentos = [];
-let precos = [];
-let itensVendaAtual = [];
-let currentSaleDiscount = { tipoAplicado: null, tipoValor: null, valor: 0 };
-
-/* item selecionado para edição (uma única declaração) */
-let itemEdicao = null;
-let tipoEdicao = null;
 
 /* =========================
-   Helpers / DOM refs (verifica presença)
-   ========================= */
-const $ = id => document.getElementById(id);
-
-const tabelaClientes = document.querySelector("#tabelaClientes tbody");
-const nomeCliente = $("nomeCliente");
-const telefoneCliente = $("telefoneCliente");
-const btnCadastrarCliente = $("btnCadastrarCliente");
-const clienteSelect = $("clienteSelect");
-
-const tabelaEstoque = document.querySelector("#tabelaEstoque tbody");
-const nomeProduto = $("nomeProduto");
-const quantidadeProduto = $("quantidadeProduto");
-const btnCadastrarProduto = $("btnCadastrarProduto");
-const produtoSelect = $("produtoSelect");
-const tipoPrecoSelect = $("tipoPrecoSelect");
-const precoVendaInput = $("precoVenda");
-const produtoSelectPreco = $("produtoSelectPreco");
-
-const quantidadeVenda = $("quantidadeVenda");
-const formaPagamento = $("formaPagamento");
-const btnVender = $("btnVender");
+   ELEMENTOS DOM
+========================= */
+const tabelaClientes = document.getElementById("tabelaClientes");
+const tabelaEstoque = document.getElementById("tabelaEstoque");
+const tabelaPrecos = document.getElementById("tabelaPrecos");
+const tabelaItensVenda = document.getElementById("tabelaItensVenda");
+const tabelaOrcamento = document.getElementById("tabelaOrcamento");
+const tabelaOrcamentosSalvos = document.getElementById("tabelaOrcamentosSalvos");
 const descontoInput = document.getElementById("descontoInput");
-const btnDesconto = $("btnDesconto");
-const btnDescontoVenda = $("btnDescontoVenda");
-const btnAdicionarProdutoVenda = document.getElementById('btnAdicionarProdutoVenda');
-const tabelaItensVenda = document.getElementById('tabelaItensVenda')?.querySelector('tbody');
-const totalVendaInput = document.getElementById("totalVenda");
-const tabelaRegistros = document.getElementById('tabelaVendas')?.querySelector('tbody');
-const totalGeralRegistros = document.getElementById('totalGeralVendas');
-
-const tabelaOrcamento = document.querySelector("#tabelaOrcamento tbody");
-const clienteInputOrcamento = $("clienteInputOrcamento");
-const produtoSelectOrcamento = $("produtoSelectOrcamento");
-const quantidadeOrcamento = $("quantidadeOrcamento");
-const btnAdicionarProduto = $("btnAdicionarProduto");
-const btnGerarPDF = $("btnGerarPDF");
-const tabelaOrcamentosSalvos = document.querySelector("#tabelaOrcamentosSalvos tbody");
-
-const tabelaPrecos = document.querySelector("#tabelaPrecos tbody");
-const btnNovaLinhaPreco = $("btnNovaLinhaPreco");
-
-// modais
-const modalEditar = $("modalEditar");
-const modalEditarTitulo = $("modalEditarTitulo");
-const modalEditarNome = $("modalEditarNome");
-const modalEditarTelefone = $("modalEditarTelefone");
-const modalEditarQuantidade = $("modalEditarQuantidade");
-const modalEditarCompra = $("modalEditarCompra");
-const modalEditarVenda = $("modalEditarVenda");
-const modalEditarPreco = $("modalEditarPreco");
-const btnSalvarEdicao = $("btnSalvarEdicao");
-const btnCancelarEdicao = $("btnCancelarEdicao");
-
-const modalExcluir = $("modalExcluir");
-const btnConfirmarExcluir = $("btnConfirmarExcluir");
-const btnCancelarExcluir = $("btnCancelarExcluir");
-
-// modal desconto
-const modalDesconto = $("modalDesconto");
-const tituloModalDesconto = $("tituloModalDesconto");
-const tipoDescontoSelect = $("tipoDesconto"); // 'percentual' | 'valor'
-const valorDescontoInput = $("valorDesconto");
-const btnAplicarDesconto = $("btnAplicarDesconto");
-const btnCancelarDesconto = $("btnCancelarDesconto");
-
-// ===============================
-// 🧩 UTILITÁRIOS GLOBAIS
-// ===============================
-const utils = {
-  // Formata número para 2 casas decimais
-money(valor) {
-    return Number(valor || 0).toFixed(2);
-  },
-
-  // Formata número para moeda BRL (R$ 1.234,56)
-  formatCurrency(valor) {
-    return Number(valor || 0).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
-  },
-
-  // Converte string para número (aceita vírgula)
-  toNumber(valor) {
-    const n = Number(String(valor).replace(",", "."));
-    return isNaN(n) ? 0 : n;
-  },
-
-  // Retorna data e hora atual no formato brasileiro
-  nowDateTime() {
-    return new Date().toLocaleString("pt-BR");
-  },
-
-  // Mostra alerta estilizado no console
-  logInfo(msg) {
-    console.log(`🟢 ${msg}`);
-  },
-
-  // Mostra erro no console
-  logError(msg, err) {
-    console.error(`🔴 ${msg}`, err || "");
-  }
-};
-
-window.utils = utils;
+const totalVendaInput = document.getElementById("totalVendaInput");
+const produtoSelectPreco = document.getElementById("produtoSelectPreco");
+const produtoSelectOrcamento = document.getElementById("produtoSelectOrcamento");
+const quantidadeOrcamento = document.getElementById("quantidadeOrcamento");
+const clienteInputOrcamento = document.getElementById("clienteInputOrcamento");
+const btnVender = document.getElementById("btnVender");
+const btnAdicionarProduto = document.getElementById("btnAdicionarProduto");
+const btnNovaLinhaPreco = document.getElementById("btnNovaLinhaPreco");
+const btnGerarPDF = document.getElementById("btnGerarPDF");
+const btnSalvarEdicao = document.getElementById("btnSalvarEdicao");
+const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
+const btnConfirmarExcluir = document.getElementById("btnConfirmarExcluir");
+const btnCancelarExcluir = document.getElementById("btnCancelarExcluir");
+const modalEditar = document.getElementById("modalEditar");
+const modalEditarTitulo = document.getElementById("modalEditarTitulo");
+const modalEditarNome = document.getElementById("modalEditarNome");
+const modalEditarTelefone = document.getElementById("modalEditarTelefone");
+const modalEditarQuantidade = document.getElementById("modalEditarQuantidade");
+const modalEditarPreco = document.getElementById("modalEditarPreco");
+const modalExcluir = document.getElementById("modalExcluir");
+const modalDesconto = document.getElementById("modalDesconto");
+const totalGeralRegistros = document.getElementById("totalGeralRegistros")
 
 /* =========================
-   Pequenos helpers utilitários
-   ========================= */
-function sanitizeFileName(name){ return name ? name.replace(/[\/\\?%*:|"<>]/g,"_") : "cliente"; }
+   UTILIDADES
+========================= */
+function sanitizeFileName(str){
+  return str.replace(/[^a-z0-9]/gi,'_').toLowerCase();
+}
+function money(value){
+  return Number(value).toFixed(2).replace('.',',');
+}
+function nowDateTime(){
+  return new Date().toLocaleString("pt-BR");
+}
 
 /* =========================
    Real-time listeners (Firestore)
@@ -200,6 +131,7 @@ onSnapshot(collection(db, "produtos"), snapshot => {
   renderProdutoSelectOrcamento(); // nome correto e função global
 });
 
+
 function mostrarSecao(secaoId) {
   const secoes = document.querySelectorAll(".secao");
   secoes.forEach(sec => sec.style.display = "none");
@@ -209,181 +141,174 @@ function mostrarSecao(secaoId) {
 }
 
 /* =========================
-   CLIENTES (CRUD)
-   ========================= */
-if (btnCadastrarCliente) btnCadastrarCliente.onclick = async () => {
-  const nome = (nomeCliente?.value || "").trim();
-  if (!nome) return alert("Informe o nome do cliente");
-  const telefone = (telefoneCliente?.value || "").trim();
-  try {
-    await addDoc(clientesCol, { nome, telefone });
-    if (nomeCliente) nomeCliente.value = "";
-    if (telefoneCliente) telefoneCliente.value = "";
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao salvar cliente: " + (err.message || err));
-  }
-};
+   CLIENTES CRUD
+========================= */
+async function cadastrarCliente(nome, telefone){
+  if(!nome) return alert("Informe o nome do cliente");
+  try{ await addDoc(clientesCol,{ nome, telefone }); } 
+  catch(err){ console.error(err); alert("Erro ao salvar cliente: "+(err.message||err)); }
+}
 
-function renderClientes() {
-  if (!tabelaClientes) return;
+async function excluirCliente(id){
+  try{ await deleteDoc(doc(clientesCol,id)); } 
+  catch(err){ console.error(err); alert("Erro ao excluir cliente: "+(err.message||err)); }
+}
+window.excluirCliente = excluirCliente;
+
+function renderClientes(){
+   if(!tabelaClientes) return;
   tabelaClientes.innerHTML = "";
-
-  // Ordena os clientes pelo nome
-  const clientesOrdenados = [...clientes].sort((a, b) =>
-    (a.nome || "").localeCompare(b.nome || "", "pt-BR")
-  );
-
-  clientesOrdenados.forEach(c => {
+  const clientesOrdenados = [...clientes].sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt-BR"));
+  clientesOrdenados.forEach(c=>{
     const tr = document.createElement("tr");
-    tr.innerHTML = `
+    tr.innerHTML=`
       <td>${c.nome}</td>
-      <td>${c.telefone ?? ""}</td>
+      <td>${c.telefone||"-"}</td>
       <td>
-        <button class="acao-btn editar" onclick="abrirModal('cliente','${c.id}')">Editar</button>
+        <button class="acao-btn editar" onclick="abrirModalCliente('${c.id}')">Editar</button>
         <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirCliente('${c.id}'))">Excluir</button>
       </td>
     `;
     tabelaClientes.appendChild(tr);
   });
-
-  // Se houver algum <select> de clientes, ordena também
-  const clienteSelect = document.getElementById("clienteSelect");
-  if (clienteSelect) {
-    clienteSelect.innerHTML = "<option value=''>Selecione o cliente</option>";
-    clientesOrdenados.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.nome || "";
-      clienteSelect.appendChild(opt);
-    });
-  }
 }
-
-async function excluirCliente(id){
-  try {
-    await deleteDoc(doc(db, "clientes", id));
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao excluir cliente: " + (err.message || err));
-  }
-}
-window.excluirCliente = excluirCliente;
 
 /* =========================
-   PRODUTOS (CRUD)
-   ========================= */
-if (btnCadastrarProduto) btnCadastrarProduto.onclick = async () => {
-  const nome = (nomeProduto?.value || "").trim();
-  const quantidade = parseInt(quantidadeProduto?.value) || 0;
-  if (!nome) return alert("Informe nome do produto");
-  try {
-    const ref = await addDoc(estoqueCol, { nome, quantidade });
-    // cria linha padrão em 'precos' para esse produto
-    await addDoc(precosCol, {
-      produtoId: ref.id,
-      produtoNome: nome,
-      preco: 0,
-      estampaFrente: 0,
-      estampaFrenteVerso: 0,
-      branca: 0,
-      interiorCores: 0,
-      magicaFosca: 0,
-      magicaBrilho: 0
-    });
-    if (nomeProduto) nomeProduto.value = "";
-    if (quantidadeProduto) quantidadeProduto.value = "";
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao cadastrar produto: " + (err.message || err));
-  }
-};
-
-function renderEstoque() {
-  if (!tabelaEstoque) return;
-  tabelaEstoque.innerHTML = "";
-  if (produtoSelect) produtoSelect.innerHTML = "<option value=''>Selecione o produto</option>";
-
-  // 🧠 Ordena os produtos por nome (A → Z, com suporte a acentos)
-  const produtosOrdenados = [...produtos].sort((a, b) =>
-    a.nome.localeCompare(b.nome, "pt-BR")
-  );
-
-  produtosOrdenados.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${p.nome}</td>
-      <td>${p.quantidade ?? 0}</td>
-      <td>
-        <button class="acao-btn editar" onclick="abrirModal('produto','${p.id}')">Editar</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirProduto('${p.id}'))">Excluir</button>
-      </td>
-    `;
-    tabelaEstoque.appendChild(tr);
-
-    if (produtoSelect) {
-      const opt = document.createElement("option");
-      opt.value = p.id;
-      opt.textContent = p.nome;
-      produtoSelect.appendChild(opt);
-    }
-  });
+   PRODUTOS CRUD
+========================= */
+async function cadastrarProduto(nome, quantidade){
+  if(!nome) return alert("Informe nome do produto");
+  try{
+    const ref = await addDoc(estoqueCol,{ nome, quantidade });
+    await addDoc(precosCol,{ produtoId:ref.id, produtoNome:nome, preco:0, estampaFrente:0, estampaFrenteVerso:0, branca:0, interiorCores:0, magicaFosca:0, magicaBrilho:0 });
+  } catch(err){ console.error(err); alert("Erro ao cadastrar produto: "+(err.message||err)); }
 }
 
 async function excluirProduto(id){
-  try {
-    // apaga linhas de precos referenciando esse produto
+  try{
     const q = query(precosCol, where("produtoId","==",id));
     const snaps = await getDocs(q);
-    for (const s of snaps.docs) await deleteDoc(doc(precosCol, s.id));
-    await deleteDoc(doc(db, "estoque", id));
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao excluir produto: " + (err.message || err));
-  }
+    for(const s of snaps.docs) await deleteDoc(doc(precosCol,s.id));
+    await deleteDoc(doc(estoqueCol,id));
+  } catch(err){ console.error(err); alert("Erro ao excluir produto: "+(err.message||err)); }
 }
 window.excluirProduto = excluirProduto;
 
-/* =========================
-   PREÇOS / selects
-   ========================= */
-if (produtoSelect) produtoSelect.onchange = () => {
-  const produtoId = produtoSelect.value;
-  if (!tipoPrecoSelect) return;
-  tipoPrecoSelect.innerHTML = "<option value=''>Selecione tipo de preço</option>";
-  if (precoVendaInput) precoVendaInput.value = "";
-  if (!produtoId) return;
-  const precoDoProduto = precos.find(p => p.produtoId === produtoId);
-  if (!precoDoProduto) return;
-  const tipos = [
-    { campo: "preco", texto: "Preço" },
-    { campo: "estampaFrente", texto: "Estampa Frente" },
-    { campo: "estampaFrenteVerso", texto: "Estampa Frente e Verso" },
-    { campo: "branca", texto: "Branca" },
-    { campo: "interiorCores", texto: "Interior em Cores" },
-    { campo: "magicaFosca", texto: "Mágica Fosca" },
-    { campo: "magicaBrilho", texto: "Mágica Brilho" }
-  ];
-  tipos.forEach(tipo => {
-    const valor = precoDoProduto[tipo.campo];
-    if (valor !== undefined && valor !== null) {
-      const opt = document.createElement("option");
-      opt.value = tipo.campo;
-      opt.textContent = `${tipo.texto} (R$ ${Number(valor).toFixed(2)})`;
-      tipoPrecoSelect.appendChild(opt);
-    }
+function renderEstoque(){
+  if(!tabelaEstoque) return;
+  tabelaEstoque.innerHTML="";
+  const produtosOrdenados = [...produtos].sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt-BR"));
+  produtosOrdenados.forEach(p=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML=`
+      <td>${p.nome}</td>
+      <td>${p.quantidade??0}</td>
+      <td>
+        <button class="acao-btn editar" onclick="abrirModalProduto('${p.id}')">Editar</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirProduto('${p.id}'))">Excluir</button>
+        </td>
+    `;
+    tabelaEstoque.appendChild(tr);
   });
 }
 
-if (tipoPrecoSelect) tipoPrecoSelect.addEventListener("change", () => {
-  const tipo = tipoPrecoSelect.value;
-  const produtoId = produtoSelect?.value;
-  if (!tipo || !produtoId) return;
-  const precoDoProduto = precos.find(p => p.produtoId === produtoId);
-  if (!precoDoProduto) return;
-  const valor = utils.toNumber(precoDoProduto[tipo]);
-  if (precoVendaInput) precoVendaInput.value = valor > 0 ? valor.toFixed(2) : "";
-});
+/* =========================
+   PREÇOS CRUD
+========================= */
+if(btnNovaLinhaPreco) btnNovaLinhaPreco.onclick=async()=>{
+  const produtosOrdenados = produtos.slice().sort((a,b)=>(a.nome||"").localeCompare(b.nome||"","pt-BR"));
+  if(produtoSelectPreco){
+    produtoSelectPreco.innerHTML="";
+    produtosOrdenados.forEach(p=>{ const opt=document.createElement("option"); opt.value=p.id; opt.textContent=p.nome; produtoSelectPreco.appendChild(opt); });
+  }
+  const prodId = produtoSelectPreco?.value;
+  const prod = produtos.find(p=>p.id===prodId);
+  try{ await addDoc(precosCol,{ produtoId:prodId||null, produtoNome:prod?prod.nome:"Produto não informado", preco:0, estampaFrente:0, estampaFrenteVerso:0, branca:0, interiorCores:0, magicaFosca:0, magicaBrilho:0 }); }
+  catch(err){ console.error(err); alert("Erro ao adicionar linha de preço: "+(err.message||err)); }
+};
+
+function renderTabelaPrecos(){
+  if(!tabelaPrecos) return;
+  tabelaPrecos.innerHTML="";
+  const precosOrdenados = [...(precos||[])].sort((a,b)=>(a.produtoNome||"").localeCompare(b.produtoNome||"","pt-BR"));
+  precosOrdenados.forEach(p=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML=`
+      <td>${p.produtoNome||""}</td>
+      <td contenteditable data-field="preco">${p.preco??0}</td>
+      <td contenteditable data-field="estampaFrente">${p.estampaFrente??0}</td>
+      <td contenteditable data-field="estampaFrenteVerso">${p.estampaFrenteVerso??0}</td>
+      <td contenteditable data-field="branca">${p.branca??0}</td>
+      <td contenteditable data-field="interiorCores">${p.interiorCores??0}</td>
+      <td contenteditable data-field="magicaFosca">${p.magicaFosca??0}</td>
+      <td contenteditable data-field="magicaBrilho">${p.magicaBrilho??0}</td>
+      <td>
+        <button class="acao-btn editar" onclick="abrirModalPreco('${p.id}')">Editar</button>
+        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
+      </td>
+    `;
+    tabelaPrecos.appendChild(tr);
+    tr.querySelectorAll("[contenteditable]").forEach(td=>{
+      td.onblur=async()=>{
+        const field=td.dataset.field;
+        const num=parseFloat(td.textContent.trim().replace(",","."))||0;
+        try{ await updateDoc(doc(precosCol,p.id),{ [field]:num }); } catch(err){ console.error(err); alert("Erro ao salvar preço"); }
+      };
+      td.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault(); td.blur();}});
+    });
+  });
+}
+
+async function excluirPreco(id){
+  try{ await deleteDoc(doc(precosCol,id)); } catch(err){ console.error(err); alert("Erro ao excluir preço: "+(err.message||err)); }
+}
+window.excluirPreco = excluirPreco;
+
+/* =========================
+   VENDAS E ORÇAMENTOS
+========================= */
+function atualizarTotalVenda(){
+  if(!totalVendaInput) return;
+  const total = itensVendaAtual.reduce((sum,i)=>sum+(i.total||0),0);
+  totalVendaInput.textContent = `R$ ${total.toFixed(2).replace(".",",")}`;
+}
+function adicionarItemVenda(produto, quantidade, precoUnit){
+  if(!produto || quantidade<=0) return;
+  const total = quantidade*precoUnit;
+  itensVendaAtual.push({ produto, quantidade, preco:precoUnit, total });
+  atualizarTotalVenda();
+  renderItensVenda();
+}
+function renderItensVenda(){
+  if(!tabelaItensVenda) return;
+  tabelaItensVenda.innerHTML="";
+  itensVendaAtual.forEach((i,index)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${i.produto}</td>
+      <td>${i.quantidade}</td>
+      <td>R$ ${i.preco.toFixed(2).replace(".",",")}</td>
+      <td>R$ ${i.total.toFixed(2).replace(".",",")}</td>
+      <td><button onclick="removerItemVenda(${index})">Excluir</button></td>
+    `;
+    tabelaItensVenda.appendChild(tr);
+  });
+}
+function removerItemVenda(index){
+  itensVendaAtual.splice(index,1);
+  renderItensVenda();
+  atualizarTotalVenda();
+}
+window.removerItemVenda = removerItemVenda;
+async function finalizarVenda(cliente){
+  if(itensVendaAtual.length===0) return alert("Adicione produtos");
+  try{
+    const docRef = await addDoc(vendasCol,{ cliente, produtos:itensVendaAtual, data:nowDateTime() });
+    alert("Venda registrada com sucesso!");
+    itensVendaAtual=[]; renderItensVenda(); atualizarTotalVenda();
+  }catch(err){ console.error(err); alert("Erro ao registrar venda: "+(err.message||err)); }
+}
+window.finalizarVenda = finalizarVenda;
 
 function renderVendas() {
   const lista = document.getElementById("listaVendas");
@@ -418,52 +343,10 @@ function renderVendas() {
   if (totalGeralRegistros) totalGeralRegistros.textContent = utils.formatCurrency(total);
 };
 
-function adicionarItemVenda (produtoId, produtoNome, tipoPreco, qtd, precoUnit) {
-    qtd = parseInt(qtd) || 0;
-    precoUnit = parseFloat(precoUnit) || 0;
-    if (!produtoId || qtd <= 0 || precoUnit <= 0) return alert("Produto ou quantidade inválida.");
+  // atualiza total visível (se tiver componente)
+  if (totalVendaInput) totalVendaInput.textContent = `R$ ${utils.money(total)}`;
 
-    const existente = itensVendaAtual.find(i => i.produtoId === produtoId && i.tipoPreco === tipoPreco);
-    if (existente) {
-      existente.qtd += qtd;
-      existente.total = existente.qtd * existente.precoUnit;
-    } else {
-      itensVendaAtual.push({
-        produtoId,
-        produtoNome,
-        tipoPreco,
-        qtd,
-        precoUnit,
-        total: qtd * precoUnit
-      });
-    }
-    renderItensVenda();
-  }
 
-   // ========================
-  // RENDERIZA TABELA
-  // ========================
-  function renderItensVenda() {
-    if (!tabelaItensVenda) return;
-
-    tabelaItensVenda.innerHTML = "";
-    let total = 0;
-
-    itensVendaAtual.forEach((item, idx) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${item.produtoNome}</td>
-        <td>${item.tipoPreco}</td>
-        <td>${item.qtd}</td>
-        <td>R$ ${utils.money(item.precoUnit)}</td>
-        <td>R$ ${utils.money(item.total)}</td>
-        <td><button onclick="removerItemVenda(${idx})">Remover</button></td>
-      `;
-      tabelaItensVenda.appendChild(tr);
-      total += item.total;
-    });
-    atualizarTotalVenda(total);
-  }
 
   // ========================
 // ATUALIZA TOTAL COM DESCONTO
@@ -471,7 +354,7 @@ function adicionarItemVenda (produtoId, produtoNome, tipoPreco, qtd, precoUnit) 
 function atualizarTotalVenda(totalBruto) {
   const desconto = parseFloat((descontoInput.value || "0").replace(",", ".")) || 0;
   const totalComDesconto = totalBruto - desconto;
-  if (totalVendaInput) totalVendaInput.textContent = `R$ $utils.money(totalComDesconto)}`;
+  if (totalVendaInput) totalVendaInput.textContent = `R$ ${utils.money(totalComDesconto)}`;
 }
 
 // ========================
@@ -529,27 +412,6 @@ if (btnAdicionarProdutoVenda) btnAdicionarProdutoVenda.onclick = () => {
   produtoSelect.value = "";
   tipoPrecoSelect.value = "";
 };
-
-/* ====================================
-   RENDER ITENS DA VENDA ATUAL
-==================================== */
-function renderItensVenda() {
-  if (!tabelaItensVenda) return;
-  tabelaItensVenda.innerHTML = "";
-
-  itensVendaAtual.forEach((item, idx) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.produtoNome}</td>
-      <td>${item.tipoPreco}</td>
-      <td>${item.qtd}</td>
-      <td>R$ ${utils.money(item.precoUnit)}</td>
-      <td>R$ ${utils.money(item.total)}</td>
-      <td><button onclick="removerItemVenda(${idx})">Remover</button></td>
-    `;
-    tabelaItensVenda.appendChild(tr);
-  });
-}
 
 window.removerItemVenda = (index) => {
   itensVendaAtual.splice(index, 1);
@@ -646,10 +508,10 @@ function renderProdutoSelectOrcamento() {
   if (!select) return;
   select.innerHTML = `<option value="">Selecione o produto</option>`;
 
-  (window.precos || []).forEach(p => {
+  (window.produtos || []).forEach(p => {
     const opt = document.createElement("option");
-    opt.value = p.produtoNome || "";
-    opt.textContent = p.produtoNome || "";
+    opt.value = p.id;                 // <-- usar o id aqui
+    opt.textContent = p.nome || p.produtoNome || "Produto sem nome";
     select.appendChild(opt);
   });
 }
@@ -767,105 +629,6 @@ if (btnGerarPDF) btnGerarPDF.onclick = async () => {
   }
 };
 
-/* =========================
-   TABELA DE PREÇOS (editável)
-   ========================= */
-if (btnNovaLinhaPreco) btnNovaLinhaPreco.onclick = async () => {
-  // Ordena produtos pelo nome
-  const produtosOrdenados = produtos.slice().sort((a, b) => {
-    if (!a.nome) return 1;
-    if (!b.nome) return -1;
-    return a.nome.localeCompare(b.nome, 'pt', { sensitivity: 'base' });
-  });
-
-  // Atualiza o select com produtos ordenados
-  if (produtoSelectPreco) {
-    produtoSelectPreco.innerHTML = ""; // Limpa opções antigas
-    produtosOrdenados.forEach(prod => {
-      const option = document.createElement("option");
-      option.value = prod.id;
-      option.textContent = prod.nome;
-      produtoSelectPreco.appendChild(option);
-    });
-  }
-
-  // Pega o produto selecionado
-  const prodId = produtoSelectPreco?.value;
-  const prod = produtos.find(p => p.id === prodId);
-
-  try {
-    await addDoc(precosCol, {
-      produtoId: prodId || null,
-      produtoNome: prod ? prod.nome : "Produto não informado",
-      preco: 0,
-      estampaFrente: 0,
-      estampaFrenteVerso: 0,
-      branca: 0,
-      interiorCores: 0,
-      magicaFosca: 0,
-      magicaBrilho: 0
-    });
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao adicionar linha de preço: " + (err.message || err));
-  }
-};
-
-function renderProdutoSelectPreco(){
-  if (!produtoSelectPreco) return;
-  produtoSelectPreco.innerHTML = "<option value=''>— Selecione produto —</option>";
-  produtos.forEach(p=> {
-    const opt = document.createElement("option"); opt.value = p.id; opt.textContent = p.nome;
-    produtoSelectPreco.appendChild(opt);
-  });
-}
-
-// Arquivo: script.js
-
-// Declarações globais
-let precos = [];
-let tabelaPrecos = document.getElementById("tabelaPrecos");
-
-// =====================================
-// FUNÇÃO: renderTabelaPrecos
-// =====================================
-function renderTabelaPrecos() {
-  const tabelaPrecos = document.getElementById("tabelaPrecos");
-  if (!tabelaPrecos) return;
-  tabelaPrecos.innerHTML = "";
-
-  // Ordena alfabeticamente
-  const precosOrdenados = [...(window.precos || [])].sort((a, b) =>
-    (a.produtoNome || "").localeCompare(b.produtoNome || "", "pt-BR")
-  );
-
-  precosOrdenados.forEach(p => {
-    const tr = document.createElement("tr");
-    const produtoNome = p.produtoNome || "";
-    const cPreco = p.preco ?? 0;
-    const cEstampaFrente = p.estampaFrente ?? 0;
-    const cEstampaFrenteVerso = p.estampaFrenteVerso ?? 0;
-    const cBranca = p.branca ?? 0;
-    const cInterior = p.interiorCores ?? 0;
-    const cMagicaFosca = p.magicaFosca ?? 0;
-    const cMagicaBrilho = p.magicaBrilho ?? 0;
-
-    tr.innerHTML = `
-      <td>${produtoNome}</td>
-      <td contenteditable data-field="preco">${cPreco}</td>
-      <td contenteditable data-field="estampaFrente">${cEstampaFrente}</td>
-      <td contenteditable data-field="estampaFrenteVerso">${cEstampaFrenteVerso}</td>
-      <td contenteditable data-field="branca">${cBranca}</td>
-      <td contenteditable data-field="interiorCores">${cInterior}</td>
-      <td contenteditable data-field="magicaFosca">${cMagicaFosca}</td>
-      <td contenteditable data-field="magicaBrilho">${cMagicaBrilho}</td>
-      <td>
-        <button class="acao-btn editar" onclick="abrirModal('preco','${p.id}')">Editar</button>
-        <button class="acao-btn excluir" onclick="abrirModalExclusao(()=>excluirPreco('${p.id}'))">Excluir</button>
-      </td>
-    `;
-    tabelaPrecos.appendChild(tr);
-
     // Atualiza o Firestore quando o usuário edita um valor
     tr.querySelectorAll("[contenteditable]").forEach(td => {
       td.onblur = async () => {
@@ -887,162 +650,163 @@ function renderTabelaPrecos() {
         }
       });
     });
-  });
-}
-
-const produtoSelectPreco = document.getElementById("produtoSelectPreco");
-if (produtoSelectPreco) {
-  const valorAtual = produtoSelectPreco.value; // salva seleção
-  produtoSelectPreco.innerHTML = "<option value=''>Selecione o produto</option>";
-  precosOrdenados.forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p.id;
-    opt.textContent = p.produtoNome || "";
-    produtoSelectPreco.appendChild(opt);
-  });
-  produtoSelectPreco.value = valorAtual; // restaura seleção
-}
-
-function abrirModalPreco(id) {
-  const preco = precos.find(p => p.id === id);
-  if (!preco) return alert("Preço não encontrado");
-  itemEdicao = id; tipoEdicao = "preco";
-  if (!modalEditar) return;
-  modalEditar.style.display = "block";
-  if (modalEditarTitulo) modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome || ""}`;
-  if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
-  if (modalEditarPreco) modalEditarPreco.value = (preco.valor ?? preco.preco ?? 0);
-}
-window.abrirModalPreco = abrirModalPreco;
-
-async function excluirPreco(id) {
-  try {
-    await deleteDoc(doc(precosCol, id));
-  } catch (err) {
-    console.error(err);
-    alert("Erro ao excluir preço: " + (err.message || err));
-  }
-}
-window.excluirPreco = excluirPreco;
-
-window.abrirModal = async function(tipo, id) {
-  itemEdicao = id;
-  tipoEdicao = tipo;
-
-  if (!modalEditar) {
-    console.warn("modalEditar não encontrado");
-    return;
-  }
-
-  const inputs = [modalEditarNome, modalEditarTelefone, modalEditarQuantidade, modalEditarCompra, modalEditarVenda, modalEditarPreco];
-  inputs.forEach(inp => {
-    if (!inp) return;
-    const wrapper = inp.parentElement;
-    if (wrapper) wrapper.style.display = "none";
-    else inp.style.display = "none";
-    inp.value = "";
-  });
-
-  if (tipo === "cliente") {
-    if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Cliente";
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
-    else if (modalEditarNome) modalEditarNome.style.display = "";
-    if (modalEditarTelefone?.parentElement) modalEditarTelefone.parentElement.style.display = "";
-    else if (modalEditarTelefone) modalEditarTelefone.style.display = "";
-
-    const cliente = clientes.find(c => c.id === id);
-    if (cliente) {
-      if (modalEditarNome) modalEditarNome.value = cliente.nome || "";
-      if (modalEditarTelefone) modalEditarTelefone.value = cliente.telefone || "";
-    }
-  } else if (tipo === "produto") {
-    if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Produto";
-    if (modalEditarNome?.parentElement) modalEditarNome.parentElement.style.display = "";
-    else if (modalEditarNome) modalEditarNome.style.display = "";
-    if (modalEditarQuantidade?.parentElement) modalEditarQuantidade.parentElement.style.display = "";
-    else if (modalEditarQuantidade) modalEditarQuantidade.style.display = "";
-
-    const produto = produtos.find(p => p.id === id);
-    if (produto) {
-      if (modalEditarNome) modalEditarNome.value = produto.nome || "";
-      if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade ?? 0;
-    }
-  } else if (tipoEdicao === "preco") {
-  const produtoNome = (modalEditarNome?.value || "").trim();
-  const valor = parseFloat(modalEditarPreco?.value) || 0;
-  if (!produtoNome) return alert("Informe o nome do produto.");
-  await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
-  alert("Preço atualizado com sucesso!");
-}
-
-    const preco = precos.find(p => p.id === id);
-if (preco) {
-  if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
-  if (modalEditarPreco) modalEditarPreco.value = preco.preco ?? 0;
-
-  // Para salvar, coloque isso dentro de uma função async
-  const salvarEdicaoPreco = async () => {
-    const produtoNome = modalEditarNome?.value.trim() || "";
-    const valor = parseFloat(modalEditarPreco?.value) || 0;
-    if (!produtoNome) return alert("Informe o nome do produto.");
-    await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
-    alert("Preço atualizado com sucesso!");
   };
 
-  // Aqui você pode chamar salvarEdicaoPreco quando o usuário clicar no botão "Salvar"
-  btnSalvarEdicao.onclick = salvarEdicaoPreco;
 
-} else {
-  console.warn("abrirModal: tipo desconhecido", tipo);
-}
+// =========================
+// Abrir modal de Cliente
+// =========================
+function abrirModalCliente(id) {
+  const cliente = clientes.find(c => c.id === id);
+  if (!cliente) return alert("Cliente não encontrado");
 
+  itemEdicao = id;
+  tipoEdicao = "cliente";
+
+  if (!modalEditar) return;
   modalEditar.style.display = "block";
-};
+  if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Cliente";
 
-if (btnSalvarEdicao) btnSalvarEdicao.onclick = async () => {
-  if (!itemEdicao || !tipoEdicao) {
-    alert("Nenhum item selecionado para editar.");
-    return;
-  }
-  try {
-    if (tipoEdicao === "cliente") {
+  // Mostra apenas inputs necessários
+  modalEditarNome?.parentElement?.style.setProperty("display", "");
+  modalEditarTelefone?.parentElement?.style.setProperty("display", "");
+  modalEditarQuantidade?.parentElement?.style.setProperty("display", "none");
+  modalEditarPreco?.parentElement?.style.setProperty("display", "none");
+
+  // Preenche valores
+  if (modalEditarNome) modalEditarNome.value = cliente.nome || "";
+  if (modalEditarTelefone) modalEditarTelefone.value = cliente.telefone || "";
+
+  // Salvar edição
+  if (btnSalvarEdicao) {
+    btnSalvarEdicao.onclick = async () => {
       const nome = (modalEditarNome?.value || "").trim();
       const telefone = (modalEditarTelefone?.value || "").trim();
       if (!nome) return alert("Informe o nome do cliente.");
-      await updateDoc(doc(db, "clientes", itemEdicao), { nome, telefone });
-      alert("Cliente atualizado com sucesso!");
-    } else if (tipoEdicao === "produto") {
+      try {
+        await updateDoc(doc(db, "clientes", id), { nome, telefone });
+        alert("Cliente atualizado com sucesso!");
+        modalEditar.style.display = "none";
+        renderClientes();
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao atualizar cliente: " + (err.message || err));
+      }
+    };
+  }
+}
+
+// =========================
+// Abrir modal de Produto
+// =========================
+function abrirModalProduto(id) {
+  const produto = produtos.find(p => p.id === id);
+  if (!produto) return alert("Produto não encontrado");
+
+  itemEdicao = id;
+  tipoEdicao = "produto";
+
+  if (!modalEditar) return;
+  modalEditar.style.display = "block";
+  if (modalEditarTitulo) modalEditarTitulo.textContent = "Editar Produto";
+
+  // Mostra apenas inputs necessários
+  modalEditarNome?.parentElement?.style.setProperty("display", "");
+  modalEditarQuantidade?.parentElement?.style.setProperty("display", "");
+  modalEditarTelefone?.parentElement?.style.setProperty("display", "none");
+  modalEditarPreco?.parentElement?.style.setProperty("display", "none");
+
+  // Preenche valores
+  if (modalEditarNome) modalEditarNome.value = produto.nome || "";
+  if (modalEditarQuantidade) modalEditarQuantidade.value = produto.quantidade ?? 0;
+
+  // Salvar edição
+  if (btnSalvarEdicao) {
+    btnSalvarEdicao.onclick = async () => {
       const nome = (modalEditarNome?.value || "").trim();
       const quantidade = parseInt(modalEditarQuantidade?.value) || 0;
       if (!nome) return alert("Informe o nome do produto.");
-      await updateDoc(doc(db, "estoque", itemEdicao), { nome, quantidade });
-      // sincroniza nome no precos
-      const q = query(precosCol, where("produtoId","==",itemEdicao));
-      const snaps = await getDocs(q);
-      for (const s of snaps.docs) {
-        await updateDoc(doc(db,"precos",s.id), { produtoNome: nome });
+      try {
+        await updateDoc(doc(db, "estoque", id), { nome, quantidade });
+
+        // Sincroniza nome nos preços
+        const q = query(precosCol, where("produtoId", "==", id));
+        const snaps = await getDocs(q);
+        for (const s of snaps.docs) {
+          await updateDoc(doc(db, "precos", s.id), { produtoNome: nome });
+        }
+
+        alert("Produto atualizado com sucesso!");
+        modalEditar.style.display = "none";
+        renderEstoque();
+        renderTabelaPrecos();
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao atualizar produto: " + (err.message || err));
       }
-      alert("Produto atualizado com sucesso!");
-    } else if (tipoEdicao === "preco") {
-      const produtoNome = (modalEditarNome?.value || "").trim();
-      if (modalEditarPreco) modalEditarPreco.value = (preco.preco ?? 0);
-      // ao salvar
-      await updateDoc(doc(db, "precos", itemEdicao), { produtoNome, preco: valor });
-      alert("Preço atualizado com sucesso!");
-    }
-
-    modalEditar.style.display = "none";
-    itemEdicao = null; tipoEdicao = null;
-  } catch (err) {
-    console.error("Erro ao salvar edição:", err);
-    alert("Erro ao salvar edição: " + (err.message || err));
+    };
   }
-};
+}
 
-if (btnCancelarEdicao) btnCancelarEdicao.onclick = () => {
-  if (modalEditar) modalEditar.style.display = "none";
-  itemEdicao = null; tipoEdicao = null;
-};
+// =========================
+// Abrir modal de Preço
+// =========================
+function abrirModalPreco(id) {
+  const preco = precos.find(p => p.id === id);
+  if (!preco) return alert("Preço não encontrado");
+
+  itemEdicao = id;
+  tipoEdicao = "preco";
+
+  if (!modalEditar) return;
+  modalEditar.style.display = "block";
+  if (modalEditarTitulo) modalEditarTitulo.textContent = `Editar Preço: ${preco.produtoNome || ""}`;
+
+  // Mostra apenas inputs necessários
+  modalEditarNome?.parentElement?.style.setProperty("display", "");
+  modalEditarPreco?.parentElement?.style.setProperty("display", "");
+  modalEditarTelefone?.parentElement?.style.setProperty("display", "none");
+  modalEditarQuantidade?.parentElement?.style.setProperty("display", "none");
+
+  // Preenche valores
+  if (modalEditarNome) modalEditarNome.value = preco.produtoNome || "";
+  if (modalEditarPreco) modalEditarPreco.value = preco.preco ?? 0;
+
+  // Salvar edição
+  if (btnSalvarEdicao) {
+    btnSalvarEdicao.onclick = async () => {
+      const produtoNome = (modalEditarNome?.value || "").trim();
+      const valor = parseFloat(modalEditarPreco?.value) || 0;
+      if (!produtoNome) return alert("Informe o nome do produto.");
+      try {
+        await updateDoc(doc(db, "precos", id), { produtoNome, preco: valor });
+        alert("Preço atualizado com sucesso!");
+        modalEditar.style.display = "none";
+        renderTabelaPrecos();
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao atualizar preço: " + (err.message || err));
+      }
+    };
+  }
+}
+
+// =========================
+// Botão cancelar edição
+// =========================
+if (btnCancelarEdicao) {
+  btnCancelarEdicao.onclick = () => {
+    if (modalEditar) modalEditar.style.display = "none";
+    itemEdicao = null;
+    tipoEdicao = null;
+  };
+}
+
+// Exposição global
+window.abrirModalCliente = abrirModalCliente;
+window.abrirModalProduto = abrirModalProduto;
+window.abrirModalPreco = abrirModalPreco;
+
 
 window.abrirModalExclusao = function(callback) {
   if (!modalExcluir) return;
@@ -1238,16 +1002,9 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
   renderTabelaPrecos();
   renderVendas();
   renderOrcamentosSalvos();
-
-  window.mostrar = mostrar
-  window.mostrarSecao = mostrarSecao;
   window.renderTabelaPrecos = renderTabelaPrecos;
   window.renderOrcamentosSalvos = renderOrcamentosSalvos;
   window.renderProdutoSelectOrcamento = renderProdutoSelectOrcamento;
-  window.adicionarItemVenda = adicionarItemVenda;
-  window.finalizarVenda = finalizarVenda;
-  window.renderProdutoSelectPreco = renderProdutoSelectPreco;
+  window.mostrarSecao = mostrarSecao; // já que o HTML chama mostrarSecao(...)
+
 })
-};
-
-
