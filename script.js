@@ -28,10 +28,18 @@ onAuthStateChanged(auth, user => {
   }
 });
 
-window.logout = async () => {
-  await signOut(auth);
-  window.location.href = "login.html";
-};
+function logout() {
+  const auth = getAuth();
+  signOut(auth).then(() => {
+    alert("Usuário desconectado!");
+    window.location.href = "login.html"; // redirecionar para login
+  }).catch((error) => {
+    console.error(error);
+    alert("Erro ao sair: " + error.message);
+  });
+}
+
+window.logout = logout;
 
 /* =========================
    Coleções Firestore
@@ -345,17 +353,6 @@ function renderVendas() {
 
   // atualiza total visível (se tiver componente)
   if (totalVendaInput) totalVendaInput.textContent = `R$ ${utils.money(total)}`;
-
-
-
-  // ========================
-// ATUALIZA TOTAL COM DESCONTO
-// ========================
-function atualizarTotalVenda(totalBruto) {
-  const desconto = parseFloat((descontoInput.value || "0").replace(",", ".")) || 0;
-  const totalComDesconto = totalBruto - desconto;
-  if (totalVendaInput) totalVendaInput.textContent = `R$ ${utils.money(totalComDesconto)}`;
-}
 
 // ========================
 // ATUALIZA TOTAL AO ALTERAR DESCONTO
@@ -1026,4 +1023,5 @@ mostrarSecao('clientes');
   window.mostrarSecao = mostrarSecao; // já que o HTML chama mostrarSecao(...)
 
 })
+
 
