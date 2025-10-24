@@ -180,7 +180,7 @@ onSnapshot(clientesCol, snapshot => {
 
 onSnapshot(precosCol, snapshot => {
   precos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
-  renderTabelaPrecos();
+  tabelaPrecos();
 });
 
 onSnapshot(vendasCol, snapshot => {
@@ -198,8 +198,8 @@ onSnapshot(orcamentosCol, snapshot => {
 onSnapshot(estoqueCol, snapshot => {
   produtos = snapshot.docs.map(d=>({ id: d.id, ...d.data() }));
   renderEstoque();
-  renderProdutoSelectOrcamento();
-  renderProdutoSelectPreco();
+  produtoSelectOrcamento();
+  produtoSelectPreco();
 });
 
 function mostrarSecao(secaoId) {
@@ -1250,3 +1250,4 @@ window.salvarOrcamento = async function() { /* se precisar salvar sem gerar PDF 
 
 })
 };
+
