@@ -21,10 +21,11 @@ function mostrarSecao(id) {
   document.querySelectorAll(".secao").forEach(secao => {
     secao.style.display = "none";
   });
-  document.getElementById(id).style.display = "block";
+  const alvo = document.getElementById(id);
+  if (alvo) alvo.style.display = "block";
 }
 
-// ✅ Torna acessível para os botões no HTML
+// ✅ Deixa a função visível pro HTML
 window.mostrarSecao = mostrarSecao;
 
 /* =========================
@@ -990,5 +991,6 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
 
 
