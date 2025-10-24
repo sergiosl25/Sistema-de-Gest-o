@@ -17,6 +17,76 @@ import {
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+// Clientes
+async function carregarClientes() {
+  const tabela = document.getElementById("tabela-clientes");
+  if (!tabela) return console.error("Tabela de clientes não encontrada");
+  tabela.innerHTML = ""; // limpa linhas antigas
+  const snapshot = await getDocs(collection(db, "clientes"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.nome}</td><td>${data.email}</td>`;
+    tabela.appendChild(tr);
+  });
+}
+
+// Estoque
+async function carregarEstoque() {
+  const tabela = document.getElementById("tabela-estoque");
+  if (!tabela) return console.error("Tabela de estoque não encontrada");
+  tabela.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "estoque"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.produto}</td><td>${data.quantidade}</td>`;
+    tabela.appendChild(tr);
+  });
+}
+
+// Vendas
+async function carregarVendas() {
+  const tabela = document.getElementById("tabela-vendas");
+  if (!tabela) return console.error("Tabela de vendas não encontrada");
+  tabela.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "vendas"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.cliente}</td><td>${data.produto}</td><td>${data.valor}</td>`;
+    tabela.appendChild(tr);
+  });
+}
+
+// Orçamentos
+async function carregarOrcamentos() {
+  const tabela = document.getElementById("tabela-orcamentos");
+  if (!tabela) return console.error("Tabela de orçamentos não encontrada");
+  tabela.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "orcamentos"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.cliente}</td><td>${data.valor}</td>`;
+    tabela.appendChild(tr);
+  });
+}
+
+// Tabela de preços
+async function carregarTabelaPrecos() {
+  const tabela = document.getElementById("tabela-precos");
+  if (!tabela) return console.error("Tabela de preços não encontrada");
+  tabela.innerHTML = "";
+  const snapshot = await getDocs(collection(db, "precos"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${data.produto}</td><td>${data.preco}</td>`;
+    tabela.appendChild(tr);
+  });
+}
+
 function mostrarSecao(id) {
   document.querySelectorAll(".secao").forEach(secao => {
     secao.style.display = "none";
@@ -28,7 +98,7 @@ function mostrarSecao(id) {
   if(id === "clientes") carregarClientes();
   if(id === "estoque") carregarEstoque();
   if(id === "vendas") carregarVendas();
-  if(id === "tabela-precos") carregarTabelaPrecos();
+  if(id === "tabelaprecos") carregarTabelaPrecos();
 }
 
 // ✅ Deixa a função visível pro HTML
