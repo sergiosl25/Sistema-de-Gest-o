@@ -17,6 +17,19 @@ import {
   runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
+// Mostrar apenas a seção selecionada
+function mostrarSecao(secaoId) {
+  document.querySelectorAll(".secao").forEach(sec => {
+    sec.style.display = sec.id === secaoId ? "" : "none";
+  });
+}
+
+// Expor globalmente para os onclick do HTML
+window.mostrarSecao = mostrarSecao;
+
+// Inicializa mostrando a primeira seção (Clientes)
+mostrarSecao("clientes");
+
 /* =========================
    Proteção de acesso
    ========================= */
@@ -29,7 +42,6 @@ onAuthStateChanged(auth, user => {
 });
 
 function logout() {
-  const auth = getAuth();
   signOut(auth).then(() => {
     alert("Usuário desconectado!");
     window.location.href = "login.html"; // redirecionar para login
@@ -1023,5 +1035,6 @@ mostrarSecao('clientes');
   window.mostrarSecao = mostrarSecao; // já que o HTML chama mostrarSecao(...)
 
 })
+
 
 
