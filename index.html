@@ -118,9 +118,11 @@
   <thead>
     <tr>
       <th>Produto</th>
-      <th>Tipo Preço</th>
       <th>Qtd</th>
       <th>Preço Unitário</th>
+      <th>Desconto</th>
+      <th>Total Antes</th>
+      <th>Total Após</th>
       <th>Total</th>
       <th>Ações</th>
     </tr>
@@ -259,48 +261,9 @@
     </div>
   </div>
 </div>
-  
-<!-- Firebase -->
-<script type="module">
-  // Import Firebase SDK
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-  // 🔑 Pegue essas configs no Console Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
-    authDomain: "personalizados-2eb5f.firebaseapp.com",
-    projectId: "personalizados-2eb5f",
-    storageBucket: "personalizados-2eb5f.firebasestorage.app",
-    messagingSenderId: "498226923096",
-    appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
-  };
-
-  // Inicializar Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // deixar acessível para outros scripts
-  window.db = db;
-</script>
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script type="module" src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
