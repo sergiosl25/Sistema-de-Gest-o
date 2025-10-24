@@ -619,30 +619,6 @@ if (btnGerarPDF) btnGerarPDF.onclick = async () => {
   }
 };
 
-    // Atualiza o Firestore quando o usuário edita um valor
-    tr.querySelectorAll("[contenteditable]").forEach(td => {
-      td.onblur = async () => {
-        const field = td.dataset.field;
-        const raw = td.textContent.trim().replace(",", ".");
-        const num = parseFloat(raw);
-        const valueToSave = isNaN(num) ? 0 : num;
-        try {
-          await updateDoc(doc(db, "precos", p.id), { [field]: valueToSave });
-        } catch (err) {
-          console.error("Erro ao atualizar preço:", err);
-          alert("Erro ao salvar preço. Veja console.");
-        }
-      };
-      td.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          td.blur();
-        }
-      });
-    });
-
-
-
 // =========================
 // Abrir modal de Cliente
 // =========================
@@ -1011,3 +987,4 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
