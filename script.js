@@ -19,7 +19,7 @@ import {
 
 // Clientes
 async function carregarClientes() {
-  const tabela = document.getElementById("tabela-clientes");
+  const tabela = document.getElementById("tabelaClientes");
   if (!tabela) return console.error("Tabela de clientes não encontrada");
   tabela.innerHTML = ""; // limpa linhas antigas
   const snapshot = await getDocs(collection(db, "clientes"));
@@ -33,7 +33,7 @@ async function carregarClientes() {
 
 // Estoque
 async function carregarEstoque() {
-  const tabela = document.getElementById("tabela-estoque");
+  const tabela = document.getElementById("tabelaEstoque");
   if (!tabela) return console.error("Tabela de estoque não encontrada");
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "estoque"));
@@ -47,7 +47,7 @@ async function carregarEstoque() {
 
 // Vendas
 async function carregarVendas() {
-  const tabela = document.getElementById("tabela-vendas");
+  const tabela = document.getElementById("tabelaVendas");
   if (!tabela) return console.error("Tabela de vendas não encontrada");
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "vendas"));
@@ -71,7 +71,7 @@ function carregarRegistrosVendas() {
 
 // Orçamentos
 async function carregarOrcamentos() {
-  const tabela = document.getElementById("tabela-orcamentos");
+  const tabela = document.getElementById("tabelaOrcamentos");
   if (!tabela) return console.error("Tabela de orçamentos não encontrada");
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "orcamentos"));
@@ -85,7 +85,7 @@ async function carregarOrcamentos() {
 
 // Tabela de preços
 async function carregarTabelaPrecos() {
-  const tabela = document.getElementById("tabela-precos");
+  const tabela = document.getElementById("tabelaPrecos");
   if (!tabela) return console.error("Tabela de preços não encontrada");
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "precos"));
@@ -1094,5 +1094,6 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
 
 
