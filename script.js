@@ -827,9 +827,15 @@ function abrirModalPreco(id) {
     btnSalvarEdicao.onclick = async () => {
       const produtoNome = (modalEditarNome?.value || "").trim();
       const valor = parseFloat(modalEditarPreco?.value) || 0;
+
       if (!produtoNome) return alert("Informe o nome do produto.");
+      if (isNaN(valor)) return alert("Informe um valor válido para o preço.");
+
       try {
-        await updateDoc(doc(db, "precos", id), { produtoNome, preco: valor });
+        await updateDoc(doc(db, "precos", id), {
+          produtoNome,
+          preco: valor
+        });
         alert("Preço atualizado com sucesso!");
         modalEditar.style.display = "none";
         renderTabelaPrecos();
@@ -841,16 +847,22 @@ function abrirModalPreco(id) {
   }
 }
 
-// =========================
-// Botão cancelar edição
-// =========================
-if (btnCancelarEdicao) {
-  btnCancelarEdicao.onclick = () => {
-    if (modalEditar) modalEditar.style.display = "none";
-    itemEdicao = null;
-    tipoEdicao = null;
-  };
-}
+// Fechar modais genéricos
+if (btnCancelarEdicao) btnCancelarEdicao.onclick = () => {
+  if (modalEditar) modalEditar.style.display = "none";
+  itemEdicao = null;
+  tipoEdicao = null;
+};
+
+if (btnCancelarExcluir) btnCancelarExcluir.onclick = () => {
+  if (modalExcluir) modalExcluir.style.display = "none";
+};
+
+// Clique fora do modal para fechar
+window.onclick = (event) => {
+  if (event.target === modalEditar) modalEditar.style.display = "none";
+  if (event.target === modalExcluir) modalExcluir.style.display = "none";
+};
 
 // Exposição global
 window.abrirModalCliente = abrirModalCliente;
@@ -1071,3 +1083,4 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
