@@ -1,7 +1,9 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } 
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-import { jsPDF } from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+
+// ✅ Importação ESM do jsPDF
+import jsPDF from "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.es.min.js";
 import "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js";
 
 // ==========================
@@ -256,7 +258,7 @@ window.removerItemOrcamento = (index) => {
 };
 
 document.getElementById('btnGerarPDF').addEventListener('click',()=>{
-    const doc = new jsPDF.jsPDF();
+    const doc = new jsPDF();
     doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
     const rows = itensOrcamentoAtual.map(item => [
         item.clienteNome, item.produtoNome, item.quantidade, item.precoUnit.toFixed(2), (item.quantidade*item.precoUnit).toFixed(2)
@@ -275,7 +277,7 @@ document.getElementById('btnCancelarDesconto').onclick = () => document.getEleme
 // 🔹 EXPORTAR PDF REGISTROS
 // ==========================
 window.exportarPDF = () => {
-    const docPDF = new jsPDF.jsPDF();
+    const docPDF = new jsPDF();
     docPDF.text("Registros de Vendas", 14, 16);
     docPDF.autoTable({ html: '#tabelaRegistros', startY: 20 });
     docPDF.save('registros_vendas.pdf');
@@ -289,4 +291,3 @@ window.addEventListener('DOMContentLoaded', () => {
     carregarClientes();
     carregarEstoque();
 });
-
