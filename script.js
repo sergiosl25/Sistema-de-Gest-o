@@ -5,6 +5,32 @@ import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp
 // ✅ UMD jsPDF compatível com navegador
 import * as jsPDF from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 import "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // Usuário logado, inicializa app
+        carregarClientes();
+        carregarEstoque();
+        mostrarSecao('clientes');
+    } else {
+        // Usuário não logado, redirecionar ou mostrar alerta
+        alert('Você precisa estar logado para acessar o sistema!');
+        // Se tiver página de login:
+        // window.location.href = 'login.html';
+    }
+});
+
+window.logout = () => {
+    signOut(auth).then(() => {
+        alert('Logout realizado!');
+        window.location.reload(); // ou redirecionar para login
+    }).catch((error) => {
+        console.error('Erro ao deslogar:', error);
+    });
+};
 
 // ==========================
 // 🔹 VARIÁVEIS GLOBAIS
