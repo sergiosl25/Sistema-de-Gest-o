@@ -45,14 +45,22 @@ async function carregarEstoque() {
 
 // Vendas
 async function carregarVendas() {
-  const tabela = document.getElementById("tabelaVendas");
+  const tabela = document.getElementById("tabelaItensVenda"); // 👈 ID correto
   if (!tabela) return console.error("Tabela de vendas não encontrada");
   tabela.innerHTML = "";
   const snapshot = await getDocs(collection(db, "vendas"));
   snapshot.forEach(doc => {
     const data = doc.data();
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${data.cliente}</td><td>${data.produto}</td><td>${data.valor}</td>`;
+    tr.innerHTML = `
+      <td>${data.produto}</td>
+      <td>${data.quantidade}</td>
+      <td>${data.precoUnitario}</td>
+      <td>${data.desconto ?? 0}</td>
+      <td>${data.totalAntes ?? 0}</td>
+      <td>${data.totalDepois ?? 0}</td>
+      <td>${data.pagamento ?? ""}</td>
+    `;
     tabela.appendChild(tr);
   });
 }
@@ -1092,4 +1100,5 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
 
