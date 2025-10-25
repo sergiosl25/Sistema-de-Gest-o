@@ -1,161 +1,118 @@
 // script.js
 import { db } from './firebase-config.js';
-import { 
-  collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-import jsPDF from 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-import 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { jsPDF } from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+import "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js";
 
-// ================== 🔹 UTILIDADES ==================
-function mostrarSecao(secaoId) {
-  document.querySelectorAll('.secao').forEach(secao => secao.style.display = 'none');
-  const secao = document.getElementById(secaoId);
-  if (secao) secao.style.display = 'block';
+// ==========================
+// 🔹 FUNÇÕES GLOBAIS PARA HTML
+// ==========================
+window.mostrarSecao = function(secao) {
+    document.querySelectorAll('.secao').forEach(s => s.style.display = 'none');
+    const el = document.getElementById(secao);
+    if (el) el.style.display = 'block';
 }
 
-// ================== 🔹 CLIENTES ==================
-const clientesCol = collection(db, 'clientes');
+window.logout = function() {
+    // Aqui você pode implementar logout do Firebase Auth
+    alert('Logout clicado!');
+}
+
+// ==========================
+// 🔹 CLIENTES
+// ==========================
 const tabelaClientes = document.querySelector('#tabelaClientes tbody');
-const clienteSelect = document.getElementById('clienteSelect');
 const btnCadastrarCliente = document.getElementById('btnCadastrarCliente');
 
+async function carregarClientes() {
+    tabelaClientes.innerHTML = '';
+    const snapshot = await getDocs(collection(db, 'clientes'));
+    snapshot.forEach(docSnap => {
+        const cliente = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${cliente.nome}</td>
+            <td>${cliente.telefone || ''}</td>
+            <td>
+                <button onclick="editarCliente('${docSnap.id}', '${cliente.nome}', '${cliente.telefone || ''}')">Editar</button>
+                <button onclick="excluirCliente('${docSnap.id}')">Excluir</button>
+            </td>
+            `;
+        tabelaClientes.appendChild(tr);
+    });
+}
+window.editarCliente = async function(id, nome, telefone) {
+    const novoNome = prompt("Nome:", nome);
+    const novoTelefone = prompt("Telefone:", telefone);
+    if (novoNome !== null) {
+        const docRef = doc(db, "clientes", id);
+        await updateDoc(docRef, { nome: novoNome, telefone: novoTelefone });
+        carregarClientes();
+    }
+}
+window.excluirCliente = async function(id) {
+    if (confirm("Deseja realmente excluir?")) {
+        await deleteDoc(doc(db, "clientes", id));
+        carregarClientes();
+    }
+}
 btnCadastrarCliente.addEventListener('click', async () => {
-  const nome = document.getElementById('nomeCliente').value.trim();
-  const telefone = document.getElementById('telefoneCliente').value.trim();
-  if (!nome) return alert('Nome é obrigatório');
-  await addDoc(clientesCol, { nome, telefone });
-  document.getElementById('nomeCliente').value = '';
-  document.getElementById('telefoneCliente').value = '';
-});
+    const nome = document.getElementById('nomeCliente').value.trim();
+    const telefone = document.getElementById('telefoneCliente').value.trim();
+    if (!nome) return alert('Nome é obrigatório');
+    await addDoc(collection(db, 'clientes'), { nome, telefone });
+    document.getElementById('nomeCliente').value = '';
+    document.getElementById('telefoneCliente').value = '';
+    carregarClientes();
+})
 
-onSnapshot(clientesCol, snapshot => {
-  tabelaClientes.innerHTML = '';
-  clienteSelect.innerHTML = '<option value="">Selecione o cliente</option>';
-  snapshot.forEach(docu => {
-    const cliente = docu.data();
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${cliente.nome}</td>
-      <td>${cliente.telefone}</td>
-      <td>
-        <button onclick="editarCliente('${docu.id}', '${cliente.nome}', '${cliente.telefone}')">Editar</button>
-        <button onclick="excluirCliente('${docu.id}')">Excluir</button>
-      </td>
-    `;
-    tabelaClientes.appendChild(tr);
-    clienteSelect.innerHTML += `<option value="${docu.id}">${cliente.nome}</option>`;
-  });
-});
-
-window.editarCliente = async (id, nome, telefone) => {
-  const modal = document.getElementById('modalEditar');
-  modal.style.display = 'block';
-  document.getElementById('modalEditarTitulo').innerText = 'Editar Cliente';
-  document.getElementById('modalEditarNome').value = nome;
-  document.getElementById('modalEditarTelefone').value = telefone;
-  document.getElementById('modalEditarQuantidade').style.display = 'none';
-  document.getElementById('modalEditarPreco').style.display = 'none';
-
-  document.getElementById('btnSalvarEdicao').onclick = async () => {
-    const novoNome = document.getElementById('modalEditarNome').value.trim();
-    const novoTelefone = document.getElementById('modalEditarTelefone').value.trim();
-    if (!novoNome) return alert('Nome é obrigatório');
-    await updateDoc(doc(clientesCol, id), { nome: novoNome, telefone: novoTelefone });
-    modal.style.display = 'none';
-  };
-};
-
-window.excluirCliente = (id) => {
-  const modal = document.getElementById('modalExcluir');
-  modal.style.display = 'block';
-  document.getElementById('btnConfirmarExcluir').onclick = async () => {
-    await deleteDoc(doc(clientesCol, id));
-    modal.style.display = 'none';
-  };
-  document.getElementById('btnCancelarExcluir').onclick = () => modal.style.display = 'none';
-};
-
-// ================== 🔹 PRODUTOS / ESTOQUE ==================
-const produtosCol = collection(db, 'produtos');
+// ==========================
+// 🔹 ESTOQUE
+// ==========================
 const tabelaEstoque = document.querySelector('#tabelaEstoque tbody');
-const produtoSelect = document.getElementById('produtoSelect');
-const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
-const produtoSelectPreco = document.getElementById('produtoSelectPreco');
 const btnCadastrarProduto = document.getElementById('btnCadastrarProduto');
 
+async function carregarEstoque() {
+    tabelaEstoque.innerHTML = '';
+    const snapshot = await getDocs(collection(db, 'produtos'));
+    snapshot.forEach(docSnap => {
+        const produto = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${produto.nome}</td>
+            <td>${produto.quantidade || 0}</td>
+            <td>
+                <button onclick="editarProduto('${docSnap.id}', '${produto.nome}', ${produto.quantidade || 0})">Editar</button>
+                <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
+            </td>
+        `;
+        tabelaEstoque.appendChild(tr);
+        });
+}
+window.editarProduto = async function(id, nome, quantidade) {
+    const novoNome = prompt("Nome do produto:", nome);
+    const novaQtd = parseInt(prompt("Quantidade:", quantidade));
+    if (novoNome !== null && !isNaN(novaQtd)) {
+        const docRef = doc(db, "produtos", id);
+        await updateDoc(docRef, { nome: novoNome, quantidade: novaQtd });
+        carregarEstoque();
+    }
+}
+window.excluirProduto = async function(id) {
+    if (confirm("Deseja realmente excluir o produto?")) {
+        await deleteDoc(doc(db, "produtos", id));
+        carregarEstoque();
+    }
+}
 btnCadastrarProduto.addEventListener('click', async () => {
-  const nome = document.getElementById('nomeProduto').value.trim();
-  const quantidade = parseInt(document.getElementById('quantidadeProduto').value) || 0;
-  if (!nome) return alert('Nome do produto é obrigatório');
-  await addDoc(produtosCol, { 
-    nome, quantidade, preco: 0, estampaFrente: 0, estampaFrenteVerso:0, branca:0, interiorCores:0, magicaFosca:0, magicaBrilho:0 
-  });
-  document.getElementById('nomeProduto').value = '';
-  document.getElementById('quantidadeProduto').value = '';
+    const nome = document.getElementById('nomeProduto').value.trim();
+    const quantidade = parseInt(document.getElementById('quantidadeProduto').value) || 0;
+    if (!nome) return alert('Nome é obrigatório');
+    await addDoc(collection(db, 'produtos'), { nome, quantidade });
+    document.getElementById('nomeProduto').value = '';
+    document.getElementById('quantidadeProduto').value = '';
+    carregarEstoque();
 });
-
-let produtosMap = {}; // Mapa para acesso rápido
-onSnapshot(produtosCol, snapshot => {
-  tabelaEstoque.innerHTML = '';
-  produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
-  produtoSelectOrcamento.innerHTML = '';
-  produtoSelectPreco.innerHTML = '';
-  produtosMap = {};
-
-  snapshot.forEach(docu => {
-    const produto = docu.data();
-    produtosMap[docu.id] = { ...produto, id: docu.id };
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${produto.nome}</td>
-      <td>${produto.quantidade}</td>
-      <td>
-        <button onclick="editarProduto('${docu.id}')">Editar</button>
-        <button onclick="excluirProduto('${docu.id}')">Excluir</button>
-      </td>
-    `;
-    tabelaEstoque.appendChild(tr);
-
-    produtoSelect.innerHTML += `<option value="${docu.id}">${produto.nome}</option>`;
-    produtoSelectOrcamento.innerHTML += `<option value="${docu.id}">${produto.nome}</option>`;
-    produtoSelectPreco.innerHTML += `<option value="${docu.id}">${produto.nome}</option>`;
-  });
-});
-
-window.editarProduto = async (id) => {
-  const produto = produtosMap[id];
-  const modal = document.getElementById('modalEditar');
-  modal.style.display = 'block';
-  document.getElementById('modalEditarTitulo').innerText = 'Editar Produto';
-  document.getElementById('modalEditarNome').value = produto.nome;
-  document.getElementById('modalEditarQuantidade').value = produto.quantidade;
-  document.getElementById('modalEditarPreco').value = produto.preco;
-
-  document.getElementById('modalEditarTelefone').style.display = 'none';
-  document.getElementById('modalEditarQuantidade').style.display = 'block';
-  document.getElementById('modalEditarPreco').style.display = 'block';
-
-  document.getElementById('btnSalvarEdicao').onclick = async () => {
-    const novoNome = document.getElementById('modalEditarNome').value.trim();
-    const novaQtd = parseInt(document.getElementById('modalEditarQuantidade').value) || 0;
-    const novoPreco = parseFloat(document.getElementById('modalEditarPreco').value) || 0;
-    if (!novoNome) return alert('Nome obrigatório');
-    await updateDoc(doc(produtosCol, id), { nome: novoNome, quantidade: novaQtd, preco: novoPreco });
-    modal.style.display = 'none';
-    document.getElementById('modalEditarTelefone').style.display = 'block';
-  };
-};
-
-window.excluirProduto = (id) => {
-  const modal = document.getElementById('modalExcluir');
-  modal.style.display = 'block';
-  document.getElementById('btnConfirmarExcluir').onclick = async () => {
-    await deleteDoc(doc(produtosCol, id));
-    modal.style.display = 'none';
-  };
-  document.getElementById('btnCancelarExcluir').onclick = () => modal.style.display = 'none';
-};
 
 // ================== 🔹 VENDAS ==================
 const vendasCol = collection(db, 'vendas');
@@ -303,8 +260,24 @@ document.getElementById('btnGerarPDF').addEventListener('click',()=>{
 document.getElementById('btnCancelarEdicao').onclick = ()=>document.getElementById('modalEditar').style.display='none';
 document.getElementById('btnCancelarDesconto').onclick = ()=>document.getElementById('modalDesconto').style.display='none';
 
+// ==========================
+// 🔹 EXPORTAR PDF REGISTROS
+// ==========================
+window.exportarPDF = function() {
+    const docPDF = new jsPDF();
+    docPDF.text("Registros de Vendas", 14, 16);
+    docPDF.autoTable({ html: '#tabelaRegistros', startY: 20 });
+    docPDF.save('registros_vendas.pdf');
+}
+
 // ================== 🔹 LOGOUT ==================
 window.logout = ()=>alert('Implementar logout se usar Firebase Auth');
 
-// ================== 🔹 INICIALIZAÇÃO ==================
-mostrarSecao('clientes');
+// ==========================
+// 🔹 INICIALIZAÇÃO
+// ==========================
+window.addEventListener('DOMContentLoaded', () => {
+    mostrarSecao('clientes');
+    carregarClientes();
+    carregarEstoque();
+});
