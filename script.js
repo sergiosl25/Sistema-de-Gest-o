@@ -1,4 +1,3 @@
-/ script.js
 import { db } from './firebase-config.js';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, orderBy, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
@@ -290,3 +289,4 @@ window.addEventListener('DOMContentLoaded', () => {
     carregarClientes();
     carregarEstoque();
 });
+
