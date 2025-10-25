@@ -1,431 +1,225 @@
-/* ===========================
-   🔷 RESET GERAL
-=========================== */
+/* ===== style-dashboard.css ===== */
+
+/* ===== RESET & BASE ===== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: "Poppins", Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-html, body {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(135deg, #4c7196, #3498db);
+body {
+  background-color: #f0f2f5;
   color: #333;
 }
 
-/* ===========================
-   🔹 CABEÇALHO
-=========================== */
+/* ===== HEADER ===== */
 header {
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  color: #fff;
-  padding: 15px 25px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  border-radius: 0 0 12px 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  padding: 15px 25px;
+  background-color: #4A90E2;
+  color: #fff;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+header .logo {
+  height: 50px;
 }
 
 header h1 {
-  font-size: 1.6rem;
-  font-weight: 600;
-  letter-spacing: 1px;
+  font-size: 1.6em;
 }
 
-/* Logout */
-.logout-btn {
-  background: #e74c3c;
-  border: none;
+header nav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+header nav button {
+  background-color: #357ABD;
   color: #fff;
-  font-weight: 600;
-  border-radius: 8px;
-  padding: 10px 18px;
-  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 500;
   transition: 0.3s;
 }
-.logout-btn:hover {
-  background: #c0392b;
-  transform: translateY(-2px);
+
+header nav button:hover {
+  background-color: #285e8e;
 }
 
-/* ===========================
-   🔹 MENU DE NAVEGAÇÃO
-=========================== */
-nav {
-  margin: 25px auto;
+.header-right {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 10px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #4c7196, #3498db);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-  max-width: 1500px;
+  align-items: center;
+  gap: 10px;
 }
 
-nav button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  background: #3da1e4;
-  color: white;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-nav button:hover {
-  background: #2980b9;
-  transform: translateY(-2px);
+.logout-btn {
+  background-color: #E94E3C;
 }
 
-/* ===========================
-   🔹 CONTEÚDO PRINCIPAL
-=========================== */
-main {
-  padding: 20px;
-  margin-top: 20px;
-  min-height: calc(100vh - 100px);
+.logout-btn:hover {
+  background-color: #c0342a;
 }
 
-.view {
+/* ===== SEÇÕES ===== */
+.secao {
   display: none;
-  width: 100%;
-  max-width: 1500px;
-  margin: auto;
-  background: #fff;
-  padding: 25px;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* ===== CARDS ===== */
+.card {
+  background-color: #fff;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  transition: 0.3s ease;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: 0.3s;
 }
 
-.view.active {
-  display: block;
+.card:hover {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
 }
 
-/* ===========================
-   🔹 FORMULÁRIOS
-=========================== */
+.card h2 {
+  margin-bottom: 15px;
+}
+
+/* ===== FORMULÁRIOS ===== */
 .form {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 15px;
 }
 
-.form input,
-.form select {
-  flex: 1;
-  padding: 10px;
+.form input, .form select {
+  padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
-  transition: 0.25s;
-}
-
-.form input:focus,
-.form select:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-  outline: none;
+  flex: 1 1 150px;
 }
 
 .form button {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  color: #fff;
-  border: none;
+  padding: 8px 16px;
   border-radius: 8px;
-  padding: 10px 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.25s;
-}
-.form button:hover {
-  background: linear-gradient(135deg, #239b56, #27ae60);
-  transform: translateY(-2px);
+  font-weight: 500;
+  transition: 0.3s;
 }
 
-/* ===========================
-   🔹 TABELAS
-=========================== */
+button:hover {
+  opacity: 0.9;
+}
+
+/* ===== TABELAS MODERNAS ===== */
 table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 40;
-  background: #fff;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.05);
+  border-spacing: 0 8px;
+  margin-bottom: 15px;
 }
 
-table thead {
-  background: #3498db;
+table th, table td {
+  padding: 10px 12px;
+  text-align: left;
+}
+
+table th {
+  background-color: #4A90E2;
   color: #fff;
-}
-
-table th,
-table td {
-  padding: 12px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
-  vertical-align: middle;
-}
-
-/* Coluna de Ações */
-table th.acao,
-table td.acao {
-  min-width: 800px; /* evita que fique muito estreito */
-  display: flex;
-  justify-content: center; /* centraliza horizontalmente */
-  gap: 6px; /* espaço entre botões */
-  flex-wrap: wrap; /* quebra se necessário */
-}
-
-/* Botões de ação */
-.acao-btn {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 8px;
   font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #fff;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  white-space: nowrap; /* evita quebra de texto */
+  border-radius: 8px;
 }
 
-/* Ícones Font Awesome */
-.acao-btn::before {
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
+table tr {
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  border-radius: 8px;
 }
 
-/* Editar */
-.acao-btn.editar {
-  background: linear-gradient(135deg, #f39c12, #f1c40f);
-}
-.acao-btn.editar:hover {
-  background: linear-gradient(135deg, #d68910, #f4d03f);
-}
-.acao-btn.editar::before {
-  content: "\f044";
+table tr td {
+  border: none;
 }
 
-/* Excluir */
-.acao-btn.excluir {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-}
-.acao-btn.excluir:hover {
-  background: linear-gradient(135deg, #c0392b, #922b21);
-}
-.acao-btn.excluir::before {
-  content: "\f2ed";
-}
-
-/* Exportar PDF */
-.acao-btn.pdf {
-  background: linear-gradient(135deg, #8e44ad, #9b59b6);
-}
-.acao-btn.pdf:hover {
-  background: linear-gradient(135deg, #6c3483, #8e44ad);
-}
-.acao-btn.pdf::before {
-  content: "\f1c1";
-}
-
-/* Botão Nova Linha */
-#btnNovaLinhaPreco {
-  background: linear-gradient(135deg, #28a745, #2ecc71);
-}
-#btnNovaLinhaPreco:hover {
-  background: linear-gradient(135deg, #239b56, #27ae60);
-}
-#btnNovaLinhaPreco::before {
-  content: "\f067";
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
-}
-
-/* ===========================
-   🔹 MODAIS
-=========================== */
+/* ===== MODAIS ===== */
 .modal {
   display: none;
   position: fixed;
-  inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0);
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
   justify-content: center;
   align-items: center;
-  backdrop-filter: blur(8px);
-}
-
-.modal.active {
-  display: flex;
-  animation: fadeIn 0.3s ease;
+  padding: 15px;
 }
 
 .modal-content {
-  background: #fff;
-  padding: 25px 30px;
-  border-radius: 14px;
-  width: 90%;
-  max-width: 420px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  animation: popIn 0.35s ease;
-}
-
-.modal-content h3 {
-  color: #2c3e50;
-  font-size: 1.4rem;
-  margin-bottom: 15px;
-  font-weight: 600;
-}
-
-.modal-content input {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  max-width: 450px;
   width: 100%;
-  padding: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.modal h2, .modal h3 {
   margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  transition: all 0.25s ease;
-}
-.modal-content input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 6px rgba(52,152,219,0.3);
-  outline: none;
 }
 
-/* Botões dentro do modal */
-.modal-content button {
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  margin: 6px;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.modal-content button:first-of-type {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  color: #fff;
-}
-.modal-content button:first-of-type:hover {
-  background: linear-gradient(135deg, #239b56, #27ae60);
-}
-
-.modal-content button:last-of-type {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: #fff;
-}
-.modal-content button:last-of-type:hover {
-  background: linear-gradient(135deg, #c0392b, #922b21);
-}
-
-/* ===========================
-   🔹 ESTILO DO MODAL DE DESCONTO
-=========================== */
-
-#modalDesconto select,
-#modalDesconto input {
-  width: 100%;
-  padding: 10px;
-  margin-top: 8px;
-  margin-bottom: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: 0.25s ease;
-}
-
-#modalDesconto select:focus,
-#modalDesconto input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 6px rgba(52, 152, 219, 0.3);
-  outline: none;
-}
-
-#modalDesconto label {
+.modal label {
   display: block;
-  text-align: left;
-  font-weight: 600;
-  margin-top: 5px;
-  color: #2c3e50;
+  margin-bottom: 10px;
+  font-weight: 500;
 }
 
-/* Botões do modal de desconto */
-#modalDesconto button {
-  padding: 10px 18px;
+.modal input, .modal select {
+  width: 100%;
+  padding: 8px;
   border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 4px;
+}
+
+/* ===== BOTÕES COLORIDOS ===== */
+#btnNovaLinhaPreco {
+  background-color: #28a745;
+}
+
+#btnNovaLinhaPreco:hover {
+  background-color: #1e7e34;
+}
+
+/* ===== TOTAL ===== */
+.total {
   font-weight: 600;
-  border: none;
-  margin: 6px;
-  cursor: pointer;
-  transition: all 0.25s ease;
+  font-size: 1.1em;
+  margin-top: 10px;
 }
 
-#modalDesconto #btnAplicarDesconto {
-  background: linear-gradient(135deg, #27ae60, #2ecc71);
-  color: #fff;
-}
-#modalDesconto #btnAplicarDesconto:hover {
-  background: linear-gradient(135deg, #239b56, #27ae60);
-}
-
-#modalDesconto #btnCancelarDesconto {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  color: #fff;
-}
-#modalDesconto #btnCancelarDesconto:hover {
-  background: linear-gradient(135deg, #c0392b, #922b21);
-}
-
-/* ===========================
-   🔹 ANIMAÇÕES
-=========================== */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-/* ===========================
-   🔹 RESPONSIVIDADE
-=========================== */
+/* ===== RESPONSIVO ===== */
 @media (max-width: 768px) {
-  nav {
+  .form {
     flex-direction: column;
   }
-  table th, table td {
-    font-size: 0.9rem;
-    padding: 8px;
-  }
-  table td.acao {
+
+  header {
     flex-direction: column;
-    gap: 4px;
+    align-items: flex-start;
+    gap: 12px;
   }
-  button, .acao-btn {
-    font-size: 0.9rem;
-    padding: 6px 10px;
+
+  header nav {
+    flex-wrap: wrap;
   }
 }
-
-
-
-
-
-
-
