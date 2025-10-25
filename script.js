@@ -1,8 +1,6 @@
-import { db } from './firebase-config.js';
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { db } from "./firebase-config.js";
+const auth = getAuth();
 import {
   collection,
   onSnapshot,
@@ -1094,3 +1092,4 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
