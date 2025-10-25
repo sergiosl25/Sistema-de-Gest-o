@@ -59,6 +59,16 @@ async function carregarVendas() {
   });
 }
 
+function carregarRegistrosVendas() {
+  const tabela = document.getElementById("tabelaRegistros");
+  if (!tabela) {
+    console.error("Tabela de registros de vendas não encontrada");
+    return;
+  }
+  // Aqui você poderá carregar os dados reais do Firestore, por exemplo:
+  console.log("Carregando registros de vendas...");
+}
+
 // Orçamentos
 async function carregarOrcamentos() {
   const tabela = document.getElementById("tabela-orcamentos");
@@ -157,6 +167,7 @@ let vendas = [];
 const tabelaClientes = document.getElementById("tabelaClientes");
 const tabelaEstoque = document.getElementById("tabelaEstoque");
 const tabelaPrecos = document.getElementById("tabelaPrecos");
+const tabelaRegistros = document.getElementById("tabelaRegistros");
 const tabelaItensVenda = document.getElementById("tabelaItensVenda");
 const tabelaOrcamento = document.getElementById("tabelaOrcamento");
 const tabelaOrcamentosSalvos = document.getElementById("tabelaOrcamentosSalvos");
@@ -1083,4 +1094,5 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
 
