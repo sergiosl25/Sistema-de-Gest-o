@@ -65,15 +65,23 @@ async function carregarVendas() {
   });
 }
 
-function carregarRegistrosVendas() {
-  const tabela = document.getElementById("tabelaRegistros");
-  if (!tabela) {
-    console.error("Tabela de registros de vendas não encontrada");
-    return;
-  }
-  // Aqui você poderá carregar os dados reais do Firestore, por exemplo:
+async function carregarRegistrosVendas() {
   console.log("Carregando registros de vendas...");
-}
+  const tabela = document.getElementById("tabelaRegistros");
+  if (!tabela) return console.error("Tabela de registros de vendas não encontrada");
+  tabela.innerHTML = "";
+  
+  const snapshot = await getDocs(collection(db, "registrosVendas"));
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${data.cliente}</td>
+      <td>${data.produto}</td>
+      <td>${data.valor}</td>`;
+    tabela.appendChild(tr);
+  });
+} 
 
 // Orçamentos
 async function carregarOrcamentos() {
@@ -1100,5 +1108,6 @@ window.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 })
+
 
 
