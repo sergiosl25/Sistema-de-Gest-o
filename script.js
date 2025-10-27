@@ -30,11 +30,11 @@ document.getElementById("btnLogout").addEventListener("click", async () => {
 });
 
 // 🔹 Controle de seções
-window.mostrarSecao = function (id) {
-  document.querySelectorAll(".secao").forEach(sec => sec.style.display = "none");
-  document.getElementById(id).style.display = "block";
+window.mostrarSecao = function(secao) {
+    document.querySelectorAll('.secao').forEach(s => s.style.display = 'none');
+    const el = document.getElementById(secao);
+    if(el) el.style.display = 'block';
 };
-
 
 let produtosMap = {};
 let itensVendaAtual = [];
@@ -73,7 +73,7 @@ async function carregarClientes() {
         tabelaClientes.appendChild(tr);
         clienteSelect.innerHTML += `<option value="${docSnap.id}">${cliente.nome}</option>`;
     });
-}
+};
 
 
 window.editarCliente = async (id, nome, telefone) => {
@@ -100,7 +100,7 @@ document.getElementById("btnCadastrarCliente").addEventListener("click", async (
   document.getElementById("nomeCliente").value = "";
   document.getElementById("telefoneCliente").value = "";
   carregarClientes();
-});
+})
 
 // estoque / produtos
 async function carregarEstoque() {
@@ -128,7 +128,7 @@ async function carregarEstoque() {
 
         produtoSelect.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
         produtoSelectOrcamento.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
-    });
+    })
 }
 
 
@@ -147,7 +147,7 @@ window.excluirProduto = async (id) => {
     await deleteDoc(doc(db, "produtos", id));
     carregarEstoque();
   }
-};
+}
 
 document.getElementById("btnCadastrarProduto").addEventListener("click", async () => {
   const nome = document.getElementById("nomeProduto").value.trim();
@@ -328,3 +328,81 @@ function renderizarOrcamentos() {
             <td>${item.quantidade}</td>
             <td>${item.precoUnit.toFixed(2)}</td>
             <td>${total.toFixed(2)}</td>
+            <td><button onclick="removerItemOrcamento(${index})">Remover</button></td>`;
+        tabelaOrcamentos.appendChild(tr);
+    });
+}
+
+window.removerItemOrcamento = (index) => {
+    itensOrcamentoAtual.splice(index, 1);
+    renderizarOrcamentos();
+};
+
+// carregar orçamentos (da coleção 'orcamentos')
+async function carregarOrcamentos() {
+    const tabela = document.querySelector('#tabelaOrcamentosSalvos tbody');
+    tabela.innerHTML = '';
+
+    const snapshot = await getDocs(collection(db, 'orcamentos'));
+    snapshot.forEach(docSnap => {
+        const orcamento = docSnap.data();
+        orcamento.itens.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${orcamento.data?.toDate ? orcamento.data.toDate().toLocaleDateString() : ''}</td>
+                <td>${item.clienteNome}</td>
+                <td>${item.produtoNome}</td>
+                <td>${item.quantidade}</td>
+                <td>${item.precoUnit.toFixed(2)}</td>
+                <td>${(item.quantidade*item.precoUnit).toFixed(2)}</td>
+            `;
+            tabela.appendChild(tr);
+        });
+    });
+}
+
+// carregar tabela de preços (exemplo)
+async function carregarPrecos() {
+    tabelaPrecos.innerHTML = '';
+    const snapshot = await getDocs(produtosCol);
+    snapshot.forEach(docSnap => {
+        const p = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${p.nome}</td>
+            <td>${(p.preco || 0).toFixed(2)}</td>
+            <td>${(p.estampaFrente || '-')}</td>
+        `;
+        tabelaPrecos.appendChild(tr);
+    });
+}
+
+// gerar PDF de orçamentos (exemplo)
+function gerarPdfOrcamento() {
+    const doc = new jsPDF.jsPDF();
+    doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
+    const rows = itensOrcamentoAtual.map(item => [
+        item.clienteNome, item.produtoNome, item.quantidade, item.precoUnit.toFixed(2), (item.quantidade * item.precoUnit).toFixed(2)
+    ]);
+    doc.autoTable({ head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']], body: rows, startY: 20 });
+    doc.save('orcamento.pdf');
+}
+
+// exportar registros vendas
+function exportarPDFRegistros() {
+    const docPDF = new jsPDF.jsPDF();
+    docPDF.text("Registros de Vendas", 14, 16);
+    docPDF.autoTable({ html: '#tabelaRegistros', startY: 20 });
+    docPDF.save('registros_vendas.pdf');
+}
+
+ // ==========================
+// 🔹 INICIALIZAÇÃO
+// ==========================
+window.addEventListener('DOMContentLoaded', () => {
+    mostrarSecao('clientes'); // mostra seção inicial
+    carregarClientes();
+    carregarEstoque();
+    carregarRegistroVendas();
+    carregarOrcamentos();
+});
