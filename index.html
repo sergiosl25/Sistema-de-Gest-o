@@ -1,41 +1,44 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Gestão</title>
+  <title>Alvespersonalizados</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Sistema de Gestão</h1>
+   <header>
+    <div class="header-left">
+      <img src="logo.png" alt="logo" class="logo">
+    </div>
+    <div class="header-center">
+      <h1>Alvespersonalizados</h1>
+      <nav>
+        <button onclick="mostrarSecao('clientes')">Clientes</button>
+        <button onclick="mostrarSecao('estoque')">Estoque</button>
+        <button onclick="mostrarSecao('orcamentos')">Orçamentos</button>
+        <button onclick="mostrarSecao('vendas')">Vendas</button>
+        <button onclick="mostrarSecao('registrosVendas')">Registros de Vendas</button>
+        <button onclick="mostrarSecao('precos')">Tabela de Preços</button>
+      </nav>
+    </div>
     <div id="userInfo">
       <span>Usuário: <strong id="userEmail"></strong></span>
       <button id="btnLogout">Sair</button>
     </div>
   </header>
 
-  <nav>
-    <button onclick="mostrarSecao('clientes')">Clientes</button>
-    <button onclick="mostrarSecao('estoque')">Estoque</button>
-    <button onclick="mostrarSecao('vendas')">Vendas</button>
-    <button onclick="mostrarSecao('orcamentos')">Orçamentos</button>
-    <button onclick="mostrarSecao('precos')">Tabela de Preços</button>
-    <button onclick="mostrarSecao('registros')">Registros</button>
-  </nav>
-
-  <!-- ================= CLIENTES ================= -->
   <section id="clientes" class="secao">
-    <h2>Clientes</h2>
+    <h2>Cadastro de Clientes</h2>
     <div>
       <input type="text" id="nomeCliente" placeholder="Nome *">
       <input type="text" id="telefoneCliente" placeholder="Telefone">
-      <button id="btnCadastrarCliente">Cadastrar</button>
+      <button id="btnCadastrarCliente">Cadastrar Cliente</button>
     </div>
-
-    <table id="tabelaClientes" border="1">
+    <h3>Lista de Clientes</h3>
+    <table id="tabelaClientes">
       <thead>
         <tr>
           <th>Nome</th>
@@ -47,21 +50,19 @@
     </table>
   </section>
 
-  <!-- ================= ESTOQUE ================= -->
+  <!-- Produtos -->
   <section id="estoque" class="secao" style="display:none;">
     <h2>Estoque</h2>
-    <div>
       <input type="text" id="nomeProduto" placeholder="Nome do Produto *">
       <input type="number" id="quantidadeProduto" placeholder="Quantidade">
-      <input type="number" id="precoProduto" placeholder="Preço">
-      <button id="btnCadastrarProduto">Cadastrar</button>
+      <button id="btnCadastrarProduto">Cadastrar Produto</button>
     </div>
-
-    <table id="tabelaEstoque" border="1">
+    
+    <table id="tabelaEstoque">
       <thead>
         <tr>
           <th>Produto</th>
-          <th>Quantidade</th>
+          <th>Qtd</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -69,87 +70,64 @@
     </table>
   </section>
 
-  <!-- ================= VENDAS ================= -->
-  <section id="vendas" class="secao" style="display:none;">
-    <h2>Vendas</h2>
-    <div>
-      <label>Cliente:</label>
-      <select id="clienteSelect">
-        <option value="">Selecione</option>
-      </select>
+  <!-- Vendas -->
+<section id="vendas" class="secao" style="display:none;">
+  <h2>Vendas</h2>
+    <select id="clienteSelect">
+      <option value="">Selecione o cliente</option>
+    </select>
 
-      <label>Produto:</label>
-      <select id="produtoSelect">
-        <option value="">Selecione</option>
-      </select>
+    <select id="produtoSelect">
+      <option value="">Selecione o produto</option>
+    </select>
 
-      <input type="number" id="quantidadeVenda" placeholder="Qtd">
-      <button onclick="adicionarItemVenda()">Adicionar Item</button>
-    </div>
+    <select id="tipoPrecoSelect">
+      <option value="">Selecione tipo de preço</option>
+      <option value="preco">Preço</option>
+      <option value="estampaFrente">Estampa frente</option>
+      <option value="estampaFrenteVerso">Estampa Frente e Verso</option>
+      <option value="branca">Branca</option>
+      <option value="interiorCores">Interior em cores</option>
+      <option value="magicaFosca">Mágica fosca</option>
+      <option value="magicaBrilho">Mágica brilho</option>
+      <option value="precoVenda">Venda padrão</option>
+    </select>
 
-    <table id="tabelaItensVenda" border="1">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Qtd</th>
-          <th>Preço</th>
-          <th>Desconto</th>
-          <th>Subtotal</th>
-          <th>Total</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <input type="number" id="precoVenda" placeholder="Preço (R$)" readonly>
+    <input type="number" id="quantidadeVenda" placeholder="Qtd">
 
-    <p><strong>Total: R$ <span id="totalVenda">0.00</span></strong></p>
-    <button id="btnFinalizarVenda">Finalizar Venda</button>
-  </section>
+    <select id="formaPagamento">
+      <option value="Dinheiro">Dinheiro</option>
+      <option value="Cartãocrédito">Cartão de crédito</option>
+      <option value="Cartãodébito">Cartão de débito</option>
+      <option value="Pix">Pix</option>
+    </select>
 
-  <!-- ================= ORÇAMENTOS ================= -->
-  <section id="orcamentos" class="secao" style="display:none;">
-    <h2>Orçamentos</h2>
-    <table id="tabelaOrcamentos" border="1">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>Cliente</th>
-          <th>Produto</th>
-          <th>Qtd</th>
-          <th>Preço</th>
-          <th>Total</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
+    <button onclick="adicionarItemVenda()">Adicionar Item</button>
+    <button id="btnVender">Finalizar Venda</button>
+    <button id="btnDesconto">Desconto</button>
+    <button id="btnDescontoVenda">Desconto na Venda</button>
+  </div>
+<table id="tabelaItensVenda">
+  <thead>
+    <tr>
+      <th>Produto</th>
+      <th>Qtd</th>
+      <th>Preço Unitário</th>
+      <th>Desconto</th>
+      <th>Total Antes</th>
+      <th>Total Após</th>
+      <th>Total</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-  <!-- ================= TABELA DE PREÇOS ================= -->
-  <section id="precos" class="secao" style="display:none;">
-    <h2>Tabela de Preços</h2>
-    <table id="tabelaPrecos" border="1">
-      <thead>
-        <tr>
-          <th>Produto</th>
-          <th>Preço Base</th>
-          <th>Estampa Frente</th>
-          <th>Estampa Frente e Verso</th>
-          <th>Branca</th>
-          <th>Interior Cores</th>
-          <th>Mágica Fosca</th>
-          <th>Mágica Brilho</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <!-- ================= REGISTROS DE VENDAS ================= -->
-  <section id="registros" class="secao" style="display:none;">
+  <!-- Registros -->
+  <section id="registrosVendas" class="secao" style="display:none;">
     <h2>Registros de Vendas</h2>
-    <table id="tabelaRegistros" border="1">
+    <table id="tabelaRegistros">
       <thead>
         <tr>
           <th>Data</th>
@@ -158,14 +136,135 @@
           <th>Qtd</th>
           <th>Preço Unitário</th>
           <th>Desconto</th>
-          <th>Subtotal</th>
-          <th>Total</th>
+          <th>Total Antes</th>
+          <th>Total Após</th>
+          <th>Pagamento</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+    <p class="total">Total Geral: <span id="totalGeralRegistros">R$ 0,00</span></p>
+    <button onclick="exportarPDF()">Exportar PDF</button>
   </section>
 
-  <script type="module" src="script.js"></script>
+<section id="orcamentos" class="secao" style="display:none;">
+  <h2>Orçamentos</h2>
+    <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
+    <select id="produtoSelectOrcamento"></select>
+    <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
+    <button id="btnAdicionarProduto">Adicionar Produto</button>
+    <button id="btnGerarPDF">Gerar PDF</button>
+  </div>
+  
+  <h3>Orçamento Atual</h3>
+  <table id="tabelaOrcamentos">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Cliente</th>
+        <th>Produto</th>
+        <th>Quantidade</th>
+        <th>Preço unitario</th>
+        <th>Preço total</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h3>Orçamentos Salvos</h3>
+  <table id="tabelaOrcamentosSalvos">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Cliente</th>
+        <th>Produto</th>
+        <th>Quantidade</th>
+        <th>Preço unitario</th>
+        <th>Preço total</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section id="precos" class="secao" style="display:none;">
+  <table id="tabelaPrecos">
+    <thead>
+      <tr>
+        <th>Produto</th>
+        <th>Preço</th>
+        <th>Estampa Frente</th>
+        <th>Estampa Frente e Verso</th>
+        <th>Branca</th>
+        <th>Interior Cores</th>
+        <th>Mágica Fosca</th>
+        <th>Mágica Brilho</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button id="btnNovaLinhaPreco">Nova Linha</button>
+  <select id="produtoSelectPreco"></select>
+</section>
+
+<!-- ===== Modal de Edição ===== -->
+<div id="modalEditar" class="modal">
+  <h2 id="modalEditarTitulo"></h2>
+  <label>Nome: <input id="modalEditarNome" type="text"></label>
+  <label>Telefone: <input id="modalEditarTelefone" type="text"></label>
+  <label>Quantidade: <input id="modalEditarQuantidade" type="number"></label>
+  <label>Preço: <input id="modalEditarPreco" type="number" step="0.01"></label>
+  <button id="btnSalvarEdicao">Salvar</button>
+  <button id="btnCancelarEdicao">Cancelar</button>
+</div>
+
+<!-- Modal Exclusão -->
+<div id="modalExcluir" class="modal">
+  <div class="modal-content">
+    <p>Deseja realmente excluir?</p>
+    <button id="btnConfirmarExcluir">Sim</button>
+    <button id="btnCancelarExcluir">Não</button>
+  </div>
+</div>
+
+  <!-- ===========================
+     🔹 MODAL DE DESCONTO GENÉRICO
+=========================== -->
+<div id="modalDesconto" class="modal">
+  <div class="modal-content">
+    <h3 id="tituloModalDesconto">Aplicar Desconto</h3>
+
+    <label for="tipoDesconto">Tipo de desconto:</label>
+    <select id="tipoDesconto">
+      <option value="percentual">Percentual (%)</option>
+      <option value="valor">Valor (R$)</option>
+    </select>
+
+    <label for="valorDesconto">Valor do desconto:</label>
+    <input type="number" id="valorDesconto" placeholder="Digite o valor do desconto" step="0.01">
+
+    <div style="margin-top: 10px;">
+      <button id="btnAplicarDesconto">Aplicar</button>
+      <button id="btnCancelarDesconto">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="firebase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script type="module" src="script.js"></script>
+
+<div id="tela-login" style="display:none;">
+  <h2>Login</h2>
+  <input type="email" id="emailLogin" placeholder="E-mail">
+  <input type="password" id="senhaLogin" placeholder="Senha">
+  <button onclick="login(emailLogin.value, senhaLogin.value)">Entrar</button>
+</div>
+<script type="module" src="firebase-config.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
