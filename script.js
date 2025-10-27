@@ -55,26 +55,29 @@ const clientesCol = collection(db, 'clientes');
 const orcamentosCol = collection(db, 'orcamentos')
 
 async function carregarClientes() {
-    tabelaClientes.innerHTML = '';
+    const snapshot = await getDocs(collection(db, 'clientes'));
+    const tbody = document.querySelector('#tabelaClientes tbody');
+    const clienteSelect = document.getElementById('clienteSelect');
+    tbody.innerHTML = '';
     clienteSelect.innerHTML = '<option value="">Selecione o cliente</option>';
 
-    const snapshot = await getDocs(collection(db, 'clientes'));
+    if (!snapshot) return; // protege caso não haja snapshot
+
     snapshot.forEach(docSnap => {
-        const cliente = docSnap.data();
+        const cliente = docSnap.data() || {};
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${cliente.nome}</td>
+            <td>${cliente.nome || ''}</td>
             <td>${cliente.telefone || ''}</td>
             <td>
-                <button onclick="editarCliente('${docSnap.id}', '${cliente.nome}', '${cliente.telefone || ''}')">Editar</button>
+            <button onclick="editarCliente('${docSnap.id}', '${cliente.nome || ''}', '${cliente.telefone || ''}')">Editar</button>
                 <button onclick="excluirCliente('${docSnap.id}')">Excluir</button>
-            </td>
-        `;
-        tabelaClientes.appendChild(tr);
-        clienteSelect.innerHTML += `<option value="${docSnap.id}">${cliente.nome}</option>`;
-    });
-};
+            </td>`;
+        tbody.appendChild(tr);
 
+        clienteSelect.innerHTML += `<option value="${docSnap.id}">${cliente.nome || ''}</option>`;
+    });
+}
 
 window.editarCliente = async (id, nome, telefone) => {
   const novoNome = prompt("Novo nome:", nome);
@@ -83,7 +86,7 @@ window.editarCliente = async (id, nome, telefone) => {
     await updateDoc(doc(db, "clientes", id), { nome: novoNome, telefone: novoTel });
     carregarClientes();
   }
-};
+}
 
 window.excluirCliente = async (id) => {
     if (confirm("Deseja realmente excluir?")) {
@@ -104,33 +107,35 @@ document.getElementById("btnCadastrarCliente").addEventListener("click", async (
 
 // estoque / produtos
 async function carregarEstoque() {
-    tabelaEstoque.innerHTML = '';
+    const snapshot = await getDocs(collection(db, 'produtos'));
+    const tbody = document.querySelector('#tabelaEstoque tbody');
+    const produtoSelect = document.getElementById('produtoSelect');
+    const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
+    tbody.innerHTML = '';
     produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
     produtoSelectOrcamento.innerHTML = '<option value="">Selecione o produto</option>';
+    produtosMap = {};
 
-    const snapshot = await getDocs(collection(db, 'produtos'));
-    produtosMap = {}; // reinicia o mapa
+    if (!snapshot) return;
 
     snapshot.forEach(docSnap => {
-        const produto = docSnap.data();
+        const produto = docSnap.data() || {};
         produtosMap[docSnap.id] = produto;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${produto.nome}</td>
+            <td>${produto.nome || ''}</td>
             <td>${produto.quantidade || 0}</td>
             <td>
-                <button onclick="editarProduto('${docSnap.id}', '${produto.nome}', ${produto.quantidade || 0})">Editar</button>
+            <button onclick="editarProduto('${docSnap.id}', '${produto.nome || ''}', ${produto.quantidade || 0})">Editar</button>
                 <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
-            </td>
-        `;
-        tabelaEstoque.appendChild(tr);
+            </td>`;
+        tbody.appendChild(tr);
 
-        produtoSelect.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
-        produtoSelectOrcamento.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
-    })
+        produtoSelect.innerHTML += `<option value="${docSnap.id}">${produto.nome || ''}</option>`;
+        produtoSelectOrcamento.innerHTML += `<option value="${docSnap.id}">${produto.nome || ''}</option>`;
+    });
 }
-
 
 window.editarProduto = async (id, nome, qtd, preco) => {
   const novoNome = prompt("Nome:", nome);
@@ -238,25 +243,27 @@ async function carregarVendas() {
 }
 
 async function carregarRegistroVendas() {
-    const tabela = document.querySelector('#tabelaRegistros tbody');
-    tabela.innerHTML = '';
-
     const snapshot = await getDocs(collection(db, 'vendas'));
+    const tbody = document.querySelector('#tabelaRegistros tbody');
+    tbody.innerHTML = '';
+
+    if (!snapshot) return;
+
     snapshot.forEach(docSnap => {
-        const venda = docSnap.data();
-        venda.itens.forEach(item => {
+        const venda = docSnap.data() || {};
+        const itens = venda.itens || [];
+        itens.forEach(item => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${venda.data?.toDate ? venda.data.toDate().toLocaleDateString() : ''}</td>
-                <td>${clienteSelect.querySelector(`option[value="${venda.clienteId}"]`)?.textContent || ''}</td>
-                <td>${item.produtoNome}</td>
-                <td>${item.quantidade}</td>
-                <td>${item.precoUnit.toFixed(2)}</td>
-                <td>${item.desconto.toFixed(2)}</td>
-                <td>${(item.precoUnit*item.quantidade).toFixed(2)}</td>
-                <td>${(item.precoUnit*item.quantidade - item.desconto).toFixed(2)}</td>
-            `;
-            tabela.appendChild(tr);
+                <td>${venda.data?.seconds ? new Date(venda.data.seconds*1000).toLocaleDateString() : ''}</td>
+                <td>${venda.clienteId || ''}</td>
+                <td>${item.produtoNome || ''}</td>
+                <td>${item.quantidade || 0}</td>
+                <td>${item.precoUnit?.toFixed(2) || '0.00'}</td>
+                <td>${item.desconto?.toFixed(2) || '0.00'}</td>
+                <td>${(item.precoUnit*item.quantidade)?.toFixed(2) || '0.00'}</td>
+                <td>${((item.precoUnit*item.quantidade)-item.desconto)?.toFixed(2) || '0.00'}</td>`;
+            tbody.appendChild(tr);
         });
     });
 }
@@ -340,40 +347,64 @@ window.removerItemOrcamento = (index) => {
 
 // carregar orçamentos (da coleção 'orcamentos')
 async function carregarOrcamentos() {
-    const tabela = document.querySelector('#tabelaOrcamentosSalvos tbody');
-    tabela.innerHTML = '';
-
     const snapshot = await getDocs(collection(db, 'orcamentos'));
+    const tbody = document.querySelector('#tabelaOrcamentos tbody');
+    tbody.innerHTML = '';
+
+    if (!snapshot) return;
+
     snapshot.forEach(docSnap => {
-        const orcamento = docSnap.data();
-        orcamento.itens.forEach(item => {
+        const orcamento = docSnap.data() || {};
+        const itens = orcamento.itens || [];
+        itens.forEach(item => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${orcamento.data?.toDate ? orcamento.data.toDate().toLocaleDateString() : ''}</td>
-                <td>${item.clienteNome}</td>
-                <td>${item.produtoNome}</td>
-                <td>${item.quantidade}</td>
-                <td>${item.precoUnit.toFixed(2)}</td>
-                <td>${(item.quantidade*item.precoUnit).toFixed(2)}</td>
-            `;
-            tabela.appendChild(tr);
-        });
+                <td>${orcamento.data?.seconds ? new Date(orcamento.data.seconds*1000).toLocaleDateString() : new Date().toLocaleDateString()}</td>
+                <td>${item.clienteNome || ''}</td>
+                <td>${item.produtoNome || ''}</td>
+                <td>${item.quantidade || 0}</td>
+                <td>${item.precoUnit?.toFixed(2) || '0.00'}</td>
+                <td>${(item.quantidade*item.precoUnit)?.toFixed(2) || '0.00'}</td>`;
+            tbody.appendChild(tr);
+            });
     });
 }
 
-// carregar tabela de preços (exemplo)
+// ==========================
+// 🔹 CARREGAR TABELA DE PREÇOS
+// ==========================
 async function carregarPrecos() {
-    tabelaPrecos.innerHTML = '';
-    const snapshot = await getDocs(produtosCol);
+    const snapshot = await getDocs(collection(db, 'produtos'));
+    const tbody = document.querySelector('#tabelaPrecos tbody');
+    const produtoSelectPreco = document.getElementById('produtoSelectPreco');
+
+    tbody.innerHTML = '';
+    produtoSelectPreco.innerHTML = '<option value="">Selecione o produto</option>';
+
+    if (!snapshot) return;
+
     snapshot.forEach(docSnap => {
-        const p = docSnap.data();
+        const produto = docSnap.data() || {};
+
+        // Cria linha da tabela de preços
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${p.nome}</td>
-            <td>${(p.preco || 0).toFixed(2)}</td>
-            <td>${(p.estampaFrente || '-')}</td>
-        `;
-        tabelaPrecos.appendChild(tr);
+            <td>${produto.nome || ''}</td>
+            <td>${produto.preco?.toFixed(2) || '0.00'}</td>
+            <td>${produto.estampaFrente?.toFixed(2) || '0.00'}</td>
+            <td>${produto.estampaFrenteVerso?.toFixed(2) || '0.00'}</td>
+            <td>${produto.branca?.toFixed(2) || '0.00'}</td>
+            <td>${produto.interiorCores?.toFixed(2) || '0.00'}</td>
+            <td>${produto.magicaFosca?.toFixed(2) || '0.00'}</td>
+            <td>${produto.magicaBrilho?.toFixed(2) || '0.00'}</td>
+            <td>
+                <button onclick="editarProduto('${docSnap.id}', '${produto.nome || ''}', ${produto.quantidade || 0})">Editar</button>
+                <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
+            </td>`;
+        tbody.appendChild(tr);
+
+        // Preenche o select de produtos
+        produtoSelectPreco.innerHTML += `<option value="${docSnap.id}">${produto.nome || ''}</option>`;
     });
 }
 
@@ -400,9 +431,10 @@ function exportarPDFRegistros() {
 // 🔹 INICIALIZAÇÃO
 // ==========================
 window.addEventListener('DOMContentLoaded', () => {
-    mostrarSecao('clientes'); // mostra seção inicial
+    mostrarSecao('clientes');
     carregarClientes();
     carregarEstoque();
-    carregarRegistroVendas();
     carregarOrcamentos();
+    carregarRegistroVendas();
+    carregarPrecos(); // <- tabela de preços
 });
