@@ -55,23 +55,26 @@ const clientesCol = collection(db, 'clientes');
 const orcamentosCol = collection(db, 'orcamentos')
 
 async function carregarClientes() {
-  tabelaClientes.innerHTML = '';
-  clienteSelectVenda.innerHTML = '';
-  const snapshot = await getDocs(clientesCol);
-  snapshot.forEach(docSnap => {
-    const cliente = docSnap.data();
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${cliente.nome}</td>
-      <td>${cliente.telefone || ''}</td>
-      <td>
-        <button onclick="editarCliente('${docSnap.id}', '${cliente.nome}', '${cliente.telefone || ''}')">Editar</button>
-        <button onclick="excluirCliente('${docSnap.id}')">Excluir</button>
-      </td>`;
-    tabelaClientes.appendChild(tr);
-    clienteSelectVenda.innerHTML += `<option value="${docSnap.id}">${cliente.nome}</option>`;
-  });
+    tabelaClientes.innerHTML = '';
+    clienteSelect.innerHTML = '<option value="">Selecione o cliente</option>';
+
+    const snapshot = await getDocs(collection(db, 'clientes'));
+    snapshot.forEach(docSnap => {
+        const cliente = docSnap.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${cliente.nome}</td>
+            <td>${cliente.telefone || ''}</td>
+            <td>
+                <button onclick="editarCliente('${docSnap.id}', '${cliente.nome}', '${cliente.telefone || ''}')">Editar</button>
+                <button onclick="excluirCliente('${docSnap.id}')">Excluir</button>
+            </td>
+        `;
+        tabelaClientes.appendChild(tr);
+        clienteSelect.innerHTML += `<option value="${docSnap.id}">${cliente.nome}</option>`;
+    });
 }
+
 
 window.editarCliente = async (id, nome, telefone) => {
   const novoNome = prompt("Novo nome:", nome);
@@ -101,26 +104,33 @@ document.getElementById("btnCadastrarCliente").addEventListener("click", async (
 
 // estoque / produtos
 async function carregarEstoque() {
-  tabelaEstoque.innerHTML = '';
-  produtoSelectVenda.innerHTML = '';
-  const snapshot = await getDocs(produtosCol);
-  produtosMap = {};
-  snapshot.forEach(docSnap => {
-    const produto = docSnap.data();
-    produtosMap[docSnap.id] = produto;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${produto.nome}</td>
-      <td>${produto.quantidade || 0}</td>
-      <td>${produto.preco ? produto.preco.toFixed(2) : "0.00"}</td>
-      <td>
-        <button onclick="editarProduto('${docSnap.id}', '${produto.nome}', ${produto.quantidade || 0}, ${produto.preco || 0})">Editar</button>
-        <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
-      </td>`;
-    tabelaEstoque.appendChild(tr);
-    produtoSelectVenda.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
-  });
+    tabelaEstoque.innerHTML = '';
+    produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
+    produtoSelectOrcamento.innerHTML = '<option value="">Selecione o produto</option>';
+
+    const snapshot = await getDocs(collection(db, 'produtos'));
+    produtosMap = {}; // reinicia o mapa
+
+    snapshot.forEach(docSnap => {
+        const produto = docSnap.data();
+        produtosMap[docSnap.id] = produto;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${produto.nome}</td>
+            <td>${produto.quantidade || 0}</td>
+            <td>
+                <button onclick="editarProduto('${docSnap.id}', '${produto.nome}', ${produto.quantidade || 0})">Editar</button>
+                <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
+            </td>
+        `;
+        tabelaEstoque.appendChild(tr);
+
+        produtoSelect.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
+        produtoSelectOrcamento.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
+    });
 }
+
 
 window.editarProduto = async (id, nome, qtd, preco) => {
   const novoNome = prompt("Nome:", nome);
@@ -227,6 +237,30 @@ async function carregarVendas() {
   });
 }
 
+async function carregarRegistroVendas() {
+    const tabela = document.querySelector('#tabelaRegistros tbody');
+    tabela.innerHTML = '';
+
+    const snapshot = await getDocs(collection(db, 'vendas'));
+    snapshot.forEach(docSnap => {
+        const venda = docSnap.data();
+        venda.itens.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${venda.data?.toDate ? venda.data.toDate().toLocaleDateString() : ''}</td>
+                <td>${clienteSelect.querySelector(`option[value="${venda.clienteId}"]`)?.textContent || ''}</td>
+                <td>${item.produtoNome}</td>
+                <td>${item.quantidade}</td>
+                <td>${item.precoUnit.toFixed(2)}</td>
+                <td>${item.desconto.toFixed(2)}</td>
+                <td>${(item.precoUnit*item.quantidade).toFixed(2)}</td>
+                <td>${(item.precoUnit*item.quantidade - item.desconto).toFixed(2)}</td>
+            `;
+            tabela.appendChild(tr);
+        });
+    });
+}
+
 // ==========================
 // 🔹 PDF DE VENDA
 // ==========================
@@ -294,92 +328,3 @@ function renderizarOrcamentos() {
             <td>${item.quantidade}</td>
             <td>${item.precoUnit.toFixed(2)}</td>
             <td>${total.toFixed(2)}</td>
-            <td><button onclick="removerItemOrcamento(${index})">Remover</button></td>`;
-        tabelaOrcamentos.appendChild(tr);
-    });
-}
-
-window.removerItemOrcamento = (index) => {
-    itensOrcamentoAtual.splice(index, 1);
-    renderizarOrcamentos();
-};
-
-// carregar orçamentos (da coleção 'orcamentos')
-async function carregarOrcamentos() {
-    tabelaOrcamentos.innerHTML = '';
-    const snapshot = await getDocs(orcamentosCol);
-    snapshot.forEach(docSnap => {
-        const dados = docSnap.data();
-        // Caso o documento seja estruturado com itens, você pode adaptar aqui.
-        // Exemplo simples: mostrar cliente e total se tiver
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${new Date(dados?.data?.toDate?.() || Date.now()).toLocaleDateString()}</td>
-            <td>${dados.clienteNome || '-'}</td>
-            <td colspan="4">Itens: ${dados.itens ? dados.itens.length : 0}</td>
-        `;
-        tabelaOrcamentos.appendChild(tr);
-    });
-}
-
-// carregar registro de vendas
-async function carregarRegistroVendas() {
-    tabelaRegistros.innerHTML = '';
-    const snapshot = await getDocs(vendasCol);
-    snapshot.forEach(docSnap => {
-        const venda = docSnap.data();
-        const tr = document.createElement('tr');
-        const clienteId = venda.clienteId || '';
-        const dataStr = venda.data && venda.data.toDate ? venda.data.toDate().toLocaleString() : '-';
-        tr.innerHTML = `
-            <td>${docSnap.id}</td>
-            <td>${clienteId}</td>
-            <td>${(venda.itens || []).length}</td>
-            <td>${dataStr}</td>
-        `;
-        tabelaRegistros.appendChild(tr);
-    });
-}
-
-// carregar tabela de preços (exemplo)
-async function carregarPrecos() {
-    tabelaPrecos.innerHTML = '';
-    const snapshot = await getDocs(produtosCol);
-    snapshot.forEach(docSnap => {
-        const p = docSnap.data();
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${p.nome}</td>
-            <td>${(p.preco || 0).toFixed(2)}</td>
-            <td>${(p.estampaFrente || '-')}</td>
-        `;
-        tabelaPrecos.appendChild(tr);
-    });
-}
-
-// gerar PDF de orçamentos (exemplo)
-function gerarPdfOrcamento() {
-    const doc = new jsPDF.jsPDF();
-    doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
-    const rows = itensOrcamentoAtual.map(item => [
-        item.clienteNome, item.produtoNome, item.quantidade, item.precoUnit.toFixed(2), (item.quantidade * item.precoUnit).toFixed(2)
-    ]);
-    doc.autoTable({ head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']], body: rows, startY: 20 });
-    doc.save('orcamento.pdf');
-}
-
-// exportar registros vendas
-function exportarPDFRegistros() {
-    const docPDF = new jsPDF.jsPDF();
-    docPDF.text("Registros de Vendas", 14, 16);
-    docPDF.autoTable({ html: '#tabelaRegistros', startY: 20 });
-    docPDF.save('registros_vendas.pdf');
-}
-
- // ==========================
-// 🔹 INICIALIZAÇÃO
-// ==========================
-window.addEventListener('DOMContentLoaded', () => {
-  console.log("Sistema carregado.");
-})
-
