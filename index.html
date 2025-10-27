@@ -289,28 +289,6 @@
   <input type="password" id="senhaLogin" placeholder="Senha">
   <button onclick="login(emailLogin.value, senhaLogin.value)">Entrar</button>
 </div>
-
-<div id="app" style="display:none;">
-  <button onclick="logout()">Sair</button>
-  <button onclick="mostrarSecao('clientes')">Clientes</button>
-  <button onclick="mostrarSecao('estoque')">Estoque</button>
-
-  <section id="clientes" class="secao">
-    <h3>Clientes</h3>
-    <input id="nomeCliente" placeholder="Nome">
-    <input id="telefoneCliente" placeholder="Telefone">
-    <button id="btnCadastrarCliente">Cadastrar Cliente</button>
-    <table id="tabelaClientes"><tbody></tbody></table>
-  </section>
-
-  <section id="estoque" class="secao" style="display:none;">
-    <h3>Estoque</h3>
-    <input id="nomeProduto" placeholder="Produto">
-    <input id="quantidadeProduto" type="number" placeholder="Qtd">
-    <button id="btnCadastrarProduto">Cadastrar Produto</button>
-    <table id="tabelaEstoque"><tbody></tbody></table>
-  </section>
-</div>
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="script.js"></script>
 </body>
