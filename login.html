@@ -1,22 +1,48 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - Alvespersonalizados</title>
-<link rel="stylesheet" href="programa.css">
-<link rel="stylesheet" href="login.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Alvespersonalizados</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="firebase-config.js"></script>
 </head>
 <body>
   <div class="login-container">
     <h2>Login</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="senha" placeholder="Senha">
+    <input type="email" id="emailLogin" placeholder="E-mail">
+    <input type="password" id="senhaLogin" placeholder="Senha">
     <button id="btnLogin">Entrar</button>
-    <p id="mensagemErro"></p>
+    <p id="mensagemErro" class="erro"></p>
   </div>
 
-  <script type="module" src="login.js"></script>
+  <script type="module">
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
+      from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+    import { app } from "./firebase-config.js";
+
+    const auth = getAuth(app);
+
+    // Verifica se já está logado
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = "index.html";
+      }
+    });
+
+    document.getElementById("btnLogin").addEventListener("click", async () => {
+      const email = document.getElementById("emailLogin").value.trim();
+      const senha = document.getElementById("senhaLogin").value.trim();
+      const msgErro = document.getElementById("mensagemErro");
+
+      try {
+        await signInWithEmailAndPassword(auth, email, senha);
+        window.location.href = "index.html";
+      } catch (error) {
+        msgErro.textContent = "❌ E-mail ou senha inválidos.";
+        console.error(error);
+      }
+    });
+  </script>
 </body>
 </html>
-
