@@ -1,6 +1,14 @@
 import { app } from "./firebase-config.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -374,3 +382,4 @@ function exportarPDFRegistros() {
 window.addEventListener('DOMContentLoaded', () => {
   console.log("Sistema carregado.");
 })
+
