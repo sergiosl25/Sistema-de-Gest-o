@@ -316,6 +316,10 @@ window.addEventListener('DOMContentLoaded', () => {
     mostrarSecao('clientes');
     carregarClientes();
     carregarEstoque();
+    carregarOrcamentos();
+    carregarRegistroVendas();
+    casrregarPrecos();
 });
 }
 }
+
