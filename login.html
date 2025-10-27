@@ -1,46 +1,34 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Alvespersonalizados</title>
+  <title>Login - Sistema de Gestão</title>
   <link rel="stylesheet" href="style.css">
-  <script type="module" src="firebase-config.js"></script>
 </head>
 <body>
   <div class="login-container">
     <h2>Login</h2>
-    <input type="email" id="emailLogin" placeholder="E-mail">
-    <input type="password" id="senhaLogin" placeholder="Senha">
+    <input type="email" id="email" placeholder="E-mail">
+    <input type="password" id="password" placeholder="Senha">
     <button id="btnLogin">Entrar</button>
-    <p id="mensagemErro" class="erro"></p>
+    <p id="msgErro" style="color:red"></p>
   </div>
 
   <script type="module">
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } 
-      from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
     import { app } from "./firebase-config.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
     const auth = getAuth(app);
 
-    // Verifica se já está logado
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = "index.html";
-      }
-    });
-
     document.getElementById("btnLogin").addEventListener("click", async () => {
-      const email = document.getElementById("emailLogin").value.trim();
-      const senha = document.getElementById("senhaLogin").value.trim();
-      const msgErro = document.getElementById("mensagemErro");
-
+      const email = document.getElementById("email").value.trim();
+      const senha = document.getElementById("password").value.trim();
       try {
         await signInWithEmailAndPassword(auth, email, senha);
         window.location.href = "index.html";
-      } catch (error) {
-        msgErro.textContent = "❌ E-mail ou senha inválidos.";
-        console.error(error);
+      } catch (e) {
+        document.getElementById("msgErro").textContent = "Usuário ou senha inválidos.";
       }
     });
   </script>
