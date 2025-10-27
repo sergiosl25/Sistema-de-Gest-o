@@ -55,6 +55,7 @@
   <section id="estoque" class="secao">
     <h2>Estoque</h2>
     <div class="form">
+      <input id="precoProduto" type="number" step="0.01" placeholder="Preço">
       <input type="text" id="nomeProduto" placeholder="Nome do Produto *">
       <input type="number" id="quantidadeProduto" placeholder="Quantidade">
       <button id="btnCadastrarProduto">Cadastrar Produto</button>
@@ -111,6 +112,22 @@
     <button id="btnDesconto">Desconto</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
   </div>
+  
+  <section id="vendas" class="secao" style="display:none;">
+  <h3>Nova Venda</h3>
+  <select id="clienteSelectVenda"></select>
+  <select id="produtoSelectVenda"></select>
+  <input id="quantidadeVenda" type="number" placeholder="Qtd">
+  <input id="descontoVenda" type="number" step="0.01" placeholder="Desconto (R$)">
+  <button onclick="adicionarItemVenda()">Adicionar Item</button>
+
+  <table id="tabelaItensVenda"><tbody></tbody></table>
+  <p>Total: R$ <span id="totalVenda">0.00</span></p>
+  <button id="btnFinalizarVenda">Finalizar Venda</button>
+
+  <h3>Histórico de Vendas</h3>
+  <table id="tabelaVendas"><tbody></tbody></table>
+</section>
 
   <!-- Itens da venda atual -->
 <h3>Itens da venda atual</h3>
@@ -265,6 +282,34 @@
 <script type="module" src="firebase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 <script type="module" src="script.js"></script>
+
+<div id="tela-login" style="display:none;">
+  <h2>Login</h2>
+  <input type="email" id="emailLogin" placeholder="E-mail">
+  <input type="password" id="senhaLogin" placeholder="Senha">
+  <button onclick="login(emailLogin.value, senhaLogin.value)">Entrar</button>
+</div>
+
+<div id="app" style="display:none;">
+  <button onclick="logout()">Sair</button>
+  <button onclick="mostrarSecao('clientes')">Clientes</button>
+  <button onclick="mostrarSecao('estoque')">Estoque</button>
+
+  <section id="clientes" class="secao">
+    <h3>Clientes</h3>
+    <input id="nomeCliente" placeholder="Nome">
+    <input id="telefoneCliente" placeholder="Telefone">
+    <button id="btnCadastrarCliente">Cadastrar Cliente</button>
+    <table id="tabelaClientes"><tbody></tbody></table>
+  </section>
+
+  <section id="estoque" class="secao" style="display:none;">
+    <h3>Estoque</h3>
+    <input id="nomeProduto" placeholder="Produto">
+    <input id="quantidadeProduto" type="number" placeholder="Qtd">
+    <button id="btnCadastrarProduto">Cadastrar Produto</button>
+    <table id="tabelaEstoque"><tbody></tbody></table>
+  </section>
+</div>
 </body>
 </html>
-
