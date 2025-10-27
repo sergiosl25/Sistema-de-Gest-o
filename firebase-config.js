@@ -1,6 +1,4 @@
-// firebase-config.js
-import { initializeApp, } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
@@ -11,8 +9,4 @@ const firebaseConfig = {
   appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
 };
 
-// Inicializa o Firebase apenas se ainda não houver um app
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-export { db };
+export const app = initializeApp(firebaseConfig);
