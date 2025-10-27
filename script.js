@@ -82,7 +82,7 @@ async function carregarClientes() {
         tabelaClientes.appendChild(tr);
         clienteSelect.innerHTML += `<option value="${docSnap.id}">${cliente.nome}</option>`;
     });
-}
+
 
 window.editarCliente = async (id, nome, telefone) => {
     const novoNome = prompt("Nome:", nome);
@@ -136,7 +136,7 @@ async function carregarEstoque() {
         produtoSelect.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
         produtoSelectOrcamento.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
     });
-}
+
 
 window.editarProduto = async (id, nome, quantidade) => {
     const novoNome = prompt("Nome do produto:", nome);
@@ -317,3 +317,5 @@ window.addEventListener('DOMContentLoaded', () => {
     carregarClientes();
     carregarEstoque();
 });
+}
+}
