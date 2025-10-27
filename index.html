@@ -9,6 +9,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
+  <body>
+  <div id="tela-login" style="display:none;">
+    <h2>Login</h2>
+    <input type="email" id="emailLogin" placeholder="E-mail">
+    <input type="password" id="senhaLogin" placeholder="Senha">
+    <button id="btnEntrar">Entrar</button>
+  </div>
    <header>
     <div class="header-left">
       <img src="logo.png" alt="logo" class="logo">
@@ -34,7 +41,7 @@
     <h2>Cadastro de Clientes</h2>
     <div>
       <input type="text" id="nomeCliente" placeholder="Nome *">
-      <input type="text" id="telefoneCliente" placeholder="Telefone">
+      <input type="number" id="telefoneCliente" placeholder="Telefone">
       <button id="btnCadastrarCliente">Cadastrar Cliente</button>
     </div>
     <h3>Lista de Clientes</h3>
@@ -253,17 +260,7 @@
     </div>
   </div>
 </div>
-
-<script type="module" src="firebase-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-<script type="module" src="script.js"></script>
-
-<div id="tela-login" style="display:none;">
-  <h2>Login</h2>
-  <input type="email" id="emailLogin" placeholder="E-mail">
-  <input type="password" id="senhaLogin" placeholder="Senha">
-  <button onclick="login(emailLogin.value, senhaLogin.value)">Entrar</button>
-</div>
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="script.js"></script>
 </body>
