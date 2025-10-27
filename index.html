@@ -1,36 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alvespersonalizados</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alvespersonalizados</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-<header>
-  <div class="header-left">
-    <img src="logo.png" alt="logo" class="logo">
-  </div>
-  <div class="header-center">
-    <h1>Alvespersonalizados</h1>
-    <nav>
-      <button onclick="mostrarSecao('clientes')">Clientes</button>
-      <button onclick="mostrarSecao('estoque')">Estoque</button>
-      <button onclick="mostrarSecao('orcamentos')">Orçamentos</button>
-      <button onclick="mostrarSecao('vendas')">Vendas</button>
-      <button onclick="mostrarSecao('registrosVendas')">Registros de Vendas</button>
-      <button onclick="mostrarSecao('precos')">Tabela de Preços</button>
-    </nav>
-  </div>
-  <div class="header-right">
-  <span id="userEmail"></span>
-  <button class="logout-btn" onclick="logout()">Sair</button>
-</div>
-</header>
+   <header>
+    <div class="header-left">
+      <img src="logo.png" alt="logo" class="logo">
+    </div>
+    <div class="header-center">
+      <h1>Alvespersonalizados</h1>
+      <nav>
+        <button onclick="mostrarSecao('clientes')">Clientes</button>
+        <button onclick="mostrarSecao('estoque')">Estoque</button>
+        <button onclick="mostrarSecao('orcamentos')">Orçamentos</button>
+        <button onclick="mostrarSecao('vendas')">Vendas</button>
+        <button onclick="mostrarSecao('registrosVendas')">Registros de Vendas</button>
+        <button onclick="mostrarSecao('precos')">Tabela de Preços</button>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span id="userEmail"></span>
+      <button class="logout-btn" id="btnLogout">Sair</button>
+    </div>
+  </header>
 
-  <!-- Clientes -->
   <section id="clientes" class="secao">
     <h2>Cadastro de Clientes</h2>
     <div class="form">
@@ -112,7 +112,7 @@
     <button id="btnDesconto">Desconto</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
   </div>
-  
+
   <section id="vendas" class="secao" style="display:none;">
   <h3>Nova Venda</h3>
   <select id="clienteSelectVenda"></select>
@@ -311,5 +311,7 @@
     <table id="tabelaEstoque"><tbody></tbody></table>
   </section>
 </div>
+<script type="module" src="firebase-config.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>
