@@ -1,22 +1,32 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp } 
-    from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } 
-    from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { app } from "./firebase-config.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-// 🔹 jsPDF + autotable
-import * as jsPDF from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
-import "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js";
-// As variáveis de DOM e coleções serão inicializadas dentro do DOMContentLoaded
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
-  authDomain: "personalizados-2eb5f.firebaseapp.com",
-  projectId: "personalizados-2eb5f",
-  storageBucket: "personalizados-2eb5f.firebasestorage.app",
-  messagingSenderId: "498226923096",
-  appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
+// 🔐 Verifica login ao carregar
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+  } else {
+    document.getElementById("userEmail").textContent = user.email;
+    mostrarSecao("clientes");
+  }
+});
+
+// 🔹 Função de logout
+document.getElementById("btnLogout").addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "login.html";
+});
+
+// 🔹 Controle de seções
+window.mostrarSecao = function (id) {
+  document.querySelectorAll(".secao").forEach(sec => sec.style.display = "none");
+  document.getElementById(id).style.display = "block";
 };
+
 
 let produtosMap = {};
 let itensVendaAtual = [];
@@ -35,56 +45,6 @@ const vendasCol = collection(db, 'vendas');
 const produtosCol = collection(db, 'produtos');
 const clientesCol = collection(db, 'clientes');
 const orcamentosCol = collection(db, 'orcamentos')
-
-// ==========================
-// 🔹 CONTROLE DE LOGIN
-// ==========================
-window.login = async function (email, senha) {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, senha);
-    console.log("Usuário logado:", userCredential.user.email);
-    alert("Login realizado com sucesso!");
-    window.location.reload();
-  } catch (error) {
-    console.error("Erro ao logar:", error);
-    alert("Erro ao fazer login: " + error.message);
-  }
-};
-
-window.logout = async function () {
-  try {
-    await signOut(auth);
-    alert("Logout realizado!");
-    window.location.reload();
-  } catch (error) {
-    console.error("Erro ao deslogar:", error);
-    alert("Erro ao sair: " + error.message);
-  }
-}
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    console.log("Usuário autenticado:", user.email);
-    document.getElementById("tela-login").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    mostrarSecao("clientes");
-    carregarClientes();
-    carregarEstoque();
-    carregarVendas();
-  } else {
-    document.getElementById("tela-login").style.display = "block";
-    document.getElementById("app").style.display = "none";
-  }
-})
-
-// ==========================
-// 🔹 FUNÇÃO GLOBAL DE SEÇÕES
-// ==========================
-window.mostrarSecao = (secao) => {
-  document.querySelectorAll('.secao').forEach(s => s.style.display = 'none');
-  const el = document.getElementById(secao);
-  if (el) el.style.display = 'block';
-};
 
 async function carregarClientes() {
   tabelaClientes.innerHTML = '';
