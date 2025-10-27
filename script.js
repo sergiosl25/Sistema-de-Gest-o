@@ -25,13 +25,17 @@ if (btnLogout) {
 }
 
 // 🔹 Controle de seções
-window.mostrarSecao = function(secao) {
-    document.querySelectorAll('.secao').forEach(s => s.style.display = 'none');
-    const el = document.getElementById(secao);
-    if(el) el.style.display = 'block';
-};
+function mostrarSecao(id) {
+  document.querySelectorAll('.secao').forEach(secao => {
+    secao.style.display = 'none';
+  });
+  document.getElementById(id).style.display = 'block';
+}
+
 
 const clienteSelect = document.getElementById('clienteSelect');
+const nomeClienteInput = document.getElementById('nomeClienteCadastro');
+const telefoneClienteInput = document.getElementById('telefoneClienteCadastro');
 const produtoSelect = document.getElementById('produtoSelect');
 const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
 
@@ -417,3 +421,6 @@ window.addEventListener('DOMContentLoaded', () => {
     carregarOrcamentos();
     carregarTabelaVendas();
 });
+
+window.mostrarSecao = mostrarSecao;
+window.logout = logout;
