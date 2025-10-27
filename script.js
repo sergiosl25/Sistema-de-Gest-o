@@ -47,6 +47,14 @@ const clientesCol = collection(db, 'clientes');
 const orcamentosCol = collection(db, 'orcamentos');
 
 // ==========================
+// 🔹 Variáveis Globais
+// ==========================
+let produtosMap = {};
+let itensVendaAtual = [];
+let itensOrcamentoAtual = [];
+
+
+// ==========================
 // 🔹 Clientes
 // ==========================
 async function carregarClientes() {
@@ -172,7 +180,7 @@ window.adicionarItemVenda = () => {
         preco: produto.preco,
         desconto: 0
     });
-    atualizarTabelaVenda();
+    atualizarTabelaVendas();
 }
 
 function atualizarTabelaVendas() {
@@ -195,9 +203,13 @@ function atualizarTabelaVendas() {
     document.getElementById("totalVenda").textContent = total.toFixed(2);
 }
 
+function renderizarItensVenda() {
+    atualizarTabelaVendas();
+}
+
 window.removerItemVenda = (i) => {
     itensVendaAtual.splice(i, 1);
-    atualizarTabelaVenda();
+    atualizarTabelaVendas();
 }
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
@@ -218,6 +230,32 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
     atualizarTabelaVendas();
 });
 
+async function carregarTabelaVendas() {
+    const snapshot = await getDocs(vendasCol);
+    const tabelaRegistros = document.querySelector('#tabelaRegistros tbody');
+    tabelaRegistros.innerHTML = '';
+
+    if (!snapshot.empty) {
+        snapshot.forEach(docSnap => {
+            const venda = docSnap.data() || {};
+            (venda.itens || []).forEach(item => {
+                const subtotal = item.quantidade * item.preco;
+                const total = subtotal - (item.desconto || 0);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${venda.data?.seconds ? new Date(venda.data.seconds * 1000).toLocaleDateString() : ''}</td>
+                    <td>${venda.clienteNome || venda.clienteId || ''}</td>
+                    <td>${item.nome || ''}</td>
+                    <td>${item.quantidade || 0}</td>
+                    <td>${item.preco?.toFixed(2) || '0.00'}</td>
+                    <td>${item.desconto?.toFixed(2) || '0.00'}</td>
+                    <td>${subtotal.toFixed(2)}</td>
+                    <td>${total.toFixed(2)}</td>`;
+                tabelaRegistros.appendChild(tr);
+            });
+        });
+    }
+}
 
 // desconto
 function abrirModalDesconto(index = null, tipo = 'item') {
@@ -236,7 +274,7 @@ function abrirModalDesconto(index = null, tipo = 'item') {
         } else {
             itensVendaAtual.forEach(item => {
                 item.desconto = tipoDesconto === 'percentual'
-                    ? item.precoUnit * item.quantidade * valor / 100
+                    ? item.preco * item.quantidade * valor / 100
                     : valor / itensVendaAtual.length;
             });
         }
@@ -351,11 +389,13 @@ function gerarPdfOrcamento() {
     const doc = new jsPDF.jsPDF();
     doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
     const rows = itensOrcamentoAtual.map(item => [
-        item.clienteNome, item.produtoNome, item.quantidade, item.precoUnit.toFixed(2), (item.quantidade * item.precoUnit).toFixed(2)
+        item.clienteNome, item.produtoNome, item.quantidade, item.preco.toFixed(2), (item.quantidade * item.preco).toFixed(2)
     ]);
     doc.autoTable({ head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']], body: rows, startY: 20 });
     doc.save('orcamento.pdf');
 }
+
+gerarPdfOrcamento();
 
 // exportar registros vendas
 function exportarPDFRegistros() {
@@ -365,7 +405,7 @@ function exportarPDFRegistros() {
     docPDF.save('registros_vendas.pdf');
 }
 
-gerarPdfOrcamento();
+exportarPDFRegistros();
 
 // ==========================
 // 🔹 Inicialização
