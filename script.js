@@ -1,60 +1,118 @@
-// script.js
-import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp } 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp } 
     from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } 
+    from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
-// ✅ UMD jsPDF compatível com navegador
+// 🔹 jsPDF + autotable
 import * as jsPDF from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 import "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js";
-
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
-const auth = getAuth();
-
 // As variáveis de DOM e coleções serão inicializadas dentro do DOMContentLoaded
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAKbGyqNjLGBPmPHaxCGvnDQV4tjQWXFr8",
+  authDomain: "personalizados-2eb5f.firebaseapp.com",
+  projectId: "personalizados-2eb5f",
+  storageBucket: "personalizados-2eb5f.firebasestorage.app",
+  messagingSenderId: "498226923096",
+  appId: "1:498226923096:web:98df6f34a7fd8630a5ec2d"
+};
+
 let produtosMap = {};
 let itensVendaAtual = [];
 let itensOrcamentoAtual = [];
 
-// Elementos DOM - serão atribuídos no DOMContentLoaded
-let produtoSelect, clienteSelect, produtoSelectOrcamento;
-let tabelaClientes, tabelaEstoque, tabelaItensVenda, tabelaOrcamentos, tabelaRegistros, tabelaPrecos;
+const produtoSelect = document.getElementById('produtoSelect');
+const clienteSelect = document.getElementById('clienteSelect');
+const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
+
+const tabelaClientes = document.querySelector('#tabelaClientes tbody');
+const tabelaEstoque = document.querySelector('#tabelaEstoque tbody');
+const tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
+const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
 
 const vendasCol = collection(db, 'vendas');
-const orcamentosCol = collection(db,'orcamentos');
 const produtosCol = collection(db, 'produtos');
 const clientesCol = collection(db, 'clientes');
+const orcamentosCol = collection(db, 'orcamentos')
 
-// --------------------
-// Funções (definidas fora do DOMContentLoaded para organização)
-// --------------------
+// ==========================
+// 🔹 CONTROLE DE LOGIN
+// ==========================
+window.login = async function (email, senha) {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+    console.log("Usuário logado:", userCredential.user.email);
+    alert("Login realizado com sucesso!");
+    window.location.reload();
+  } catch (error) {
+    console.error("Erro ao logar:", error);
+    alert("Erro ao fazer login: " + error.message);
+  }
+};
+
+window.logout = async function () {
+  try {
+    await signOut(auth);
+    alert("Logout realizado!");
+    window.location.reload();
+  } catch (error) {
+    console.error("Erro ao deslogar:", error);
+    alert("Erro ao sair: " + error.message);
+  }
+}
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log("Usuário autenticado:", user.email);
+    document.getElementById("tela-login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    mostrarSecao("clientes");
+    carregarClientes();
+    carregarEstoque();
+    carregarVendas();
+  } else {
+    document.getElementById("tela-login").style.display = "block";
+    document.getElementById("app").style.display = "none";
+  }
+})
+
+// ==========================
+// 🔹 FUNÇÃO GLOBAL DE SEÇÕES
+// ==========================
+window.mostrarSecao = (secao) => {
+  document.querySelectorAll('.secao').forEach(s => s.style.display = 'none');
+  const el = document.getElementById(secao);
+  if (el) el.style.display = 'block';
+};
+
 async function carregarClientes() {
-    tabelaClientes.innerHTML = '';
-    clienteSelect.innerHTML = '<option value="">Selecione...</option>';
-    const snapshot = await getDocs(clientesCol);
-    snapshot.forEach(docSnap => {
-        const cliente = docSnap.data();
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${cliente.nome}</td>
-            <td>${cliente.telefone || ''}</td>
-            <td>
-                <button onclick="editarCliente('${docSnap.id}', '${cliente.nome}', '${cliente.telefone || ''}')">Editar</button>
-                <button onclick="excluirCliente('${docSnap.id}')">Excluir</button>
-            </td>`;
-        tabelaClientes.appendChild(tr);
-        clienteSelect.innerHTML += `<option value="${docSnap.id}">${cliente.nome}</option>`;
-    });
+  tabelaClientes.innerHTML = '';
+  clienteSelectVenda.innerHTML = '';
+  const snapshot = await getDocs(clientesCol);
+  snapshot.forEach(docSnap => {
+    const cliente = docSnap.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${cliente.nome}</td>
+      <td>${cliente.telefone || ''}</td>
+      <td>
+        <button onclick="editarCliente('${docSnap.id}', '${cliente.nome}', '${cliente.telefone || ''}')">Editar</button>
+        <button onclick="excluirCliente('${docSnap.id}')">Excluir</button>
+      </td>`;
+    tabelaClientes.appendChild(tr);
+    clienteSelectVenda.innerHTML += `<option value="${docSnap.id}">${cliente.nome}</option>`;
+  });
 }
 
 window.editarCliente = async (id, nome, telefone) => {
-    const novoNome = prompt("Nome:", nome);
-    const novoTelefone = prompt("Telefone:", telefone);
-    if (novoNome !== null) {
-        await updateDoc(doc(db, "clientes", id), { nome: novoNome, telefone: novoTelefone });
-        await carregarClientes();
-    }
-}
+  const novoNome = prompt("Novo nome:", nome);
+  const novoTel = prompt("Novo telefone:", telefone);
+  if (novoNome) {
+    await updateDoc(doc(db, "clientes", id), { nome: novoNome, telefone: novoTel });
+    carregarClientes();
+  }
+};
 
 window.excluirCliente = async (id) => {
     if (confirm("Deseja realmente excluir?")) {
@@ -63,71 +121,160 @@ window.excluirCliente = async (id) => {
     }
 }
 
+document.getElementById("btnCadastrarCliente").addEventListener("click", async () => {
+  const nome = document.getElementById("nomeCliente").value.trim();
+  const telefone = document.getElementById("telefoneCliente").value.trim();
+  if (!nome) return alert("Nome é obrigatório");
+  await addDoc(clientesCol, { nome, telefone });
+  document.getElementById("nomeCliente").value = "";
+  document.getElementById("telefoneCliente").value = "";
+  carregarClientes();
+});
+
 // estoque / produtos
 async function carregarEstoque() {
-    tabelaEstoque.innerHTML = '';
-    produtoSelect.innerHTML = '<option value="">Selecione...</option>';
-    produtoSelectOrcamento.innerHTML = '<option value="">Selecione...</option>';
-    produtosMap = {};
-    const snapshot = await getDocs(produtosCol);
-    snapshot.forEach(docSnap => {
-        const produto = docSnap.data();
-        produtosMap[docSnap.id] = produto;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${produto.nome}</td>
-            <td>${produto.quantidade || 0}</td>
-            <td>
-                <button onclick="editarProduto('${docSnap.id}', '${produto.nome}', ${produto.quantidade || 0})">Editar</button>
-                <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
-            </td>`;
-        tabelaEstoque.appendChild(tr);
-
-        produtoSelect.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
-        produtoSelectOrcamento.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
-    });
+  tabelaEstoque.innerHTML = '';
+  produtoSelectVenda.innerHTML = '';
+  const snapshot = await getDocs(produtosCol);
+  produtosMap = {};
+  snapshot.forEach(docSnap => {
+    const produto = docSnap.data();
+    produtosMap[docSnap.id] = produto;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${produto.nome}</td>
+      <td>${produto.quantidade || 0}</td>
+      <td>${produto.preco ? produto.preco.toFixed(2) : "0.00"}</td>
+      <td>
+        <button onclick="editarProduto('${docSnap.id}', '${produto.nome}', ${produto.quantidade || 0}, ${produto.preco || 0})">Editar</button>
+        <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
+      </td>`;
+    tabelaEstoque.appendChild(tr);
+    produtoSelectVenda.innerHTML += `<option value="${docSnap.id}">${produto.nome}</option>`;
+  });
 }
 
-window.editarProduto = async (id, nome, quantidade) => {
-    const novoNome = prompt("Nome do produto:", nome);
-    const novaQtd = parseInt(prompt("Quantidade:", quantidade));
-    if (novoNome !== null && !isNaN(novaQtd)) {
-        await updateDoc(doc(db, "produtos", id), { nome: novoNome, quantidade: novaQtd });
-        await carregarEstoque();
-    }
+window.editarProduto = async (id, nome, qtd, preco) => {
+  const novoNome = prompt("Nome:", nome);
+  const novaQtd = parseInt(prompt("Quantidade:", qtd));
+  const novoPreco = parseFloat(prompt("Preço:", preco));
+  if (novoNome) {
+    await updateDoc(doc(db, "produtos", id), { nome: novoNome, quantidade: novaQtd, preco: novoPreco });
+    carregarEstoque();
+  }
 }
 
 window.excluirProduto = async (id) => {
-    if (confirm("Deseja realmente excluir o produto?")) {
-        await deleteDoc(doc(db, "produtos", id));
-        await carregarEstoque();
-    }
-}
+  if (confirm("Excluir produto?")) {
+    await deleteDoc(doc(db, "produtos", id));
+    carregarEstoque();
+  }
+};
+
+document.getElementById("btnCadastrarProduto").addEventListener("click", async () => {
+  const nome = document.getElementById("nomeProduto").value.trim();
+  const quantidade = parseInt(document.getElementById("quantidadeProduto").value) || 0;
+  const preco = parseFloat(document.getElementById("precoProduto").value) || 0;
+  if (!nome) return alert("Nome é obrigatório");
+  await addDoc(produtosCol, { nome, quantidade, preco });
+  document.getElementById("nomeProduto").value = "";
+  document.getElementById("quantidadeProduto").value = "";
+  document.getElementById("precoProduto").value = "";
+  carregarEstoque();
+})
 
 // vendas
-function renderizarItensVenda() {
-    tabelaItensVenda.innerHTML = '';
-    itensVendaAtual.forEach((item, index) => {
-        const totalAntes = item.precoUnit * item.quantidade;
-        const totalApos = totalAntes - (item.desconto || 0);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.produtoNome}</td>
-            <td>${item.quantidade}</td>
-            <td>${item.precoUnit.toFixed(2)}</td>
-            <td>${(item.desconto || 0).toFixed(2)}</td>
-            <td>${totalAntes.toFixed(2)}</td>
-            <td>${totalApos.toFixed(2)}</td>
-            <td><button onclick="removerItemVenda(${index})">Remover</button></td>`;
-        tabelaItensVenda.appendChild(tr);
-    });
+window.adicionarItemVenda = () => {
+  const produtoId = produtoSelectVenda.value;
+  const produto = produtosMap[produtoId];
+  const quantidade = parseInt(document.getElementById("quantidadeVenda").value);
+  if (!produto || quantidade <= 0) return alert("Dados inválidos");
+  itensVendaAtual.push({
+    produtoId,
+    nome: produto.nome,
+    quantidade,
+    preco: produto.preco
+  });
+  atualizarTabelaVenda();
 }
 
-window.removerItemVenda = (index) => {
-    itensVendaAtual.splice(index, 1);
-    renderizarItensVenda();
+function atualizarTabelaVenda() {
+  tabelaItensVenda.innerHTML = '';
+  let total = 0;
+  itensVendaAtual.forEach((item, i) => {
+    const subtotal = item.quantidade * item.preco;
+    total += subtotal;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.nome}</td>
+      <td>${item.quantidade}</td>
+      <td>${item.preco.toFixed(2)}</td>
+      <td>${subtotal.toFixed(2)}</td>
+      <td><button onclick="removerItemVenda(${i})">X</button></td>`;
+    tabelaItensVenda.appendChild(tr);
+  });
+   document.getElementById("totalVenda").textContent = total.toFixed(2);
 }
+
+window.removerItemVenda = (i) => {
+  itensVendaAtual.splice(i, 1);
+  atualizarTabelaVenda();
+}
+
+document.getElementById("btnFinalizarVenda").addEventListener("click", async () => {
+  const clienteId = clienteSelectVenda.value;
+  if (!clienteId || itensVendaAtual.length === 0) return alert("Dados incompletos");
+  const desconto = parseFloat(document.getElementById("descontoVenda").value) || 0;
+
+  let total = itensVendaAtual.reduce((s, i) => s + i.quantidade * i.preco, 0);
+  const totalFinal = total - desconto;
+
+  await addDoc(vendasCol, {
+    clienteId,
+    itens: itensVendaAtual,
+    desconto,
+    total: totalFinal,
+    data: serverTimestamp()
+  });
+
+  alert(`Venda registrada! Total: R$ ${totalFinal.toFixed(2)}`);
+  gerarReciboPDF(clienteId, itensVendaAtual, total, desconto, totalFinal);
+
+  itensVendaAtual = [];
+  atualizarTabelaVenda();
+  carregarVendas();
+})
+
+async function carregarVendas() {
+  tabelaVendas.innerHTML = '';
+  const snapshot = await getDocs(vendasCol);
+  snapshot.forEach(docSnap => {
+    const v = docSnap.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(v.data?.seconds * 1000).toLocaleDateString()}</td>
+      <td>${v.total?.toFixed(2) || '0.00'}</td>
+      <td>${v.desconto?.toFixed(2) || '0.00'}</td>`;
+    tabelaVendas.appendChild(tr);
+  });
+}
+
+// ==========================
+// 🔹 PDF DE VENDA
+// ==========================
+function gerarReciboPDF(clienteId, itens, total, desconto, totalFinal) {
+  const clienteNome = clienteSelectVenda.options[clienteSelectVenda.selectedIndex].text;
+  const doc = new jsPDF.jsPDF();
+  doc.text(`Recibo de Venda - ${new Date().toLocaleDateString()}`, 14, 10);
+  doc.text(`Cliente: ${clienteNome}`, 14, 20);
+  const rows = itens.map(i => [i.nome, i.quantidade, i.preco.toFixed(2), (i.quantidade * i.preco).toFixed(2)]);
+  doc.autoTable({ head: [['Produto', 'Qtd', 'Preço', 'Subtotal']], body: rows, startY: 30 });
+  doc.text(`Total: R$ ${total.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+  doc.text(`Desconto: R$ ${desconto.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 20);
+  doc.text(`Total Final: R$ ${totalFinal.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 30);
+  doc.save("recibo_venda.pdf");
+}
+
 
 // desconto
 function abrirModalDesconto(index = null, tipo = 'item') {
@@ -261,104 +408,9 @@ function exportarPDFRegistros() {
     docPDF.save('registros_vendas.pdf');
 }
 
-// --------------------
-// Inicialização: DOMContentLoaded
-// --------------------
+ // ==========================
+// 🔹 INICIALIZAÇÃO
+// ==========================
 window.addEventListener('DOMContentLoaded', () => {
-    // atribuir elementos DOM (certifica que existem)
-    produtoSelect = document.getElementById('produtoSelect');
-    clienteSelect = document.getElementById('clienteSelect');
-    produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
-
-    tabelaClientes = document.querySelector('#tabelaClientes tbody');
-    tabelaEstoque = document.querySelector('#tabelaEstoque tbody');
-    tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
-    tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
-    tabelaRegistros = document.querySelector('#tabelaRegistros tbody');
-    tabelaPrecos = document.querySelector('#tabelaPrecos tbody');
-
-    // listeners que usam elementos do DOM
-    document.getElementById('btnCadastrarCliente')?.addEventListener('click', async () => {
-        const nome = document.getElementById('nomeCliente').value.trim();
-        const telefone = document.getElementById('telefoneCliente').value.trim();
-        if (!nome) return alert('Nome é obrigatório');
-        await addDoc(collection(db, 'clientes'), { nome, telefone });
-        document.getElementById('nomeCliente').value = '';
-        document.getElementById('telefoneCliente').value = '';
-        carregarClientes();
-    });
-
-    document.getElementById('btnCadastrarProduto')?.addEventListener('click', async () => {
-        const nome = document.getElementById('nomeProduto').value.trim();
-        const quantidade = parseInt(document.getElementById('quantidadeProduto').value) || 0;
-        if (!nome) return alert('Nome é obrigatório');
-        await addDoc(collection(db, 'produtos'), { nome, quantidade });
-        document.getElementById('nomeProduto').value = '';
-        document.getElementById('quantidadeProduto').value = '';
-        carregarEstoque();
-    });
-
-    document.getElementById('btnAdicionarProdutoVenda')?.addEventListener('click', () => {
-        const produtoId = produtoSelect.value;
-        const clienteId = clienteSelect.value;
-        const tipoPreco = document.getElementById('tipoPrecoSelect').value;
-        const quantidade = parseInt(document.getElementById('quantidadeVenda').value) || 1;
-        if (!produtoId || !clienteId || !tipoPreco) return alert('Preencha todos os campos');
-
-        const produto = produtosMap[produtoId];
-        let precoUnit = produto[tipoPreco] || produto.preco || 0;
-
-        itensVendaAtual.push({ produtoId, produtoNome: produto.nome, tipoPreco, quantidade, precoUnit, desconto: 0 });
-        renderizarItensVenda();
-    });
-
-    document.getElementById('btnDesconto')?.addEventListener('click', () => abrirModalDesconto(0,'item'));
-    document.getElementById('btnDescontoVenda')?.addEventListener('click', () => abrirModalDesconto(null,'venda'));
-    document.getElementById('btnVender')?.addEventListener('click', finalizarVenda);
-    document.getElementById('btnAdicionarProduto')?.addEventListener('click', () => {
-        const produtoId = produtoSelectOrcamento.value;
-        const clienteNome = document.getElementById('clienteInputOrcamento').value.trim();
-        const quantidade = parseInt(document.getElementById('quantidadeOrcamento').value) || 1;
-        if (!produtoId || !clienteNome) return alert('Preencha todos os campos');
-        const produto = produtosMap[produtoId];
-        itensOrcamentoAtual.push({ produtoId, produtoNome: produto.nome, clienteNome, quantidade, precoUnit: produto.preco || 0 });
-        renderizarOrcamentos();
-    });
-    document.getElementById('btnGerarPDF')?.addEventListener('click', gerarPdfOrcamento);
-    document.getElementById('btnExportarRegistros')?.addEventListener('click', exportarPDFRegistros);
-
-    // Auth state
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // Usuário logado, inicializa app
-            document.getElementById('tela-login')?.classList.add('hidden');
-            document.getElementById('app')?.classList.remove('hidden');
-            carregarClientes();
-            carregarEstoque();
-            carregarOrcamentos();
-            carregarRegistroVendas();
-            carregarPrecos();
-            mostrarSecao('clientes');
-        } else {
-            // Usuário não logado: mostrar tela de login (assuma que exista)
-            document.getElementById('tela-login')?.classList.remove('hidden');
-            document.getElementById('app')?.classList.add('hidden');
-            console.warn('Nenhum usuário autenticado.');
-        }
-    });
-
-    // Logout (usa signOut)
-    window.logout = async () => {
-        try {
-            await signOut(auth);
-            alert('Logout realizado!');
-            window.location.reload();
-        } catch (err) {
-            console.error('Erro ao deslogar:', err);
-            alert('Erro ao deslogar: ' + err.message);
-        }
-    };
-
-    // mostrar seção inicial
-    mostrarSecao('clientes');
-});
+  console.log("Sistema carregado.");
+})
