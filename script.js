@@ -29,7 +29,7 @@ function mostrarSecao(id) {
   document.querySelectorAll('.secao').forEach(secao => {
     secao.style.display = 'none';
   });
-  document.getElementById(id).style.display = 'block';
+  document.getElementById(secaoId).style.display = 'block';
 }
 
 
@@ -390,6 +390,7 @@ carregarPrecos();
 
 // gerar PDF de orçamentos (exemplo)
 function gerarPdfOrcamento() {
+    const { jsPDF } = window.jspdf;
     const doc = new jsPDF.jsPDF();
     doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
     const rows = itensOrcamentoAtual.map(item => [
