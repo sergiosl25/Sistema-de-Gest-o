@@ -445,9 +445,11 @@ window.addEventListener('DOMContentLoaded', () => {
     carregarClientes();
     carregarEstoque();
     carregarOrcamentos();
+    carregarTabelaVendas();
 });
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
