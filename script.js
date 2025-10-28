@@ -239,20 +239,28 @@ function removerItemVenda(i) {
     atualizarTabelaVendas();
 }
 
-// finalizar venda
-async function finalizarVenda() {
-    if (itensVendaAtual.length === 0) return alert('Adicione ao menos um item');
+document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
     const clienteId = clienteSelect.value;
-    if (!clienteId) return alert('Selecione um cliente');
-    await addDoc(vendasCol, { clienteId, itens: itensVendaAtual, data: serverTimestamp() });
-    itensVendaAtual = [];
-    renderizarItensVenda();
-    alert('Venda registrada com sucesso!');
-}
+    if (!clienteId || itensVendaAtual.length === 0) return alert("Dados incompletos");
 
+    // 🔹 Calcula total da venda
+    const total = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
+
+    // 🔹 Salva no Firebase
+    await addDoc(vendasCol, {
+        clienteId,
+        itens: itensVendaAtual,
+        total,
+        data: serverTimestamp()
+    });
+
+    // 🔹 Exibe confirmação
     alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
+
+    // 🔹 Limpa a venda
     itensVendaAtual = [];
     atualizarTabelaVendas();
+});
 
 
 async function carregarTabelaVendas() {
@@ -320,10 +328,6 @@ function abrirModalDesconto(index = null, tipo = 'item') {
 
 document.getElementById("btnDescontoItem")?.addEventListener("click", () => {
     abrirModalDesconto('item');
-});
-
-document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
-    await finalizarVenda();
 });
 
 // ==========================
