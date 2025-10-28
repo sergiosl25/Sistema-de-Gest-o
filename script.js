@@ -301,6 +301,10 @@ async function finalizarVenda() {
 
 finalizarVenda();
 
+document.getElementById("btnVenderPDF")?.addEventListener("click", () => {
+    exportarPDFRegistros();
+});
+
 // ==========================
 // 🔹 Orçamentos
 // ==========================
@@ -441,10 +445,10 @@ window.addEventListener('DOMContentLoaded', () => {
     carregarClientes();
     carregarEstoque();
     carregarOrcamentos();
-    carregarTabelaVendas();
 });
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
