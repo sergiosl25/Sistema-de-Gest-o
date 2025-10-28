@@ -22,12 +22,12 @@
     <div class="header-center">
       <h1>Alvespersonalizados</h1>
       <nav>
-        <button onclick="mostrarSecao('clientes')">Clientes</button>
-        <button onclick="mostrarSecao('estoque')">Estoque</button>
-        <button onclick="mostrarSecao('orcamentos')">Orçamentos</button>
-        <button onclick="mostrarSecao('vendas')">Vendas</button>
-        <button onclick="mostrarSecao('registrosVendas')">Registros de Vendas</button>
-        <button onclick="mostrarSecao('precos')">Tabela de Preços</button>
+        <button data-target="secaoClientes">Clientes</button>
+        <button data-target="secaoEstoque">Estoque</button>
+        <button data-target="secaoOrcamentos">Orçamentos</button>
+        <button data-target="secaoVendas">Vendas</button>
+        <button data-target="secaoRegistrosVendas">Registros de Vendas</button>
+        <button data-target="secaoPrecos">Tabela de Preços</button>
       </nav>
     </div>
     <div id="userInfo">
@@ -36,7 +36,7 @@
     </div>
   </header>
 
-  <section id="clientes" class="secao">
+  <section id="secaoClientes" class="secao">
     <h2>Cadastro de Clientes</h2>
     <div>
       <input type="text" id="nomeCliente" placeholder="Nome *">
@@ -57,7 +57,7 @@
   </section>
 
   <!-- Produtos -->
-  <section id="estoque" class="secao" style="display:none;">
+  <section id="secaoEstoque" class="secao" style="display:none;">
     <h2>Estoque</h2>
       <input type="text" id="nomeProduto" placeholder="Nome do Produto *">
       <input type="number" id="quantidadeProduto" placeholder="Quantidade">
@@ -77,7 +77,7 @@
   </section>
 
   <!-- Vendas -->
-<section id="vendas" class="secao" style="display:none;">
+<section id="secaoVendas" class="secao" style="display:none;">
   <h2>Vendas</h2>
     <select id="clienteSelect">
       <option value="">Selecione o cliente</option>
@@ -114,7 +114,7 @@
     <button id="btnDesconto">Desconto</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
   </div>
-  
+
 <!-- Tabela de Itens da Venda -->
 <table id="tabelaItensVenda" border="1">
   <thead>
@@ -157,7 +157,7 @@
 </div>
 
   <!-- Registros -->
-  <section id="registrosVendas" class="secao" style="display:none;">
+  <section id="secaoRegistrosVendas" class="secao" style="display:none;">
     <h2>Registros de Vendas</h2>
     <table id="tabelaRegistros">
       <thead>
@@ -180,7 +180,7 @@
     <button id="btnExportarPDF">Exportar PDF</button>
   </section>
 
-<section id="orcamentos" class="secao" style="display:none;">
+<section id="secaoOrcamentos" class="secao" style="display:none;">
   <h2>Orçamentos</h2>
     <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
     <select id="produtoSelectOrcamento"></select>
@@ -222,7 +222,7 @@
   </table>
 </section>
 
-<section id="precos" class="secao" style="display:none;">
+<section id="secaoPrecos" class="secao" style="display:none;">
   <table id="tabelaPrecos">
     <thead>
       <tr>
