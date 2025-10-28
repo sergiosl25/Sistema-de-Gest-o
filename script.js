@@ -5,31 +5,37 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const formLogin = document.getElementById("formLogin");
-const emailLogin = document.getElementById("emailLogin");
-const senhaLogin = document.getElementById("senhaLogin");
-const btnLogout = document.getElementById("btnLogout");
-
-formLogin?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = emailLogin.value.trim();
-    const senha = senhaLogin.value;
-    try {
-        await signInWithEmailAndPassword(auth, email, senha);
-        window.location.href = "index.html";
-    } catch (error) {
-        alert(error.message);
+// 🔐 Verifica login ao carregar
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = "login.html";
+    } else {
+        document.getElementById("userEmail").textContent = user.email;
+        mostrarSecao("clientes");
     }
 });
 
-btnLogout?.addEventListener("click", async () => {
-    try {
+// 🔹 Função de logout
+const btnLogout = document.getElementById("btnLogout");
+if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
         await signOut(auth);
         window.location.href = "login.html";
-    } catch (error) {
-        alert(error.message);
-    }
-});
+    });
+}
+
+// 🔹 Controle de seções
+window.mostrarSecao = function(secaoId) {
+  document.querySelectorAll('.secao').forEach(secao => {
+    secao.style.display = 'none';
+  });
+  const secao = document.getElementById(secaoId);
+  if (secao) secao.style.display = 'block';
+};
+
+const formLogin = document.getElementById('formLogin');
+const emailLogin = document.getElementById('emailLogin');
+const senhaLogin = document.getElementById('senhaLogin');
 
 const clienteSelect = document.getElementById('clienteSelect');
 const nomeClienteInput = document.getElementById('nomeCliente');
@@ -43,18 +49,22 @@ const tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
 const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
 const tabelaVendas = document.querySelector('#tabelaVendas tbody');
 
-import { collection } from "firebase/firestore";
 const vendasCol = collection(db, 'vendas');
-
-import { collection } from "firebase/firestore";
 const produtosCol = collection(db, 'produtos');
-
-import { collection } from "firebase/firestore";
-const clientesCol = collection(db, "clientes");
-
-import { collection } from "firebase/firestore";
+const clientesCol = collection(db, 'clientes');
 const orcamentosCol = collection(db, 'orcamentos');
 
+formLogin?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = emailLogin.value;
+  const senha = senhaLogin.value;
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+    window.location.href = 'index.html'; // ou página principal
+  } catch (err) {
+    alert(err.message);
+  }
+});
 
 // ==========================
 // 🔹 Variáveis Globais
