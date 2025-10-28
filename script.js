@@ -162,7 +162,7 @@ document.getElementById("btnCadastrarProduto")?.addEventListener("click", async 
     const nome = document.getElementById("nomeProduto").value.trim();
     const quantidade = parseInt(document.getElementById("quantidadeProduto").value) || 0;
     if (!nome) return alert("Nome é obrigatório");
-    await addDoc(produtosCol, { nome, quantidade, preco });
+    await addDoc(produtosCol, { nome, quantidade });
     document.getElementById("nomeProduto").value = "";
     document.getElementById("quantidadeProduto").value = "";
     carregarEstoque();
@@ -445,3 +445,4 @@ window.onload = async () => {
 }
 
 window.mostrarSecao = mostrarSecao;
+
