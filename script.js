@@ -458,25 +458,31 @@ document.getElementById("btnExportarPDF")?.addEventListener("click", () => {
     exportarPDFRegistros();
 });
 
-menuBtns.forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const target = btn.dataset.target;
+// ===== CONTROLE DE SEÇÕES =====
+document.addEventListener("DOMContentLoaded", () => {
+  const menuBtns = document.querySelectorAll('header nav button');
+  const secoes = document.querySelectorAll('.secao');
 
-    // Esconder todas as seções
-    secoes.forEach(secao => secao.style.display = 'none');
+  menuBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const target = btn.dataset.target;
 
-    // Mostrar a seção clicada
-    const secaoAlvo = document.getElementById(target);
-    if (secaoAlvo) secaoAlvo.style.display = 'block';
+      // Esconder todas as seções
+      secoes.forEach(secao => secao.style.display = 'none');
 
-    // Recarregar dados da seção selecionada
-    switch (target) {
-      case 'clientes': await carregarClientes(); break;
-      case 'estoque': await carregarEstoque(); break;
-      case 'orcamentos': await carregarOrcamentos(); break;
-      case 'registrosVendas': await carregarTabelaVendas(); break;
-      case 'precos': await carregarPrecos(); break;
-    }
+      // Mostrar a seção clicada
+      const secaoAlvo = document.getElementById(target);
+      if (secaoAlvo) secaoAlvo.style.display = 'block';
+
+      // 🔄 Recarregar dados da seção selecionada
+      switch (target) {
+        case 'clientes': await carregarClientes(); break;
+        case 'estoque': await carregarEstoque(); break;
+        case 'orcamentos': await carregarOrcamentos(); break;
+        case 'registrosVendas': await carregarTabelaVendas(); break;
+        case 'precos': await carregarPrecos(); break;
+      }
+    });
   });
 });
 
@@ -537,4 +543,5 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
