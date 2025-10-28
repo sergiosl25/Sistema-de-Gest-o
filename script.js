@@ -429,7 +429,7 @@ document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
     gerarPdfOrcamento();
 })
 
-document.getElementById("btnexportarPDF")?.addEventListener("click", () => {
+document.getElementById("btnExportarPDF")?.addEventListener("click", () => {
     exportarPDFRegistros();
 })
 
@@ -446,4 +446,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.mostrarSecao = mostrarSecao;
 window.logout = logout;
+
 
