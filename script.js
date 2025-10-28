@@ -161,12 +161,10 @@ window.excluirProduto = async (id) => {
 document.getElementById("btnCadastrarProduto")?.addEventListener("click", async () => {
     const nome = document.getElementById("nomeProduto").value.trim();
     const quantidade = parseInt(document.getElementById("quantidadeProduto").value) || 0;
-    const preco = parseFloat(document.getElementById("precoProduto").value) || 0;
     if (!nome) return alert("Nome é obrigatório");
     await addDoc(produtosCol, { nome, quantidade, preco });
     document.getElementById("nomeProduto").value = "";
     document.getElementById("quantidadeProduto").value = "";
-    document.getElementById("precoProduto").value = "";
     carregarEstoque();
 });
 
@@ -401,17 +399,35 @@ function gerarPdfOrcamento() {
     doc.save('orcamento.pdf');
 }
 
-gerarPdfOrcamento();
-
 // exportar registros vendas
 function exportarPDFRegistros() {
-    const docPDF = new jsPDF.jsPDF();
-    docPDF.text("Registros de Vendas", 14, 16);
-    docPDF.autoTable({ html: '#tabelaRegistros', startY: 20 });
-    docPDF.save('registros_vendas.pdf');
+    if (!window.jspdf) {
+        alert("Biblioteca jsPDF não carregada!");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.text("Registros de Vendas", 14, 16);
+
+    if (typeof doc.autoTable === "function") {
+        doc.autoTable({
+            html: '#tabelaRegistros',
+            startY: 20
+        });
+    } else {
+        alert("AutoTable não disponível!");
+    }
+
+    doc.save("registros.pdf");
 }
 
 exportarPDFRegistros();
+
+document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
+    gerarPdfOrcamento();
+})
 
 // ==========================
 // 🔹 Inicialização
@@ -426,4 +442,3 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.mostrarSecao = mostrarSecao;
 window.logout = logout;
-
