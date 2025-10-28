@@ -286,7 +286,9 @@ function abrirModalDesconto(index = null, tipo = 'item') {
     };
 }
 
-abrirModalDesconto();
+document.getElementById("btnDescontoItem")?.addEventListener("click", () => {
+    abrirModalDesconto(seuIndex, 'item');
+});
 
 // finalizar venda
 async function finalizarVenda() {
@@ -299,10 +301,8 @@ async function finalizarVenda() {
     alert('Venda registrada com sucesso!');
 }
 
-finalizarVenda();
-
-document.getElementById("btnVenderPDF")?.addEventListener("click", () => {
-    exportarPDFRegistros();
+document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
+    await finalizarVenda();
 });
 
 // ==========================
@@ -403,6 +403,10 @@ function gerarPdfOrcamento() {
     doc.save('orcamento.pdf');
 }
 
+document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
+    gerarPdfOrcamento();
+})
+
 // exportar registros vendas
 function exportarPDFRegistros() {
     if (!window.jspdf) {
@@ -427,31 +431,17 @@ function exportarPDFRegistros() {
     doc.save("registros.pdf");
 }
 
-exportarPDFRegistros();
-
-document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
-    gerarPdfOrcamento();
-})
-
 document.getElementById("btnExportarPDF")?.addEventListener("click", () => {
     exportarPDFRegistros();
-})
+});
 
 // ==========================
 // 🔹 Inicialização
 // ==========================
-window.addEventListener('DOMContentLoaded', () => {
-    mostrarSecao('clientes');
-    carregarClientes();
-    carregarEstoque();
-    carregarOrcamentos();
-    carregarTabelaVendas();
-});
+window.onload = async () => {
+    await carregarPrecos();
+    await carregarOrcamentos();
+    await carregarTabelaVendas();
+}
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
