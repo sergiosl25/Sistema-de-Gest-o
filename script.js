@@ -5,37 +5,31 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 🔐 Verifica login ao carregar
-onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        window.location.href = "login.html";
-    } else {
-        document.getElementById("userEmail").textContent = user.email;
-        mostrarSecao("clientes");
+const formLogin = document.getElementById("formLogin");
+const emailLogin = document.getElementById("emailLogin");
+const senhaLogin = document.getElementById("senhaLogin");
+const btnLogout = document.getElementById("btnLogout");
+
+formLogin?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = emailLogin.value.trim();
+    const senha = senhaLogin.value;
+    try {
+        await signInWithEmailAndPassword(auth, email, senha);
+        window.location.href = "index.html";
+    } catch (error) {
+        alert(error.message);
     }
 });
 
-// 🔹 Função de logout
-const btnLogout = document.getElementById("btnLogout");
-if (btnLogout) {
-    btnLogout.addEventListener("click", async () => {
+btnLogout?.addEventListener("click", async () => {
+    try {
         await signOut(auth);
         window.location.href = "login.html";
-    });
-}
-
-// 🔹 Controle de seções
-window.mostrarSecao = function(secaoId) {
-  document.querySelectorAll('.secao').forEach(secao => {
-    secao.style.display = 'none';
-  });
-  const secao = document.getElementById(secaoId);
-  if (secao) secao.style.display = 'block';
-};
-
-const formLogin = document.getElementById('formLogin');
-const emailLogin = document.getElementById('emailLogin');
-const senhaLogin = document.getElementById('senhaLogin');
+    } catch (error) {
+        alert(error.message);
+    }
+});
 
 const clienteSelect = document.getElementById('clienteSelect');
 const nomeClienteInput = document.getElementById('nomeCliente');
@@ -49,29 +43,18 @@ const tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
 const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
 const tabelaVendas = document.querySelector('#tabelaVendas tbody');
 
+import { collection } from "firebase/firestore";
 const vendasCol = collection(db, 'vendas');
+
+import { collection } from "firebase/firestore";
 const produtosCol = collection(db, 'produtos');
-const clientesCol = collection(db, 'clientes');
+
+import { collection } from "firebase/firestore";
+const clientesCol = collection(db, "clientes");
+
+import { collection } from "firebase/firestore";
 const orcamentosCol = collection(db, 'orcamentos');
 
-formLogin.addEventListener('submit', (e) => {
-  e.preventDefault(); // evita reload da página
-
-  const email = emailLogin.value;
-  const senha = senhaLogin.value;
-
-  if (email === '' || senha === '') {
-    alert('Por favor, preencha todos os campos.');
-    return;
-  }
-
-  // Aqui você faz a autenticação (exemplo básico)
-  alert(`Login realizado com sucesso! Bem-vindo, ${email}.`);
-
-  // Ocultar tela de login e mostrar outras seções
-  document.getElementById('tela-login').style.display = 'none';
-  // Exemplo: mostrar menu principal, etc.
-});
 
 // ==========================
 // 🔹 Variáveis Globais
@@ -246,23 +229,21 @@ function removerItemVenda(i) {
     atualizarTabelaVendas();
 }
 
-document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
+// finalizar venda
+async function finalizarVenda() {
+    if (itensVendaAtual.length === 0) return alert('Adicione ao menos um item');
     const clienteId = clienteSelect.value;
-    if (!clienteId || itensVendaAtual.length === 0) return alert("Dados incompletos");
-
-    const total = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
-
-    await addDoc(vendasCol, {
-        clienteId,
-        itens: itensVendaAtual,
-        total,
-        data: serverTimestamp()
-    });
+    if (!clienteId) return alert('Selecione um cliente');
+    await addDoc(vendasCol, { clienteId, itens: itensVendaAtual, data: serverTimestamp() });
+    itensVendaAtual = [];
+    renderizarItensVenda();
+    alert('Venda registrada com sucesso!');
+}
 
     alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
     itensVendaAtual = [];
     atualizarTabelaVendas();
-});
+
 
 async function carregarTabelaVendas() {
     const snapshot = await getDocs(vendasCol);
@@ -328,19 +309,8 @@ function abrirModalDesconto(index = null, tipo = 'item') {
 }
 
 document.getElementById("btnDescontoItem")?.addEventListener("click", () => {
-    abrirModalDesconto(seuIndex, 'item');
+    abrirModalDesconto('item');
 });
-
-// finalizar venda
-async function finalizarVenda() {
-    if (itensVendaAtual.length === 0) return alert('Adicione ao menos um item');
-    const clienteId = clienteSelect.value;
-    if (!clienteId) return alert('Selecione um cliente');
-    await addDoc(vendasCol, { clienteId, itens: itensVendaAtual, data: serverTimestamp() });
-    itensVendaAtual = [];
-    renderizarItensVenda();
-    alert('Venda registrada com sucesso!');
-}
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
     await finalizarVenda();
@@ -403,8 +373,6 @@ async function carregarPrecos() {
     tbody.innerHTML = '';
     produtoSelectPreco.innerHTML = '<option value="">Selecione o produto</option>';
 
-    if (!snapshot) return;
-
     snapshot.forEach(docSnap => {
         const produto = docSnap.data() || {};
 
@@ -420,7 +388,7 @@ async function carregarPrecos() {
             <td>${produto.magicaFosca?.toFixed(2) || '0.00'}</td>
             <td>${produto.magicaBrilho?.toFixed(2) || '0.00'}</td>
             <td>
-                <button onclick="editarProduto('${docSnap.id}', '${produto.nome || ''}', ${produto.quantidade || 0})">Editar</button>
+                <button onclick="editarProduto('${docSnap.id}', '${produto.nome || ''}', ${produto.quantidade || 0}, ${produto.preco || 0})">Editar</button>
                 <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
             </td>`;
         tbody.appendChild(tr);
@@ -534,7 +502,7 @@ btnAplicarDesconto.addEventListener('click', () => {
   } else {
     alert(`Aplicando desconto de R$ ${valor.toFixed(2)}`);
   }
-
+  abrirModal();
   fecharModal();
 });
 
