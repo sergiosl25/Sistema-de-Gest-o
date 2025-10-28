@@ -187,11 +187,15 @@ window.adicionarItemVenda = () => {
 }
 
 function atualizarTabelaVendas() {
-    tabelaItensVenda.innerHTML = '';
-    let total = 0;
+    const tbody = document.querySelector('#tabelaItensVenda tbody');
+    tbody.innerHTML = '';
+    let totalVenda = 0;
+
     itensVendaAtual.forEach((item, i) => {
-        const subtotal = item.quantidade * item.preco;
-        total += subtotal - (item.desconto || 0);
+        const subtotal = item.preco * item.quantidade;
+        const total = subtotal - (item.desconto || 0);
+        totalVenda += total;
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${item.nome}</td>
@@ -199,18 +203,23 @@ function atualizarTabelaVendas() {
             <td>${item.preco.toFixed(2)}</td>
             <td>${item.desconto?.toFixed(2) || '0.00'}</td>
             <td>${subtotal.toFixed(2)}</td>
-            <td>${(subtotal - (item.desconto || 0)).toFixed(2)}</td>
-            <td><button onclick="removerItemVenda(${i})">X</button></td>`;
-        tabelaItensVenda.appendChild(tr);
+            <td>${total.toFixed(2)}</td>
+            <td>
+                <button onclick="removerItemVenda(${i})">X</button>
+                <button onclick="abrirModalDesconto(${i}, 'item')">Desconto</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
     });
-    document.getElementById("totalVenda").textContent = total.toFixed(2);
+
+    document.getElementById('totalVenda').textContent = totalVenda.toFixed(2);
 }
 
 function renderizarItensVenda() {
     atualizarTabelaVendas();
 }
 
-window.removerItemVenda = (i) => {
+function removerItemVenda(i) {
     itensVendaAtual.splice(i, 1);
     atualizarTabelaVendas();
 }
@@ -264,25 +273,35 @@ async function carregarTabelaVendas() {
 function abrirModalDesconto(index = null, tipo = 'item') {
     if (itensVendaAtual.length === 0) return alert('Adicione produtos primeiro');
     const modal = document.getElementById('modalDesconto');
-    document.getElementById('tituloModalDesconto').innerText = tipo === 'item' ? 'Desconto no item' : 'Desconto na venda';
+    const titulo = document.getElementById('tituloModalDesconto');
+    titulo.innerText = tipo === 'item' ? 'Desconto no item' : 'Desconto na venda';
     modal.style.display = 'block';
 
     document.getElementById('btnAplicarDesconto').onclick = () => {
         const tipoDesconto = document.getElementById('tipoDesconto').value;
         const valor = parseFloat(document.getElementById('valorDesconto').value) || 0;
+
         if (tipo === 'item' && index !== null) {
-            itensVendaAtual[index].desconto = tipoDesconto === 'percentual'
-                ? itensVendaAtual[index].precoUnit * itensVendaAtual[index].quantidade * valor / 100
+            const item = itensVendaAtual[index];
+            item.desconto = tipoDesconto === 'percentual' 
+                ? item.preco * item.quantidade * (valor / 100)
                 : valor;
         } else {
+            const totalItens = itensVendaAtual.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
             itensVendaAtual.forEach(item => {
                 item.desconto = tipoDesconto === 'percentual'
-                    ? item.preco * item.quantidade * valor / 100
-                    : valor / itensVendaAtual.length;
+                    ? item.preco * item.quantidade * (valor / 100)
+                    : (valor / totalItens) * (item.preco * item.quantidade);
             });
         }
-        renderizarItensVenda();
+
+        atualizarTabelaVendas();
         modal.style.display = 'none';
+        document.getElementById('valorDesconto').value = '';
+    };
+    document.getElementById('btnCancelarDesconto').onclick = () => {
+        modal.style.display = 'none';
+        document.getElementById('valorDesconto').value = '';
     };
 }
 
@@ -445,4 +464,3 @@ window.onload = async () => {
 }
 
 window.mostrarSecao = mostrarSecao;
-
