@@ -49,9 +49,9 @@ const tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
 const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
 const tabelaVendas = document.querySelector('#tabelaVendas tbody');
 
-const vendasCol = collection(db, 'vendas');
-const produtosCol = collection(db, 'produtos');
 const clientesCol = collection(db, 'clientes');
+const produtosCol = collection(db, 'produtos');
+const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
 formLogin?.addEventListener('submit', async (e) => {
@@ -524,9 +524,11 @@ btnAplicarDesconto.addEventListener('click', () => {
 // 🔹 Inicialização
 // ==========================
 window.onload = async () => {
-    await carregarPrecos();
+    await carregarClientes();
+    await carregarEstoque();
     await carregarOrcamentos();
     await carregarTabelaVendas();
-}
+    await carregarPrecos();
+};
 
 window.mostrarSecao = mostrarSecao;
