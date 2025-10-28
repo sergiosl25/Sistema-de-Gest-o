@@ -114,21 +114,47 @@
     <button id="btnDesconto">Desconto</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
   </div>
-<table id="tabelaItensVenda">
+  
+<!-- Tabela de Itens da Venda -->
+<table id="tabelaItensVenda" border="1">
   <thead>
     <tr>
       <th>Produto</th>
-      <th>Qtd</th>
-      <th>Preço Unitário</th>
+      <th>Quantidade</th>
+      <th>Preço Unit.</th>
       <th>Desconto</th>
-      <th>Total Antes</th>
-      <th>Total Após</th>
+      <th>Subtotal</th>
       <th>Total</th>
       <th>Ações</th>
     </tr>
   </thead>
   <tbody></tbody>
 </table>
+
+<p>Total da Venda: R$ <span id="totalVenda">0.00</span></p>
+
+<button onclick="abrirModalDesconto(null, 'venda')">Desconto na Venda</button>
+
+<!-- Modal de Desconto -->
+<div id="modalDesconto" class="modal">
+  <div class="modal-content">
+    <h3 id="tituloModalDesconto">Aplicar Desconto</h3>
+
+    <label for="tipoDesconto">Tipo de desconto:</label>
+    <select id="tipoDesconto">
+      <option value="percentual">Percentual (%)</option>
+      <option value="valor">Valor (R$)</option>
+    </select>
+
+    <label for="valorDesconto">Valor do desconto:</label>
+    <input type="number" id="valorDesconto" placeholder="Digite o valor do desconto" step="0.01">
+
+    <div style="margin-top: 10px;">
+      <button id="btnAplicarDesconto">Aplicar</button>
+      <button id="btnCancelarDesconto">Cancelar</button>
+    </div>
+  </div>
+</div>
 
   <!-- Registros -->
   <section id="registrosVendas" class="secao" style="display:none;">
@@ -236,29 +262,7 @@
     <button id="btnCancelarExcluir">Não</button>
   </div>
 </div>
-
-  <!-- ===========================
-     🔹 MODAL DE DESCONTO GENÉRICO
-=========================== -->
-<div id="modalDesconto" class="modal">
-  <div class="modal-content">
-    <h3 id="tituloModalDesconto">Aplicar Desconto</h3>
-
-    <label for="tipoDesconto">Tipo de desconto:</label>
-    <select id="tipoDesconto">
-      <option value="percentual">Percentual (%)</option>
-      <option value="valor">Valor (R$)</option>
-    </select>
-
-    <label for="valorDesconto">Valor do desconto:</label>
-    <input type="number" id="valorDesconto" placeholder="Digite o valor do desconto" step="0.01">
-
-    <div style="margin-top: 10px;">
-      <button id="btnAplicarDesconto">Aplicar</button>
-      <button id="btnCancelarDesconto">Cancelar</button>
-    </div>
-  </div>
-</div>
+ 
 <!-- scripts no final do body -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
