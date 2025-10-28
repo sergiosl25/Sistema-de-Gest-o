@@ -445,6 +445,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 window.mostrarSecao = mostrarSecao;
-window.logout = logout;
+
+
 
 
