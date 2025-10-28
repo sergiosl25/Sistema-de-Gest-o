@@ -458,13 +458,9 @@ document.getElementById("btnExportarPDF")?.addEventListener("click", () => {
     exportarPDFRegistros();
 });
 
-// ===== CONTROLE DE SEÇÕES =====
-const menuBtns = document.querySelectorAll('header nav button');
-const secoes = document.querySelectorAll('.secao');
-
 menuBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.target; // id da seção que o botão quer mostrar
+  btn.addEventListener('click', async () => {
+    const target = btn.dataset.target;
 
     // Esconder todas as seções
     secoes.forEach(secao => secao.style.display = 'none');
@@ -472,6 +468,15 @@ menuBtns.forEach(btn => {
     // Mostrar a seção clicada
     const secaoAlvo = document.getElementById(target);
     if (secaoAlvo) secaoAlvo.style.display = 'block';
+
+    // Recarregar dados da seção selecionada
+    switch (target) {
+      case 'clientes': await carregarClientes(); break;
+      case 'estoque': await carregarEstoque(); break;
+      case 'orcamentos': await carregarOrcamentos(); break;
+      case 'registrosVendas': await carregarTabelaVendas(); break;
+      case 'precos': await carregarPrecos(); break;
+    }
   });
 });
 
@@ -532,3 +537,4 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
