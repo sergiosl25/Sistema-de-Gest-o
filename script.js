@@ -454,6 +454,68 @@ document.getElementById("btnExportarPDF")?.addEventListener("click", () => {
     exportarPDFRegistros();
 });
 
+// ===== CONTROLE DE SEÇÕES =====
+const menuBtns = document.querySelectorAll('header nav button');
+const secoes = document.querySelectorAll('.secao');
+
+menuBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target; // id da seção que o botão quer mostrar
+
+    // Esconder todas as seções
+    secoes.forEach(secao => secao.style.display = 'none');
+
+    // Mostrar a seção clicada
+    const secaoAlvo = document.getElementById(target);
+    if (secaoAlvo) secaoAlvo.style.display = 'block';
+  });
+});
+
+// ===== MODAL DE DESCONTO =====
+const modalDesconto = document.getElementById('modalDesconto');
+const btnAplicarDesconto = document.getElementById('btnAplicarDesconto');
+const btnCancelarDesconto = document.getElementById('btnCancelarDesconto');
+
+// Função para abrir modal
+function abrirModal() {
+  modalDesconto.style.display = 'flex';
+}
+
+// Função para fechar modal
+function fecharModal() {
+  modalDesconto.style.display = 'none';
+}
+
+// Botões do modal
+btnCancelarDesconto.addEventListener('click', fecharModal);
+
+// Fechar modal clicando fora do conteúdo
+window.addEventListener('click', (e) => {
+  if (e.target === modalDesconto) {
+    fecharModal();
+  }
+});
+
+// ===== APLICAR DESCONTO =====
+btnAplicarDesconto.addEventListener('click', () => {
+  const tipo = document.getElementById('tipoDesconto').value;
+  const valor = parseFloat(document.getElementById('valorDesconto').value);
+
+  if (isNaN(valor) || valor <= 0) {
+    alert('Digite um valor válido para o desconto.');
+    return;
+  }
+
+  // Aqui você pode adicionar lógica para atualizar preços na tabela ou total
+  if (tipo === 'percentual') {
+    alert(`Aplicando desconto de ${valor}%`);
+  } else {
+    alert(`Aplicando desconto de R$ ${valor.toFixed(2)}`);
+  }
+
+  fecharModal();
+});
+
 // ==========================
 // 🔹 Inicialização
 // ==========================
