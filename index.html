@@ -9,7 +9,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <body>
   <div id="tela-login" style="display:none;">
     <h2>Login</h2>
     <input type="email" id="emailLogin" placeholder="E-mail">
@@ -110,7 +109,7 @@
       <option value="Pix">Pix</option>
     </select>
 
-    <button onclick="adicionarItemVenda()">Adicionar Item</button>
+    <button id="btnAdicionarItemVenda">Adicionar Item Venda</button>
     <button id="btnVender">Finalizar Venda</button>
     <button id="btnDesconto">Desconto</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
@@ -152,7 +151,7 @@
       <tbody></tbody>
     </table>
     <p class="total">Total Geral: <span id="totalGeralRegistros">R$ 0,00</span></p>
-    <button onclick="exportarPDF()">Exportar PDF</button>
+    <button id="btnExportarPDF">Exportar PDF</button>
   </section>
 
 <section id="orcamentos" class="secao" style="display:none;">
@@ -260,6 +259,7 @@
     </div>
   </div>
 </div>
+<!-- scripts no final do body -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
@@ -268,5 +268,3 @@
 
 </body>
 </html>
-
-
