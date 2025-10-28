@@ -25,12 +25,13 @@ if (btnLogout) {
 }
 
 // 🔹 Controle de seções
-function mostrarSecao(id) {
+window.mostrarSecao = function(secaoId) {
   document.querySelectorAll('.secao').forEach(secao => {
     secao.style.display = 'none';
   });
-  document.getElementById(secaoId).style.display = 'block';
-}
+  const secao = document.getElementById(secaoId);
+  if (secao) secao.style.display = 'block';
+};
 
 
 const clienteSelect = document.getElementById('clienteSelect');
@@ -391,7 +392,7 @@ carregarPrecos();
 // gerar PDF de orçamentos (exemplo)
 function gerarPdfOrcamento() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF.jsPDF();
+    const doc = new jsPDF();
     doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
     const rows = itensOrcamentoAtual.map(item => [
         item.clienteNome, item.produtoNome, item.quantidade, item.preco.toFixed(2), (item.quantidade * item.preco).toFixed(2)
@@ -425,3 +426,4 @@ window.addEventListener('DOMContentLoaded', () => {
 
 window.mostrarSecao = mostrarSecao;
 window.logout = logout;
+
