@@ -33,10 +33,13 @@ window.mostrarSecao = function(secaoId) {
   if (secao) secao.style.display = 'block';
 };
 
+const formLogin = document.getElementById('formLogin');
+const emailLogin = document.getElementById('emailLogin');
+const senhaLogin = document.getElementById('senhaLogin');
 
 const clienteSelect = document.getElementById('clienteSelect');
-const nomeClienteInput = document.getElementById('nomeClienteCadastro');
-const telefoneClienteInput = document.getElementById('telefoneClienteCadastro');
+const nomeClienteInput = document.getElementById('nomeCliente');
+const telefoneClienteInput = document.getElementById('telefoneCliente');
 const produtoSelect = document.getElementById('produtoSelect');
 const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
 
@@ -50,6 +53,25 @@ const vendasCol = collection(db, 'vendas');
 const produtosCol = collection(db, 'produtos');
 const clientesCol = collection(db, 'clientes');
 const orcamentosCol = collection(db, 'orcamentos');
+
+formLogin.addEventListener('submit', (e) => {
+  e.preventDefault(); // evita reload da página
+
+  const email = emailLogin.value;
+  const senha = senhaLogin.value;
+
+  if (email === '' || senha === '') {
+    alert('Por favor, preencha todos os campos.');
+    return;
+  }
+
+  // Aqui você faz a autenticação (exemplo básico)
+  alert(`Login realizado com sucesso! Bem-vindo, ${email}.`);
+
+  // Ocultar tela de login e mostrar outras seções
+  document.getElementById('tela-login').style.display = 'none';
+  // Exemplo: mostrar menu principal, etc.
+});
 
 // ==========================
 // 🔹 Variáveis Globais
