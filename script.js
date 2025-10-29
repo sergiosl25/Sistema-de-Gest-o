@@ -613,17 +613,8 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
-// ==========================
-// 🔹 Inicialização
-// ==========================
-window.onload = async () => {
-    await carregarClientes();
-    await carregarEstoque();
-    await carregarOrcamentos();
-    await carregarTabelaVendas();
-}
-
 window.mostrarSecao = mostrarSecao;
+
 
 
 
