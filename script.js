@@ -527,6 +527,32 @@ window.addEventListener('click', (e) => {
   }
 });
 
+// === Funções “placeholder” para evitar erros ===
+
+// carrega os clientes disponíveis na aba de Vendas
+function carregarClientesVenda() {
+  console.log("carregarClientesVenda() chamada");
+  // aqui você pode copiar lógica de carregarClientes()
+}
+
+// carrega os produtos disponíveis na aba de Orçamentos
+function carregarProdutosOrcamento() {
+  console.log("carregarProdutosOrcamento() chamada");
+  // lógica parecida com carregarEstoque()
+}
+
+// carrega todos os registros de vendas
+function carregarRegistrosVendas() {
+  console.log("carregarRegistrosVendas() chamada");
+  // buscar dados da coleção "vendas" no Firestore
+}
+
+// carrega tabela de preços
+function carregarTabelaPrecos() {
+  console.log("carregarTabelaPrecos() chamada");
+  // buscar dados da coleção "produtos" ou "precos"
+}
+
 // ==========================
 // 🔹 Inicialização
 // ==========================
@@ -539,6 +565,7 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
