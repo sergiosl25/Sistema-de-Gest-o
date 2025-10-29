@@ -613,7 +613,8 @@ window.onload = async () => {
     await carregarEstoque();
     await carregarOrcamentos();
     await carregarTabelaVendas();
-};
+}
 
 window.mostrarSecao = mostrarSecao;
+
 
