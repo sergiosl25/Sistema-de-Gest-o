@@ -8,21 +8,27 @@ const auth = getAuth(app);
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.log("Usuário logado:", user.email);
+
     document.getElementById("tela-login").style.display = "none";
     document.querySelector("header").style.display = "flex";
+    document.getElementById("userEmail").textContent = user.email;
 
-    // Agora sim: o usuário já está autenticado, pode carregar os dados
-    await carregarClientes();
-    await carregarEstoque();
-    await carregarTabelaPrecos();
+    try {
+      // Aguarda o login e só então carrega os dados
+      await carregarClientes();
+      await carregarEstoque();
+      await carregarTabelaPrecos();
+      console.log("Dados carregados com sucesso após login.");
+    } catch (erro) {
+      console.error("Erro ao carregar dados:", erro);
+    }
+
   } else {
     console.log("Usuário deslogado.");
     document.getElementById("tela-login").style.display = "block";
     document.querySelector("header").style.display = "none";
   }
 });
-
-
 
 btnLogout.addEventListener("click", async () => {
   await signOut(auth);
@@ -618,6 +624,7 @@ window.onload = async () => {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
