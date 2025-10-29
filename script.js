@@ -33,10 +33,6 @@ window.mostrarSecao = function(secaoId) {
   if (secao) secao.style.display = 'block';
 };
 
-const formLogin = document.getElementById('formLogin');
-const emailLogin = document.getElementById('emailLogin');
-const senhaLogin = document.getElementById('senhaLogin');
-
 const clienteSelect = document.getElementById('clienteSelect');
 const nomeClienteInput = document.getElementById('nomeCliente');
 const telefoneClienteInput = document.getElementById('telefoneCliente');
@@ -53,18 +49,6 @@ const clientesCol = collection(db, 'clientes');
 const produtosCol = collection(db, 'produtos');
 const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
-
-formLogin?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = emailLogin.value;
-  const senha = senhaLogin.value;
-  try {
-    await signInWithEmailAndPassword(auth, email, senha);
-    window.location.href = 'index.html'; // ou página principal
-  } catch (err) {
-    alert(err.message);
-  }
-});
 
 // ==========================
 // 🔹 Variáveis Globais
@@ -511,26 +495,6 @@ window.addEventListener('click', (e) => {
   }
 });
 
-// ===== APLICAR DESCONTO =====
-btnAplicarDesconto.addEventListener('click', () => {
-  const tipo = document.getElementById('tipoDesconto').value;
-  const valor = parseFloat(document.getElementById('valorDesconto').value);
-
-  if (isNaN(valor) || valor <= 0) {
-    alert('Digite um valor válido para o desconto.');
-    return;
-  }
-
-  // Aqui você pode adicionar lógica para atualizar preços na tabela ou total
-  if (tipo === 'percentual') {
-    alert(`Aplicando desconto de ${valor}%`);
-  } else {
-    alert(`Aplicando desconto de R$ ${valor.toFixed(2)}`);
-  }
-  abrirModal();
-  fecharModal();
-});
-
 // ==========================
 // 🔹 Inicialização
 // ==========================
@@ -543,5 +507,6 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
