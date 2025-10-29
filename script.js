@@ -584,12 +584,6 @@ function carregarClientesVenda() {
   // aqui você pode copiar lógica de carregarClientes()
 }
 
-// carrega os produtos disponíveis na aba de Orçamentos
-function carregarProdutosOrcamento() {
-  console.log("carregarProdutosOrcamento() chamada");
-  // lógica parecida com carregarEstoque()
-}
-
 // carrega todos os registros de vendas
 function carregarRegistrosVendas() {
   console.log("carregarRegistrosVendas() chamada");
@@ -620,6 +614,7 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
