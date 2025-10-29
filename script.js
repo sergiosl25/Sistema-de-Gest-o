@@ -584,18 +584,6 @@ function carregarClientesVenda() {
   // aqui você pode copiar lógica de carregarClientes()
 }
 
-// carrega todos os registros de vendas
-function carregarRegistrosVendas() {
-  console.log("carregarRegistrosVendas() chamada");
-  // buscar dados da coleção "vendas" no Firestore
-}
-
-// carrega tabela de preços
-function carregarTabelaPrecos() {
-  console.log("carregarTabelaPrecos() chamada");
-  // buscar dados da coleção "produtos" ou "precos"
-}
-
 function carregarProdutosVenda() {
   console.log("carregarProdutosVenda() chamada");
   // Aqui futuramente vai preencher o <select id="produtoSelect">
@@ -614,6 +602,7 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
