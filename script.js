@@ -5,22 +5,24 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-onAuthStateChanged(auth, (user) => {
-    const telaLogin = document.getElementById("tela-login");
-    const header = document.querySelector("header");
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.log("Usuário logado:", user.email);
+    document.getElementById("tela-login").style.display = "none";
+    document.querySelector("header").style.display = "flex";
 
-    if (user) {
-        // ✅ Usuário logado
-        telaLogin.style.display = "none";
-        header.style.display = "flex"; // ou "block", dependendo do seu CSS
-        document.getElementById("userEmail").textContent = user.email;
-        mostrarSecao("clientes");
-    } else {
-        // ❌ Usuário não logado
-        telaLogin.style.display = "block";
-        header.style.display = "none";
-    }
+    // Agora sim: o usuário já está autenticado, pode carregar os dados
+    await carregarClientes();
+    await carregarEstoque();
+    await carregarTabelaPrecos();
+  } else {
+    console.log("Usuário deslogado.");
+    document.getElementById("tela-login").style.display = "block";
+    document.querySelector("header").style.display = "none";
+  }
 });
+
+
 
 btnLogout.addEventListener("click", async () => {
   await signOut(auth);
@@ -616,5 +618,6 @@ window.onload = async () => {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
