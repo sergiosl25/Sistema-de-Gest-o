@@ -9,7 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
-  <div id="tela-login" style="display:none;">
+  <div id="tela-login">
     <h2>Login</h2>
     <form id="formLogin">
     <input type="email" id="emailLogin" placeholder="E-mail">
@@ -64,8 +64,6 @@
       <input type="text" id="nomeProduto" placeholder="Nome do Produto *">
       <input type="number" id="quantidadeProduto" placeholder="Quantidade">
       <button id="btnCadastrarProduto">Cadastrar Produto</button>
-    </div>
-    
     <table id="tabelaEstoque">
       <thead>
         <tr>
@@ -100,22 +98,18 @@
       <option value="magicaBrilho">Mágica brilho</option>
       <option value="precoVenda">Venda padrão</option>
     </select>
-
     <input type="number" id="precoVenda" placeholder="Preço (R$)" readonly>
     <input type="number" id="quantidadeVenda" placeholder="Qtd">
-
     <select id="formaPagamento">
       <option value="Dinheiro">Dinheiro</option>
-      <option value="Cartãocrédito">Cartão de crédito</option>
-      <option value="Cartãodébito">Cartão de débito</option>
+      <option value="Cartaocredito">Cartão de crédito</option>
+      <option value="Cartaodebito">Cartão de débito</option>
       <option value="Pix">Pix</option>
     </select>
-
     <button id="btnAdicionarItemVenda">Adicionar Item Venda</button>
     <button id="btnVender">Finalizar Venda</button>
     <button id="btnDesconto">Desconto</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
-  </div>
 
 <!-- Tabela de Itens da Venda -->
 <table id="tabelaItensVenda" border="1">
@@ -264,14 +258,10 @@
     <button id="btnCancelarExcluir">Não</button>
   </div>
 </div>
- 
-<!-- scripts no final do body -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="script.js"></script>
 
 </body>
 </html>-
+
 
