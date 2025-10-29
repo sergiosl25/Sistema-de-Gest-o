@@ -27,14 +27,43 @@ btnLogout.addEventListener("click", async () => {
   window.location.href = "login.html";
 });
 
-// 🔹 Controle de seções
-window.mostrarSecao = function(secaoId) {
-  document.querySelectorAll('.secao').forEach(secao => {
-    secao.style.display = 'none';
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const target = btn.getAttribute("data-target");
+    mostrarSecao(target);
   });
-  const secao = document.getElementById(secaoId);
-  if (secao) secao.style.display = 'block';
-};
+});
+
+function mostrarSecao(secaoId) {
+  document.querySelectorAll(".secao").forEach(secao => {
+    secao.style.display = "none";
+  });
+  document.getElementById(secaoId).style.display = "block";
+
+  // Atualiza dados conforme a seção
+  switch (secaoId) {
+    case "clientes":
+      carregarClientes();
+      break;
+    case "estoque":
+      carregarEstoque();
+      break;
+    case "vendas":
+      carregarClientesVenda();
+      carregarProdutosVenda();
+      break;
+    case "orcamentos":
+      carregarProdutosOrcamento();
+      carregarOrcamentos();
+      break;
+    case "registrosVendas":
+      carregarRegistrosVendas();
+      break;
+    case "precos":
+      carregarTabelaPrecos();
+      break;
+  }
+}
 
 const clienteSelect = document.getElementById('clienteSelect');
 const nomeClienteInput = document.getElementById('nomeCliente');
@@ -510,6 +539,7 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
