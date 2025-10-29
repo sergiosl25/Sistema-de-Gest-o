@@ -306,6 +306,49 @@ async function carregarTabelaVendas() {
     }
 }
 
+async function carregarRegistrosVendas() {
+  console.log("carregarRegistrosVendas() iniciada");
+
+  const tabela = document.querySelector("#tabelaRegistros tbody");
+  const totalGeralSpan = document.getElementById("totalGeralRegistros");
+  tabela.innerHTML = "";
+
+  const vendasSnapshot = await getDocs(collection(db, "vendas"));
+  let totalGeral = 0;
+
+  vendasSnapshot.forEach(docSnap => {
+    const venda = docSnap.data();
+    const data = venda.data || "";
+    const cliente = venda.clienteNome || "";
+    const produto = venda.produto || "";
+    const qtd = venda.quantidade || 0;
+    const precoUnit = venda.precoUnitario || 0;
+    const desconto = venda.desconto || 0;
+    const totalAntes = venda.totalAntes || (precoUnit * qtd);
+    const totalApos = venda.totalApos || totalAntes;
+    const pagamento = venda.formaPagamento || "";
+
+    totalGeral += totalApos;
+
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td>${data}</td>
+      <td>${cliente}</td>
+      <td>${produto}</td>
+      <td>${qtd}</td>
+      <td>R$ ${precoUnit.toFixed(2)}</td>
+      <td>${desconto ? desconto + "%" : "-"}</td>
+      <td>R$ ${totalAntes.toFixed(2)}</td>
+      <td>R$ ${totalApos.toFixed(2)}</td>
+      <td>${pagamento}</td>
+      <td><button onclick="excluirRegistro('${docSnap.id}')">Excluir</button></td>
+    `;
+    tabela.appendChild(linha);
+  });
+
+  totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
+}
+
 // desconto
 function abrirModalDesconto(index = null, tipo = 'item') {
     if (itensVendaAtual.length === 0) return alert('Adicione produtos primeiro');
@@ -392,43 +435,49 @@ async function carregarOrcamentos() {
     }
 }
 
+async function carregarProdutosOrcamento() {
+  console.log("carregarProdutosOrcamento() iniciada");
+
+  const select = document.getElementById("produtoSelectOrcamento");
+  select.innerHTML = "<option value=''>Selecione o produto</option>";
+
+  const produtosSnapshot = await getDocs(collection(db, "produtos"));
+  produtosSnapshot.forEach(docSnap => {
+    const produto = docSnap.data();
+    const option = document.createElement("option");
+    option.value = docSnap.id;
+    option.textContent = produto.nome;
+    select.appendChild(option);
+  });
+}
+
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
 // ==========================
-async function carregarPrecos() {
-    const snapshot = await getDocs(collection(db, 'produtos'));
-    const tbody = document.querySelector('#tabelaPrecos tbody');
-    const produtoSelectPreco = document.getElementById('produtoSelectPreco');
+async function carregarTabelaPrecos() {
+  console.log("carregarTabelaPrecos() iniciada");
 
-    tbody.innerHTML = '';
-    produtoSelectPreco.innerHTML = '<option value="">Selecione o produto</option>';
+  const tabela = document.querySelector("#tabelaPrecos tbody");
+  tabela.innerHTML = "";
 
-    snapshot.forEach(docSnap => {
-        const produto = docSnap.data() || {};
-
-        // Cria linha da tabela de preços
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${produto.nome || ''}</td>
-            <td>${produto.preco?.toFixed(2) || '0.00'}</td>
-            <td>${produto.estampaFrente?.toFixed(2) || '0.00'}</td>
-            <td>${produto.estampaFrenteVerso?.toFixed(2) || '0.00'}</td>
-            <td>${produto.branca?.toFixed(2) || '0.00'}</td>
-            <td>${produto.interiorCores?.toFixed(2) || '0.00'}</td>
-            <td>${produto.magicaFosca?.toFixed(2) || '0.00'}</td>
-            <td>${produto.magicaBrilho?.toFixed(2) || '0.00'}</td>
-            <td>
-                <button onclick="editarProduto('${docSnap.id}', '${produto.nome || ''}', ${produto.quantidade || 0}, ${produto.preco || 0})">Editar</button>
-                <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
-            </td>`;
-        tbody.appendChild(tr);
-
-        // Preenche o select de produtos
-        produtoSelectPreco.innerHTML += `<option value="${docSnap.id}">${produto.nome || ''}</option>`;
-    });
+  const produtosSnapshot = await getDocs(collection(db, "produtos"));
+  produtosSnapshot.forEach(docSnap => {
+    const produto = docSnap.data();
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td>${produto.nome || ""}</td>
+      <td>R$ ${(produto.preco || 0).toFixed(2)}</td>
+      <td>R$ ${(produto.estampaFrente || 0).toFixed(2)}</td>
+      <td>R$ ${(produto.estampaFrenteVerso || 0).toFixed(2)}</td>
+      <td>R$ ${(produto.branca || 0).toFixed(2)}</td>
+      <td>R$ ${(produto.interiorCores || 0).toFixed(2)}</td>
+      <td>R$ ${(produto.magicaFosca || 0).toFixed(2)}</td>
+      <td>R$ ${(produto.magicaBrilho || 0).toFixed(2)}</td>
+      <td><button onclick="editarPreco('${docSnap.id}')">Editar</button></td>
+    `;
+    tabela.appendChild(linha);
+  });
 }
-
-carregarPrecos();
 
 // gerar PDF de orçamentos (exemplo)
 function gerarPdfOrcamento() {
@@ -571,6 +620,7 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
