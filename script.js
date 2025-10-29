@@ -553,6 +553,12 @@ function carregarTabelaPrecos() {
   // buscar dados da coleção "produtos" ou "precos"
 }
 
+function carregarProdutosVenda() {
+  console.log("carregarProdutosVenda() chamada");
+  // Aqui futuramente vai preencher o <select id="produtoSelect">
+  // com os produtos do Firestore
+}
+
 // ==========================
 // 🔹 Inicialização
 // ==========================
@@ -565,6 +571,7 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
