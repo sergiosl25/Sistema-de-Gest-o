@@ -545,7 +545,6 @@ document.addEventListener("DOMContentLoaded", () => {
         case 'estoque': await carregarEstoque(); break;
         case 'orcamentos': await carregarOrcamentos(); break;
         case 'registrosVendas': await carregarTabelaVendas(); break;
-        case 'precos': await carregarPrecos(); break;
       }
     });
   });
@@ -598,17 +597,6 @@ window.onload = async () => {
     await carregarEstoque();
     await carregarOrcamentos();
     await carregarTabelaVendas();
-    await carregarPrecos();
 };
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
-
