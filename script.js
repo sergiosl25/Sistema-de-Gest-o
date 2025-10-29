@@ -5,24 +5,27 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// 🔐 Verifica login ao carregar
 onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        window.location.href = "login.html";
-    } else {
+    const telaLogin = document.getElementById("tela-login");
+    const header = document.querySelector("header");
+
+    if (user) {
+        // ✅ Usuário logado
+        telaLogin.style.display = "none";
+        header.style.display = "flex"; // ou "block", dependendo do seu CSS
         document.getElementById("userEmail").textContent = user.email;
         mostrarSecao("clientes");
+    } else {
+        // ❌ Usuário não logado
+        telaLogin.style.display = "block";
+        header.style.display = "none";
     }
 });
 
-// 🔹 Função de logout
-const btnLogout = document.getElementById("btnLogout");
-if (btnLogout) {
-    btnLogout.addEventListener("click", async () => {
-        await signOut(auth);
-        window.location.href = "login.html";
-    });
-}
+btnLogout.addEventListener("click", async () => {
+  await signOut(auth);
+  window.location.href = "login.html";
+});
 
 // 🔹 Controle de seções
 window.mostrarSecao = function(secaoId) {
@@ -507,6 +510,7 @@ window.onload = async () => {
 };
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
