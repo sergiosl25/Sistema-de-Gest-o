@@ -9,7 +9,7 @@ onAuthStateChanged(auth, (user) => {
 // Login
 document.getElementById("btnLogin").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
-  const senha = document.getElementById("senha").value.trim();
+  const senha = document.getElementById("password").value.trim();
   if (!email || !senha) return alert("Informe email e senha");
 
   try {
