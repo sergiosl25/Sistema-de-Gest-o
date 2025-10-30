@@ -595,28 +595,66 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ===== MODAL DE DESCONTO =====
 const modalDesconto = document.getElementById('modalDesconto');
+const tituloModalDesconto = document.getElementById('tituloModalDesconto');
+const valorDescontoInput = document.getElementById('valorDesconto');
+const tipoDescontoSelect = document.getElementById('tipoDesconto');
 const btnAplicarDesconto = document.getElementById('btnAplicarDesconto');
 const btnCancelarDesconto = document.getElementById('btnCancelarDesconto');
 
-// Função para abrir modal
-function abrirModal() {
+let descontoIndex = null;  // índice do item ou null para desconto geral
+let descontoTipo = 'item'; // 'item' ou 'venda'
+
+// Função única para abrir o modal
+function abrirModalDesconto(index = null, tipo = 'item') {
+  if (itensVendaAtual.length === 0) return alert('Adicione produtos primeiro');
+
+  descontoIndex = index;
+  descontoTipo = tipo;
+
+  tituloModalDesconto.innerText = tipo === 'item' ? 'Desconto no item' : 'Desconto na venda';
+  valorDescontoInput.value = '';
+  tipoDescontoSelect.value = 'percentual';
+
   modalDesconto.style.display = 'flex';
 }
 
-// Função para fechar modal
-function fecharModal() {
-  modalDesconto.style.display = 'none';
-}
+// Aplicar desconto
+btnAplicarDesconto.addEventListener('click', () => {
+  const valor = parseFloat(valorDescontoInput.value) || 0;
+  const tipoValor = tipoDescontoSelect.value;
 
-// Botões do modal
-btnCancelarDesconto.addEventListener('click', fecharModal);
-
-// Fechar modal clicando fora do conteúdo
-window.addEventListener('click', (e) => {
-  if (e.target === modalDesconto) {
-    fecharModal();
+  if (descontoTipo === 'item' && descontoIndex !== null) {
+    const item = itensVendaAtual[descontoIndex];
+    item.desconto = tipoValor === 'percentual'
+      ? item.preco * item.quantidade * (valor / 100)
+      : valor;
+  } else { // desconto geral na venda
+    const totalItens = itensVendaAtual.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
+    itensVendaAtual.forEach(item => {
+      item.desconto = tipoValor === 'percentual'
+        ? item.preco * item.quantidade * (valor / 100)
+        : (valor / totalItens) * (item.preco * item.quantidade);
+    });
   }
+
+  atualizarTabelaVendas();
+  fecharModalDesconto();
 });
+
+// Cancelar desconto
+btnCancelarDesconto.addEventListener('click', fecharModalDesconto);
+
+// Fechar modal
+function fecharModalDesconto() {
+  modalDesconto.style.display = 'none';
+  valorDescontoInput.value = '';
+}
+  
+// Fechar clicando fora do conteúdo
+window.addEventListener('click', (e) => {
+  if (e.target === modalDesconto) fecharModalDesconto();
+});
+
 
 // === Funções “placeholder” para evitar erros ===
 
