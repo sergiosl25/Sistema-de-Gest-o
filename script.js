@@ -102,7 +102,11 @@ btnLogout?.addEventListener("click", async () => {
 // =====================
 function mostrarSecao(secaoId) {
   document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
-  document.getElementById(secaoId)?.style.display = "block";
+
+  const secao = document.getElementById(secaoId); // pega o elemento
+  if (secao) {                                 // verifica se existe
+    secao.style.display = "block";             // só aí atribui
+  }
 
   switch (secaoId) {
     case "clientes": carregarClientes(); break;
@@ -113,6 +117,7 @@ function mostrarSecao(secaoId) {
     case "precos": carregarTabelaPrecos(); break;
   }
 }
+
 document.querySelectorAll("nav button").forEach(btn => {
   btn.addEventListener("click", () => mostrarSecao(btn.dataset.target));
 });
@@ -671,3 +676,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
