@@ -1,98 +1,121 @@
 import { app } from "./firebase-config.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { 
+  getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, setPersistence, browserLocalPersistence 
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    document.getElementById("tela-login").style.display = "none";
-    document.querySelector("header").style.display = "flex";
-    document.getElementById("userEmail").textContent = user.email;
+// Garantir persistência de login
+setPersistence(auth, browserLocalPersistence)
+  .then(() => console.log("✅ Persistência de login garantida"))
+  .catch((err) => console.error("❌ Erro ao definir persistência:", err));
+  
+// Elementos do DOM
+const telaLogin = document.getElementById("tela-login");
+const formLogin = document.getElementById("formLogin");
+const emailLogin = document.getElementById("emailLogin");
+const senhaLogin = document.getElementById("senhaLogin");
+const header = document.querySelector("header");
+const userEmailSpan = document.getElementById("userEmail");
+const btnLogout = document.getElementById("btnLogout");
 
-    try {
-      await carregarClientes();
-      await carregarEstoque();
-      await carregarTabelaPrecos();
-      console.log("Dados carregados com sucesso após login.");
-    } catch (erro) {
-      console.error("Erro ao carregar dados:", erro);
-    }
-
-  } else {
-    document.getElementById("tela-login").style.display = "block";
-    document.querySelector("header").style.display = "none";
-  }
-});
-
-btnLogout.addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "login.html";
-});
-
-document.querySelectorAll("nav button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const target = btn.getAttribute("data-target");
-    mostrarSecao(target);
-  });
-});
-
-function mostrarSecao(secaoId) {
-  document.querySelectorAll(".secao").forEach(secao => {
-    secao.style.display = "none";
-  });
-  document.getElementById(secaoId).style.display = "block";
-
-  // Atualiza dados conforme a seção
-  switch (secaoId) {
-    case "clientes":
-      carregarClientes();
-      break;
-    case "estoque":
-      carregarEstoque();
-      break;
-    case "vendas":
-      carregarClientesVenda();
-      carregarProdutosVenda();
-      break;
-    case "orcamentos":
-      carregarProdutosOrcamento();
-      carregarOrcamentos();
-      break;
-    case "registrosVendas":
-      carregarRegistrosVendas();
-      break;
-    case "precos":
-      carregarTabelaPrecos();
-      break;
-  }
-}
-
-const clienteSelect = document.getElementById('clienteSelect');
-const nomeClienteInput = document.getElementById('nomeCliente');
-const telefoneClienteInput = document.getElementById('telefoneCliente');
-const produtoSelect = document.getElementById('produtoSelect');
-const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
-
+// Tabelas e selects
 const tabelaClientes = document.querySelector('#tabelaClientes tbody');
 const tabelaEstoque = document.querySelector('#tabelaEstoque tbody');
 const tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
 const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
-const tabelaVendas = document.querySelector('#tabelaVendas tbody');
+const clienteSelect = document.getElementById('clienteSelect');
+const produtoSelect = document.getElementById('produtoSelect');
+const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
 
+// Coleções
 const clientesCol = collection(db, 'clientes');
 const produtosCol = collection(db, 'produtos');
 const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
-// ==========================
-// 🔹 Variáveis Globais
-// ==========================
+// Variáveis globais
 let produtosMap = {};
 let itensVendaAtual = [];
-let itensOrcamentoAtual = [];
+let itensOrcamentoAtual = []
 
+// =====================
+// 🔹 Funções de interface
+// =====================
+function mostrarPaginaLogada(user) {
+  telaLogin.style.display = "none";
+  header.style.display = "flex";
+  userEmailSpan.textContent = user.email;
+}
+
+function mostrarLogin() {
+  telaLogin.style.display = "block";
+  header.style.display = "none";
+}
+
+// =====================
+// 🔹 Autenticação
+// =====================
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.log("✅ Usuário logado:", user.email);
+    mostrarPaginaLogada(user);
+
+    try {
+      await carregarClientes();
+      await carregarEstoque();
+      await carregarTabelaPrecos();
+    } catch (erro) {
+      console.error("❌ Erro ao carregar dados:", erro);
+    }
+  } else {
+    console.log("❌ Nenhum usuário logado");
+    mostrarLogin();
+  }
+})
+
+// Login via formulário
+formLogin?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, emailLogin.value, senhaLogin.value);
+    mostrarPaginaLogada(userCredential.user);
+    formLogin.reset();
+  } catch (erro) {
+    alert("Login ou senha inválidos!");
+    console.error(erro);
+  }
+});
+
+// Logout
+btnLogout?.addEventListener("click", async () => {
+  await signOut(auth);
+  mostrarLogin();
+})
+
+// =====================
+// 🔹 Controle de seções
+// =====================
+function mostrarSecao(secaoId) {
+  document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
+  document.getElementById(secaoId)?.style.display = "block";
+
+  switch (secaoId) {
+    case "clientes": carregarClientes(); break;
+    case "estoque": carregarEstoque(); break;
+    case "vendas": carregarClientesVenda(); carregarProdutosVenda(); break;
+    case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
+    case "registrosVendas": carregarTabelaVendas(); break;
+    case "precos": carregarTabelaPrecos(); break;
+  }
+}
+document.querySelectorAll("nav button").forEach(btn => {
+  btn.addEventListener("click", () => mostrarSecao(btn.dataset.target));
+});
 
 // ==========================
 // 🔹 Clientes
@@ -609,33 +632,4 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    console.log("✅ Usuário logado:", user.email);
-
-    // aqui você pode manter o código que mostra a tela principal:
-    document.getElementById("tela-login").style.display = "none";
-    document.querySelector("header").style.display = "flex";
-    document.getElementById("userEmail").textContent = user.email;
-
-    await carregarClientes();
-    await carregarEstoque();
-    await carregarTabelaPrecos();
-
-  } else {
-    console.log("❌ Nenhum usuário logado ao abrir index.html");
-    document.getElementById("tela-login").style.display = "block";
-    document.querySelector("header").style.display = "none";
-  }
-});
-
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
