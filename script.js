@@ -609,7 +609,19 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    console.log("✅ Usuário logado:", user.email);
+    ...
+  } else {
+    console.log("❌ Nenhum usuário logado ao abrir index.html");
+    document.getElementById("tela-login").style.display = "block";
+    document.querySelector("header").style.display = "none";
+  }
+}); 
+
 window.mostrarSecao = mostrarSecao;
+
 
 
 
