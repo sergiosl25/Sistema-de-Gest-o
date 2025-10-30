@@ -14,7 +14,9 @@ document.getElementById("btnLogin").addEventListener("click", async () => {
 
   try {
     await signInWithEmailAndPassword(auth, email, senha);
-    window.location.href = "index.html";
+    setTimeout(() => {
+     window.location.href = "index.html";
+    }, 1500);
   } catch (err) {
     alert("Erro ao entrar: " + err.message);
   }
