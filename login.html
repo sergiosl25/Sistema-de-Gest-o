@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
@@ -14,23 +14,6 @@
     <button id="btnLogin">Entrar</button>
     <p id="msgErro" style="color:red"></p>
   </div>
-
-  <script type="module">
-    import { app } from "./firebase-config.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-
-    const auth = getAuth(app);
-
-    document.getElementById("btnLogin").addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim();
-      const senha = document.getElementById("password").value.trim();
-      try {
-        await signInWithEmailAndPassword(auth, email, senha);
-        window.location.href = "index.html";
-      } catch (e) {
-        document.getElementById("msgErro").textContent = "Usuário ou senha inválidos.";
-      }
-    });
-  </script>
+  <script type="module" src="login.js"></script>
 </body>
 </html>
