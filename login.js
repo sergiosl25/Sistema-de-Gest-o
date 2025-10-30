@@ -1,9 +1,14 @@
 import { auth } from "./firebase-config.js";
-import { signInWithEmailAndPassword, onAuthStateChanged } 
-  from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { 
+  setPersistence, 
+  browserLocalPersistence, 
+  signInWithEmailAndPassword, 
+  onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 console.log("✅ login.js carregado com sucesso");
-console.log("🔥 Auth:", auth);
+
+await setPersistence(auth, browserLocalPersistence);
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -14,16 +19,11 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-const btnLogin = document.getElementById("btnLogin");
-
-btnLogin.addEventListener("click", async () => {
-  console.log("🟢 Botão clicado!");
+document.getElementById("btnLogin").addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("password").value.trim();
 
   if (!email || !senha) return alert("Informe email e senha");
-
-  console.log("Tentando login com:", email);
 
   try {
     await signInWithEmailAndPassword(auth, email, senha);
@@ -34,3 +34,5 @@ btnLogin.addEventListener("click", async () => {
     alert("Erro ao entrar: " + err.message);
   }
 });
+
+
