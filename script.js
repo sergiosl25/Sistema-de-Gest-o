@@ -397,46 +397,6 @@ async function carregarRegistrosVendas() {
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
 
-// desconto
-function abrirModalDesconto(index = null, tipo = 'item') {
-    if (itensVendaAtual.length === 0) return alert('Adicione produtos primeiro');
-    const modal = document.getElementById('modalDesconto');
-    const titulo = document.getElementById('tituloModalDesconto');
-    titulo.innerText = tipo === 'item' ? 'Desconto no item' : 'Desconto na venda';
-    modal.style.display = 'block';
-
-    document.getElementById('btnAplicarDesconto').onclick = () => {
-        const tipoDesconto = document.getElementById('tipoDesconto').value;
-        const valor = parseFloat(document.getElementById('valorDesconto').value) || 0;
-
-        if (tipo === 'item' && index !== null) {
-            const item = itensVendaAtual[index];
-            item.desconto = tipoDesconto === 'percentual' 
-                ? item.preco * item.quantidade * (valor / 100)
-                : valor;
-        } else {
-            const totalItens = itensVendaAtual.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
-            itensVendaAtual.forEach(item => {
-                item.desconto = tipoDesconto === 'percentual'
-                    ? item.preco * item.quantidade * (valor / 100)
-                    : (valor / totalItens) * (item.preco * item.quantidade);
-            });
-        }
-
-        atualizarTabelaVendas();
-        modal.style.display = 'none';
-        document.getElementById('valorDesconto').value = '';
-    };
-    document.getElementById('btnCancelarDesconto').onclick = () => {
-        modal.style.display = 'none';
-        document.getElementById('valorDesconto').value = '';
-    };
-}
-
-document.getElementById("btnDescontoItem")?.addEventListener("click", () => {
-    abrirModalDesconto('item');
-});
-
 // ==========================
 // 🔹 Orçamentos
 // ==========================
@@ -676,4 +636,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
