@@ -31,6 +31,7 @@ const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
 const clienteSelect = document.getElementById('clienteSelect');
 const produtoSelect = document.getElementById('produtoSelect');
 const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
+const tipoPrecoSelect = document.getElementById('tipoPreco'); // Ex: Estampa Frente, Branca, etc
 
 // Coleções
 const clientesCol = collection(db, 'clientes');
@@ -38,10 +39,8 @@ const produtosCol = collection(db, 'produtos');
 const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
-// Variáveis globais
-let produtosMap = {};
 let itensVendaAtual = [];
-let itensOrcamentoAtual = []
+let produtosMap = {}; // será carregado do Firestor
 
 // =====================
 // 🔹 Funções de interface
@@ -59,6 +58,7 @@ function mostrarLogin() {
   telaLogin.style.display = "block";
   header.style.display = "none";
 }
+
 
 // =====================
 // 🔹 Autenticação
@@ -223,6 +223,51 @@ async function carregarEstoque() {
     }
 }
 
+// ===============================
+// CARREGAR PRODUTOS DO FIREBASE
+// ===============================
+async function carregarProdutos() {
+  const produtosSnapshot = await getDocs(collection(db, "produtos"));
+  produtosMap = {};
+  produtoSelect.innerHTML = '<option value="">Selecione</option>';
+
+  produtosSnapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    produtosMap[docSnap.id] = data;
+
+    const option = document.createElement('option');
+    option.value = docSnap.id;
+    option.textContent = data.nome;
+    produtoSelect.appendChild(option);
+  });
+}
+
+// ===============================
+// AO SELECIONAR PRODUTO OU TIPO DE PREÇO
+// ===============================
+function atualizarPrecoProduto() {
+  const produtoId = produtoSelect.value;
+  const tipo = tipoPrecoSelect.value;
+  const produto = produtosMap[produtoId];
+
+  if (!produto) return;
+
+  // mapeia os campos do Firestore
+  const precos = {
+    "preco": produto.preco || 0,
+    "estampaFrente": produto.estampaFrente || 0,
+    "estampaFrenteVerso": produto.estampaFrenteVerso || 0,
+    "branca": produto.branca || 0,
+    "interiorCores": produto.interiorCores || 0,
+    "magicaFosca": produto.magicaFosca || 0,
+    "magicaBrilho": produto.magicaBrilho || 0
+  };
+  document.getElementById("precoSelecionado").value = precos[tipo] || 0;
+}
+
+produtoSelect.addEventListener("change", atualizarPrecoProduto);
+tipoPrecoSelect.addEventListener("change", atualizarPrecoProduto);
+
 window.editarProduto = async (id, nome, qtd, preco) => {
     const novoNome = prompt("Nome:", nome);
     const novaQtd = parseInt(prompt("Quantidade:", qtd));
@@ -253,20 +298,31 @@ document.getElementById("btnCadastrarProduto")?.addEventListener("click", async 
 // ==========================
 // 🔹 Vendas
 // ==========================
+// ===============================
+// ADICIONAR ITEM À VENDA
+// ===============================
 window.adicionarItemVenda = () => {
-    const produtoId = produtoSelect.value;
-    const produto = produtosMap[produtoId];
-    const quantidade = parseInt(document.getElementById("quantidadeVenda").value);
-    if (!produto || quantidade <= 0) return alert("Dados inválidos");
-    itensVendaAtual.push({
-        produtoId,
-        nome: produto.nome,
-        quantidade,
-        preco: produto.preco,
-        desconto: 0
-    });
-    atualizarTabelaVendas();
-}
+  const produtoId = produtoSelect.value;
+  const produto = produtosMap[produtoId];
+  const quantidade = parseInt(document.getElementById("quantidadeVenda").value);
+  const tipoPreco = tipoPrecoSelect.value;
+
+  if (!produtoId || !produto || quantidade <= 0 || !tipoPreco)
+    return alert("Selecione o produto, tipo de preço e quantidade.");
+
+  const preco = parseFloat(document.getElementById("precoSelecionado").value) || 0;
+
+  itensVendaAtual.push({
+    produtoId,
+    nome: produto.nome,
+    tipoPreco,
+    quantidade,
+    preco,
+    desconto: 0
+  });
+
+  atualizarTabelaVendas();
+};
 
 function atualizarTabelaVendas() {
     const tbody = document.querySelector('#tabelaItensVenda tbody');
@@ -301,9 +357,12 @@ function renderizarItensVenda() {
     atualizarTabelaVendas();
 }
 
+// ===============================
+// REMOVER ITEM
+// ===============================
 function removerItemVenda(i) {
-    itensVendaAtual.splice(i, 1);
-    atualizarTabelaVendas();
+  itensVendaAtual.splice(i, 1);
+  atualizarTabelaVendas();
 }
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
@@ -328,7 +387,6 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
     itensVendaAtual = [];
     atualizarTabelaVendas();
 });
-
 
 async function carregarTabelaVendas() {
     const snapshot = await getDocs(vendasCol);
@@ -357,6 +415,67 @@ async function carregarTabelaVendas() {
     }
 }
 
+// ===============================
+// ATUALIZAR TABELA DE ITENS
+// ===============================
+function atualizarTabelaVendas() {
+  tabelaItensVenda.innerHTML = '';
+  let totalVenda = 0;
+
+  itensVendaAtual.forEach((item, i) => {
+    const subtotal = item.preco * item.quantidade;
+    const total = subtotal - (item.desconto || 0);
+    totalVenda += total;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.nome}</td>
+      <td>${item.tipoPreco}</td>
+      <td>${item.quantidade}</td>
+      <td>${item.preco.toFixed(2)}</td>
+      <td>${item.desconto.toFixed(2)}</td>
+      <td>${subtotal.toFixed(2)}</td>
+      <td>${total.toFixed(2)}</td>
+      <td>
+        <button onclick="removerItemVenda(${i})">🗑️</button>
+        <button onclick="abrirModalDesconto(${i}, 'item')">💲 Desconto</button>
+      </td>
+    `;
+    tabelaItensVenda.appendChild(tr);
+  });
+
+  document.getElementById('totalVenda').textContent = totalVenda.toFixed(2);
+}
+
+function renderizarItensVenda() {
+  atualizarTabelaVendas();
+}
+
+// ===============================
+// FINALIZAR VENDA
+// ===============================
+document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
+  const clienteId = clienteSelect.value;
+  if (!clienteId || itensVendaAtual.length === 0)
+    return alert("Selecione o cliente e adicione itens.");
+
+  const total = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
+
+  await addDoc(collection(db, "vendas"), {
+    clienteId,
+    itens: itensVendaAtual,
+    total,
+    data: serverTimestamp()
+  });
+
+  alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
+  itensVendaAtual = [];
+  atualizarTabelaVendas();
+})
+
+// ===============================
+// CARREGAR REGISTROS DE VENDAS
+// ===============================
 async function carregarRegistrosVendas() {
   console.log("carregarRegistrosVendas() iniciada");
 
@@ -369,32 +488,28 @@ async function carregarRegistrosVendas() {
 
   vendasSnapshot.forEach(docSnap => {
     const venda = docSnap.data();
-    const data = venda.data || "";
-    const cliente = venda.clienteNome || "";
-    const produto = venda.produto || "";
-    const qtd = venda.quantidade || 0;
-    const precoUnit = venda.precoUnitario || 0;
-    const desconto = venda.desconto || 0;
-    const totalAntes = venda.totalAntes || (precoUnit * qtd);
-    const totalApos = venda.totalApos || totalAntes;
-    const pagamento = venda.formaPagamento || "";
+    const dataVenda = venda.data?.seconds ? new Date(venda.data.seconds * 1000).toLocaleString() : "";
+    const cliente = venda.clienteNome || venda.clienteId || "";
 
-    totalGeral += totalApos;
+    (venda.itens || []).forEach(item => {
+      const subtotal = item.quantidade * item.preco;
+      const total = subtotal - (item.desconto || 0)
+      totalGeral += total;
 
-    const linha = document.createElement("tr");
-    linha.innerHTML = `
-      <td>${data}</td>
-      <td>${cliente}</td>
-      <td>${produto}</td>
-      <td>${qtd}</td>
-      <td>R$ ${precoUnit.toFixed(2)}</td>
-      <td>${desconto ? desconto + "%" : "-"}</td>
-      <td>R$ ${totalAntes.toFixed(2)}</td>
-      <td>R$ ${totalApos.toFixed(2)}</td>
-      <td>${pagamento}</td>
-      <td><button onclick="excluirRegistro('${docSnap.id}')">Excluir</button></td>
-    `;
-    tabela.appendChild(linha);
+      const linha = document.createElement("tr");
+      linha.innerHTML = `
+        <td>${dataVenda}</td>
+        <td>${cliente}</td>
+        <td>${item.nome}</td>
+        <td>${item.tipoPreco}</td>
+        <td>${item.quantidade}</td>
+        <td>R$ ${item.preco.toFixed(2)}</td>
+        <td>R$ ${item.desconto.toFixed(2)}</td>
+        <td>R$ ${total.toFixed(2)}</td>
+        <td><button onclick="excluirRegistro('${docSnap.id}')">Excluir</button></td>
+      `;
+      tabela.appendChild(linha);
+    });
   });
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
@@ -599,42 +714,33 @@ const btnCancelarDesconto = document.getElementById('btnCancelarDesconto');
 let descontoIndex = null;  // índice do item ou null para desconto geral
 let descontoTipo = 'item'; // 'item' ou 'venda'
 
-// Função única para abrir o modal
+// ===============================
+// MODAL DE DESCONTO
+// ===============================
 function abrirModalDesconto(index = null, tipo = 'item') {
-  if (itensVendaAtual.length === 0) return alert('Adicione produtos primeiro');
+  const modal = document.getElementById("modalDesconto");
+  const campoValor = document.getElementById("valorDesconto");
+  modal.style.display = "block";
 
-  descontoIndex = index;
-  descontoTipo = tipo;
-
-  tituloModalDesconto.innerText = tipo === 'item' ? 'Desconto no item' : 'Desconto na venda';
-  valorDescontoInput.value = '';
-  tipoDescontoSelect.value = 'percentual';
-
-  modalDesconto.style.display = 'flex';
+  // salva índice atual
+  modal.dataset.index = index;
+  modal.dataset.tipo = tipo;
+  campoValor.value = "";
 }
+// Ao confirmar o desconto
+document.getElementById("btnAplicarDesconto").addEventListener("click", () => {
+  const modal = document.getElementById("modalDesconto");
+  const index = parseInt(modal.dataset.index);
+  const tipo = modal.dataset.tipo;
+  const valor = parseFloat(document.getElementById("valorDesconto").value) || 0;
 
-// Aplicar desconto
-btnAplicarDesconto.addEventListener('click', () => {
-  const valor = parseFloat(valorDescontoInput.value) || 0;
-  const tipoValor = tipoDescontoSelect.value;
-
-  if (descontoTipo === 'item' && descontoIndex !== null) {
-    const item = itensVendaAtual[descontoIndex];
-    item.desconto = tipoValor === 'percentual'
-      ? item.preco * item.quantidade * (valor / 100)
-      : valor;
-  } else { // desconto geral na venda
-    const totalItens = itensVendaAtual.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
-    itensVendaAtual.forEach(item => {
-      item.desconto = tipoValor === 'percentual'
-        ? item.preco * item.quantidade * (valor / 100)
-        : (valor / totalItens) * (item.preco * item.quantidade);
-    });
+  if (tipo === 'item' && itensVendaAtual[index]) {
+    itensVendaAtual[index].desconto = valor;
   }
 
+  modal.style.display = "none";
   atualizarTabelaVendas();
-  fecharModalDesconto();
-});
+})
 
 // Cancelar desconto
 btnCancelarDesconto.addEventListener('click', fecharModalDesconto);
@@ -666,7 +772,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
