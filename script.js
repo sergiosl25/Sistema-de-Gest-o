@@ -612,15 +612,25 @@ function carregarProdutosVenda() {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.log("✅ Usuário logado:", user.email);
-    ...
+
+    // aqui você pode manter o código que mostra a tela principal:
+    document.getElementById("tela-login").style.display = "none";
+    document.querySelector("header").style.display = "flex";
+    document.getElementById("userEmail").textContent = user.email;
+
+    await carregarClientes();
+    await carregarEstoque();
+    await carregarTabelaPrecos();
+
   } else {
     console.log("❌ Nenhum usuário logado ao abrir index.html");
     document.getElementById("tela-login").style.display = "block";
     document.querySelector("header").style.display = "none";
   }
-}); 
+});
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
