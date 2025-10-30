@@ -4,6 +4,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 
 const db = getFirestore(app);
 const auth = getAuth(app);
+console.log("Aguardando autenticação...");
 
 onAuthStateChanged(auth, async (user) => {
   if (user) {
@@ -14,7 +15,6 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById("userEmail").textContent = user.email;
 
     try {
-      // Aguarda o login e só então carrega os dados
       await carregarClientes();
       await carregarEstoque();
       await carregarTabelaPrecos();
@@ -24,7 +24,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 
   } else {
-    console.log("Usuário deslogado.");
+    console.log("Usuário deslogado — aguardando login novamente.");
     document.getElementById("tela-login").style.display = "block";
     document.querySelector("header").style.display = "none";
   }
@@ -614,6 +614,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
