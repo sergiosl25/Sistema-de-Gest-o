@@ -3,6 +3,7 @@ import { getAuth, signInWithEmailAndPassword, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 const auth = getAuth(app);
+console.log("✅ login.js carregado com sucesso");
 
 // Redireciona se já logado
 onAuthStateChanged(auth, (user) => {
@@ -34,5 +35,6 @@ function traduzErroFirebase(codigo) {
     default: return "Erro ao fazer login.";
   }
 }
+
 
 
