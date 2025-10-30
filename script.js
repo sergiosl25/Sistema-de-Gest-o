@@ -472,21 +472,48 @@ async function carregarTabelaPrecos() {
   tabela.innerHTML = "";
 
   const produtosSnapshot = await getDocs(collection(db, "produtos"));
+  
   produtosSnapshot.forEach(docSnap => {
     const produto = docSnap.data();
     const linha = document.createElement("tr");
+
     linha.innerHTML = `
       <td>${produto.nome || ""}</td>
-      <td>R$ ${(produto.preco || 0).toFixed(2)}</td>
-      <td>R$ ${(produto.estampaFrente || 0).toFixed(2)}</td>
-      <td>R$ ${(produto.estampaFrenteVerso || 0).toFixed(2)}</td>
-      <td>R$ ${(produto.branca || 0).toFixed(2)}</td>
-      <td>R$ ${(produto.interiorCores || 0).toFixed(2)}</td>
-      <td>R$ ${(produto.magicaFosca || 0).toFixed(2)}</td>
-      <td>R$ ${(produto.magicaBrilho || 0).toFixed(2)}</td>
-      <td><button onclick="editarPreco('${docSnap.id}')">Editar</button></td>
+      <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
+      <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
+      <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
+      <td><input type="number" value="${produto.branca || 0}" step="0.01"></td>
+      <td><input type="number" value="${produto.interiorCores || 0}" step="0.01"></td>
+      <td><input type="number" value="${produto.magicaFosca || 0}" step="0.01"></td>
+      <td><input type="number" value="${produto.magicaBrilho || 0}" step="0.01"></td>
     `;
+
     tabela.appendChild(linha);
+
+    // Observa mudanças e salva automaticamente no Firestore
+    linha.querySelectorAll("input").forEach((input, index) => {
+      input.addEventListener("change", async () => {
+        const campos = [
+          "preco",
+          "estampaFrente",
+          "estampaFrenteVerso",
+          "branca",
+          "interiorCores",
+          "magicaFosca",
+          "magicaBrilho"
+        ];
+        const campo = campos[index];
+        const novoValor = parseFloat(input.value) || 0;
+
+        try {
+          await updateDoc(doc(db, "produtos", docSnap.id), { [campo]: novoValor });
+          console.log(`✅ ${campo} atualizado para R$ ${novoValor.toFixed(2)} (${produto.nome})`);
+        } catch (erro) {
+          console.error("❌ Erro ao atualizar preço:", erro);
+          alert("Erro ao salvar o novo valor. Verifique sua conexão.");
+        }
+      });
+    });
   });
 }
 
@@ -639,6 +666,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
