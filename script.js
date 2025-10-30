@@ -53,6 +53,9 @@ function mostrarPaginaLogada(user) {
 }
 
 function mostrarLogin() {
+  // Esconder todas as seções
+  document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
+
   telaLogin.style.display = "block";
   header.style.display = "none";
 }
@@ -636,5 +639,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
