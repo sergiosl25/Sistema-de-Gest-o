@@ -267,7 +267,7 @@ function atualizarPrecoProduto() {
 }
 
 produtoSelect.addEventListener("change", atualizarPrecoProduto);
-tipoPrecoSelect.addEventListener("change", atualizarPrecoProduto);
+
 
 window.editarProduto = async (id, nome, qtd, preco) => {
     const novoNome = prompt("Nome:", nome);
@@ -302,28 +302,32 @@ document.getElementById("btnCadastrarProduto")?.addEventListener("click", async 
 // ===============================
 // ADICIONAR ITEM À VENDA
 // ===============================
-window.adicionarItemVenda = () => {
+const btnAdicionarItemVenda = document.getElementById("btnAdicionarItemVenda");
+
+btnAdicionarItemVenda?.addEventListener("click", adicionarItemVenda);
+
+function adicionarItemVenda() {
   const produtoId = produtoSelect.value;
-  const produto = produtosMap[produtoId];
-  const quantidade = parseInt(document.getElementById("quantidadeVenda").value);
-  const tipoPreco = tipoPrecoSelect.value;
+  const quantidade = Number(document.getElementById("quantidadeVenda").value);
+  const preco = Number(document.getElementById("precoVenda").value);
 
-  if (!produtoId || !produto || quantidade <= 0 || !tipoPreco)
-    return alert("Selecione o produto, tipo de preço e quantidade.");
+  if (!produtoId || quantidade <= 0 || preco <= 0) {
+    alert("Preencha todos os campos corretamente!");
+    return;
+  }
 
-  const preco = parseFloat(document.getElementById("precoSelecionado").value) || 0;
+  const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
 
+  // Adiciona ao array de itens da venda
   itensVendaAtual.push({
     produtoId,
-    nome: produto.nome,
-    tipoPreco,
+    produtoNome,
     quantidade,
-    preco,
-    desconto: 0
+    preco
   });
 
-  atualizarTabelaVendas();
-};
+  atualizarTabelaItensVenda();
+}
 
 // ===============================
 // REMOVER ITEM
@@ -417,6 +421,37 @@ function atualizarTabelaVendas() {
 
 function renderizarItensVenda() {
   atualizarTabelaVendas();
+}
+
+function atualizarTabelaItensVenda() {
+  const tbody = document.querySelector("#tabelaItensVenda tbody");
+  tbody.innerHTML = "";
+
+  let totalVenda = 0;
+
+  itensVendaAtual.forEach((item, index) => {
+    const subtotal = item.quantidade * item.preco;
+    totalVenda += subtotal;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.produtoNome}</td>
+      <td>${item.quantidade}</td>
+      <td>${item.preco.toFixed(2)}</td>
+      <td>0.00</td>
+      <td>${subtotal.toFixed(2)}</td>
+      <td>${subtotal.toFixed(2)}</td>
+      <td><button onclick="removerItemVenda(${index})">Remover</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("totalVenda").innerText = totalVenda.toFixed(2);
+}
+
+function removerItemVenda(index) {
+  itensVendaAtual.splice(index, 1);
+  atualizarTabelaItensVenda();
 }
 
 // ===============================
@@ -724,6 +759,8 @@ window.addEventListener('click', (e) => {
   if (e.target === modalDesconto) fecharModalDesconto();
 });
 
+window.abrirModalDesconto = abrirModalDesconto;
+
 
 // === Funções “placeholder” para evitar erros ===
 
@@ -740,6 +777,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
