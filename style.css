@@ -185,6 +185,8 @@ button.editar { background: linear-gradient(180deg, #5dade2, #2e86c1); color: #f
 button.excluir { background: linear-gradient(180deg, #e74c3c, #c0392b); color: #fff; }
 button.desconto { background: linear-gradient(180deg, #f1c40f, #d4ac0d); color: #fff; }
 button:disabled { background: #bbb; box-shadow: none; cursor: not-allowed; }
+button.btnExcluir { background: linear-gradient(180deg, #e74c3c, #c0392b); color: #fff; }
+button.btnPDF { background: linear-gradient(180deg, #5dade2, #2e86c1); color: #fff; }
 
 /* =========================
    💠 MODAL 3D DE DESCONTO
