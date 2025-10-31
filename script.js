@@ -567,7 +567,8 @@ async function carregarRegistrosVendas() {
       : "-";
 
     (venda.itens || []).forEach((item) => {
-      const subtotal = item.quantidade * item.preco;
+      const produtoNome = item.produto || item.produtoNome || item.nome || "-";
+      const subtotal = (item.quantidade || 0) * (item.preco || 0);
       const total = subtotal - (item.desconto || 0);
       totalGeral += total;
 
@@ -575,13 +576,13 @@ async function carregarRegistrosVendas() {
       row.innerHTML = `
         <td>${dataFormatada}</td>
         <td>${venda.clienteNome || "Cliente"}</td>
-        <td>${item.produtoNome || item.nome || "-"}</td>
-        <td>${item.quantidade}</td>
-        <td>${item.preco.toFixed(2)}</td>
+        <td>${produtoNome}</td>
+        <td>${item.quantidade || 0}</td>
+        <td>${(item.preco || 0).toFixed(2)}</td>
         <td>${(item.desconto || 0).toFixed(2)}</td>
         <td>${subtotal.toFixed(2)}</td>
         <td>${total.toFixed(2)}</td>
-        <td>${venda.tipoPagamento || "-"}</td>
+        <td>${venda.tipoPagamento || venda.formaPagamento || "-"}</td>
         <td>
           <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
           <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
@@ -597,6 +598,48 @@ async function carregarRegistrosVendas() {
 document.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
+
+function abrirModalExcluir(idVenda) {
+  // Exemplo simples: confirmação de exclusão
+  if (confirm("Deseja realmente excluir esta venda?")) {
+    // Aqui você chamaria a função do Firestore para deletar
+    deleteDoc(doc(db, "vendas", idVenda))
+      .then(() => {
+        alert("Venda excluída com sucesso!");
+        carregarRegistrosVendas(); // Recarrega a tabela
+      })
+      .catch((error) => {
+        console.error("Erro ao excluir venda:", error);
+        alert("Erro ao excluir venda!");
+      });
+  }
+}
+abrirModalExcluir();
+
+function gerarPdfVenda(idVenda) {
+  // Aqui você buscaria a venda no Firestore
+  getDocs(doc(db, "vendas", idVenda))
+    .then((docSnap) => {
+      if (docSnap.exists()) {
+        const venda = docSnap.data();
+        // Exemplo simples usando jsPDF (se estiver usando essa biblioteca)
+        const doc = new jsPDF();
+        doc.text(`Venda ID: ${idVenda}`, 10, 10);
+        doc.text(`Cliente: ${venda.clienteNome || "-"}`, 10, 20);
+        venda.itens.forEach((item, index) => {
+          doc.text(`${item.produto || item.nome || "-"} - ${item.quantidade} x R$${item.preco}`, 10, 30 + index * 10);
+        });
+        doc.save(`venda_${idVenda}.pdf`);
+      } else {
+        alert("Venda não encontrada!");
+      }
+    })
+    .catch((error) => {
+      console.error("Erro ao gerar PDF:", error);
+      alert("Erro ao gerar PDF!");
+    });
+}
+gerarPdfVenda();
 
 // ==========================
 // 🔹 Orçamentos
