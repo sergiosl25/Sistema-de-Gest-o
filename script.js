@@ -130,6 +130,7 @@ function mostrarSecao(secaoId) {
     case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
     case "registrosVendas": carregarTabelaVendas(); break;
     case "precos": carregarTabelaPrecos(); break;
+    case "tabelaPrecos" : carregarTabelaPrecos(); break;
   }
 }
 
@@ -280,10 +281,6 @@ function atualizarPrecoProduto() {
     preco: produto.preco || 0,
     estampaFrente: produto.estampaFrente || 0,
     estampaFrenteVerso: produto.estampaFrenteVerso || 0,
-    branca: produto.branca || 0,
-    interiorCores: produto.interiorCores || 0,
-    magicaFosca: produto.magicaFosca || 0,
-    magicaBrilho: produto.magicaBrilho || 0
   };
 
   document.getElementById("precoSelecionado").value = precos[tipo] || 0;
@@ -723,10 +720,6 @@ async function carregarTabelaPrecos() {
       <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
       <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
       <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.branca || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.interiorCores || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.magicaFosca || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.magicaBrilho || 0}" step="0.01"></td>
     `;
 
     tabela.appendChild(linha);
@@ -738,10 +731,6 @@ async function carregarTabelaPrecos() {
           "preco",
           "estampaFrente",
           "estampaFrenteVerso",
-          "branca",
-          "interiorCores",
-          "magicaFosca",
-          "magicaBrilho"
         ];
         const campo = campos[index];
         const novoValor = parseFloat(input.value) || 0;
@@ -824,6 +813,7 @@ document.addEventListener("DOMContentLoaded", () => {
         case 'estoque': await carregarEstoque(); break;
         case 'orcamentos': await carregarOrcamentos(); break;
         case 'registrosVendas': await carregarTabelaVendas(); break;
+        case 'tabelaPrecos' : await carregarTabelaPrecos(); break;
       }
     });
   });
@@ -889,3 +879,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
