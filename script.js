@@ -271,22 +271,27 @@ function atualizarPrecoProduto() {
   const tipo = tipoPrecoSelect.value;
   const produto = produtosMap[produtoId];
 
-  if (!produto) return;
+  if (!produto) {
+    document.getElementById("precoSelecionado").value = '';
+    return;
+  }
 
-  // mapeia os campos do Firestore
   const precos = {
-    "preco": produto.preco || 0,
-    "estampaFrente": produto.estampaFrente || 0,
-    "estampaFrenteVerso": produto.estampaFrenteVerso || 0,
-    "branca": produto.branca || 0,
-    "interiorCores": produto.interiorCores || 0,
-    "magicaFosca": produto.magicaFosca || 0,
-    "magicaBrilho": produto.magicaBrilho || 0
+    preco: produto.preco || 0,
+    estampaFrente: produto.estampaFrente || 0,
+    estampaFrenteVerso: produto.estampaFrenteVerso || 0,
+    branca: produto.branca || 0,
+    interiorCores: produto.interiorCores || 0,
+    magicaFosca: produto.magicaFosca || 0,
+    magicaBrilho: produto.magicaBrilho || 0
   };
+
   document.getElementById("precoSelecionado").value = precos[tipo] || 0;
 }
 
 produtoSelect.addEventListener("change", atualizarPrecoProduto);
+tipoPrecoSelect.addEventListener("change", atualizarPrecoProduto);
+
 
 
 window.editarProduto = async (id, nome, qtd, preco) => {
@@ -821,3 +826,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
