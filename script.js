@@ -550,7 +550,7 @@ async function carregarRegistrosVendas() {
   vendasSnapshot.forEach(docSnap => {
     const venda = docSnap.data();
     const dataVenda = venda.data?.seconds ? new Date(venda.data.seconds * 1000).toLocaleString() : "";
-    const cliente = venda.clienteNome || venda.clienteId || "";
+    const cliente = venda.clienteNome || "";
     const formaPagamento = venda.formaPagamento || "";
 
     (venda.itens || []).forEach(item => {
@@ -832,5 +832,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
