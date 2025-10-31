@@ -551,6 +551,7 @@ async function carregarRegistrosVendas() {
     const venda = docSnap.data();
     const dataVenda = venda.data?.seconds ? new Date(venda.data.seconds * 1000).toLocaleString() : "";
     const cliente = venda.clienteNome || venda.clienteId || "";
+    const formaPagamento = venda.formaPagamento || "";
 
     (venda.itens || []).forEach(item => {
       const subtotal = item.quantidade * item.preco;
@@ -562,12 +563,16 @@ async function carregarRegistrosVendas() {
         <td>${dataVenda}</td>
         <td>${cliente}</td>
         <td>${item.nome}</td>
-        <td>${item.tipoPreco}</td>
         <td>${item.quantidade}</td>
+        <td>${item.tipoPreco}</td>        
         <td>R$ ${item.preco.toFixed(2)}</td>
         <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
         <td>R$ ${total.toFixed(2)}</td>
-        <td><button onclick="excluirRegistro('${docSnap.id}')">Excluir</button></td>
+        <td>${formaPagamento}</td>
+        <td>
+          <button onclick="excluirRegistro('${docSnap.id}')">Excluir</button>
+          <button onclick="gerarPDF('${docSnap.id}')">Gerar PDF</button>
+        </td>
       `;
       tabela.appendChild(linha);
     });
@@ -578,6 +583,7 @@ async function carregarRegistrosVendas() {
 document.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
+
 // ==========================
 // 🔹 Orçamentos
 // ==========================
@@ -826,4 +832,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
