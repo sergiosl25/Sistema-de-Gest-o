@@ -616,7 +616,9 @@ async function abrirModalExcluir(idVenda) {
     alert("Erro ao excluir venda. Verifique o console.");
   }
 }
-abrirModalExcluir();
+document.addEventListener("DOMContentLoaded", () => {
+  abrirModalExcluir();
+});
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 async function abrirModalDesconto(idVenda) {
@@ -661,7 +663,9 @@ async function abrirModalDesconto(idVenda) {
     alert("Erro ao aplicar desconto. Verifique o console.");
   }
 }
-abrirModalDesconto(idVenda);
+document.addEventListener("DOMContentLoaded", () => {
+  abrirModalDesconto();
+});
 
 function gerarPdfVenda(idVenda) {
   // Aqui você buscaria a venda no Firestore
@@ -884,6 +888,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
