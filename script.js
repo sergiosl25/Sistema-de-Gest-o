@@ -293,7 +293,6 @@ produtoSelect.addEventListener("change", atualizarPrecoProduto);
 tipoPrecoSelect.addEventListener("change", atualizarPrecoProduto);
 
 
-
 window.editarProduto = async (id, nome, qtd, preco) => {
     const novoNome = prompt("Nome:", nome);
     const novaQtd = parseInt(prompt("Quantidade:", qtd));
@@ -516,23 +515,36 @@ function removerItemVenda(index) {
 // FINALIZAR VENDA
 // ===============================
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
+  const clienteSelect = document.getElementById("clienteSelect");
+  const tipoPagamentoSelect = document.getElementById("tipoPagamento"); // 🔹 adicione um select no HTML para o pagamento
   const clienteId = clienteSelect.value;
-  if (!clienteId || itensVendaAtual.length === 0)
-    return alert("Selecione o cliente e adicione itens.");
+  const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
+  const tipoPagamento = tipoPagamentoSelect?.value || "Não informado";
 
-  const total = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
+  if (!clienteId || itensVendaAtual.length === 0) {
+    return alert("Selecione o cliente e adicione itens.");
+  }
+
+  const total = itensVendaAtual.reduce(
+    (s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)),
+    0
+  );
 
   await addDoc(collection(db, "vendas"), {
     clienteId,
+    clienteNome,        // ✅ salva o nome do cliente
+    tipoPagamento,      // ✅ salva o tipo de pagamento
     itens: itensVendaAtual,
     total,
     data: serverTimestamp()
   });
 
   alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
+
   itensVendaAtual = [];
   atualizarTabelaVendas();
-})
+  carregarRegistrosVendas(); // ✅ atualiza lista após salvar
+});
 
 // ===============================
 // CARREGAR REGISTROS DE VENDAS
@@ -547,30 +559,41 @@ async function carregarRegistrosVendas() {
   const vendasSnapshot = await getDocs(collection(db, "vendas"));
   let totalGeral = 0;
 
- vendasSnapshot.forEach((doc) => {
-  const venda = doc.data();
-  const row = document.createElement("tr");
+  vendasSnapshot.forEach((doc) => {
+    const venda = doc.data();
+    const id = doc.id;
+    const dataFormatada = venda.data?.seconds
+      ? new Date(venda.data.seconds * 1000).toLocaleDateString()
+      : "-";
 
-  row.innerHTML = `
-    <td>${formatarData(venda.data)}</td>
-    <td>${venda.cliente}</td>
-    <td>${venda.produto}</td>
-    <td>${venda.quantidade}</td>
-    <td>${venda.precoUnitario.toFixed(2)}</td>
-    <td>${venda.desconto.toFixed(2)}</td>
-    <td>${venda.totalAntes.toFixed(2)}</td>
-    <td>${venda.totalApos.toFixed(2)}</td>
-    <td>${venda.tipoPagamento || "-"}</td>
-    <td>
-      <button class="btnExcluir" onclick="abrirModalExcluir('${doc.id}')">🗑️</button>
-      <button class="btnPDF" onclick="gerarPdfVenda('${doc.id}')">📄</button>
-    </td>
-  `;
-  listaVendas.appendChild(row);
-});
+    (venda.itens || []).forEach((item) => {
+      const subtotal = item.quantidade * item.preco;
+      const total = subtotal - (item.desconto || 0);
+      totalGeral += total;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${dataFormatada}</td>
+        <td>${venda.clienteNome || "Cliente"}</td>
+        <td>${item.produtoNome || item.nome || "-"}</td>
+        <td>${item.quantidade}</td>
+        <td>${item.preco.toFixed(2)}</td>
+        <td>${(item.desconto || 0).toFixed(2)}</td>
+        <td>${subtotal.toFixed(2)}</td>
+        <td>${total.toFixed(2)}</td>
+        <td>${venda.tipoPagamento || "-"}</td>
+        <td>
+          <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
+          <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
+        </td>
+      `;
+      tabela.appendChild(row);
+    });
+  });
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
+
 document.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
@@ -823,7 +846,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
