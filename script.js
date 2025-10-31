@@ -32,6 +32,15 @@ const clienteSelect = document.getElementById('clienteSelect');
 const produtoSelect = document.getElementById('produtoSelect');
 const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
 const tipoPrecoSelect = document.getElementById('tipoPrecoSelect'); // Ex: Estampa Frente, Branca, etc
+const precoSelecionado = document.getElementById("precoSelecionado");
+const quantidadeVenda = document.getElementById("quantidadeVenda");
+
+const modalDesconto = document.getElementById('modalDesconto');
+const tituloModalDesconto = document.getElementById('tituloModalDesconto');
+const valorDescontoInput = document.getElementById('valorDesconto');
+const tipoDescontoSelect = document.getElementById('tipoDesconto');
+const btnAplicarDesconto = document.getElementById('btnAplicarDesconto');
+const btnCancelarDesconto = document.getElementById('btnCancelarDesconto');
 
 // Coleções
 const clientesCol = collection(db, 'clientes');
@@ -39,6 +48,8 @@ const produtosCol = collection(db, 'produtos');
 const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
+let descontoIndex = null;  // índice do item ou null para desconto geral
+let descontoTipo = 'item'; // 'item' ou 'venda'
 let itensVendaAtual = [];
 let itensOrcamentoAtual = [];
 let produtosMap = {}; // será carregado do Firestor
@@ -308,18 +319,26 @@ document.getElementById("btnCadastrarProduto")?.addEventListener("click", async 
 // ==========================
 // 🔹 Vendas
 // ==========================
-// ===============================
-// ADICIONAR ITEM À VENDA
-// ===============================
 document.addEventListener("DOMContentLoaded", () => {
   const btnAdicionarItemVenda = document.getElementById("btnAdicionarItemVenda");
   btnAdicionarItemVenda.addEventListener("click", adicionarItemVenda);
 });
 
 function adicionarItemVenda() {
+  const produtoSelect = document.getElementById("produtoSelect");
+  const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
+  const quantidadeInput = document.getElementById("quantidadeVenda");
+  const precoInput = document.getElementById("precoSelecionado");
+
+  if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
+    console.error("Algum elemento do formulário não foi encontrado!");
+    return;
+  }
+
   const produtoId = produtoSelect.value;
-  const quantidade = Number(document.getElementById("quantidadeVenda").value);
-  const preco = Number(document.getElementById("precoVenda").value);
+  const tipoPreco = tipoPrecoSelect.value;
+  const quantidade = Number(quantidadeInput.value);
+  const preco = Number(precoInput.value);
 
   if (!produtoId || quantidade <= 0 || preco <= 0) {
     alert("Preencha todos os campos corretamente!");
@@ -741,17 +760,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
-
-// ===== MODAL DE DESCONTO =====
-const modalDesconto = document.getElementById('modalDesconto');
-const tituloModalDesconto = document.getElementById('tituloModalDesconto');
-const valorDescontoInput = document.getElementById('valorDesconto');
-const tipoDescontoSelect = document.getElementById('tipoDesconto');
-const btnAplicarDesconto = document.getElementById('btnAplicarDesconto');
-const btnCancelarDesconto = document.getElementById('btnCancelarDesconto');
-
-let descontoIndex = null;  // índice do item ou null para desconto geral
-let descontoTipo = 'item'; // 'item' ou 'venda'
 
 // ===============================
 // MODAL DE DESCONTO
