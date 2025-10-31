@@ -40,6 +40,7 @@ const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
 let itensVendaAtual = [];
+let itensOrcamentoAtual[];
 let produtosMap = {}; // será carregado do Firestor
 
 // =====================
@@ -323,39 +324,6 @@ window.adicionarItemVenda = () => {
 
   atualizarTabelaVendas();
 };
-
-function atualizarTabelaVendas() {
-    const tbody = document.querySelector('#tabelaItensVenda tbody');
-    tbody.innerHTML = '';
-    let totalVenda = 0;
-
-    itensVendaAtual.forEach((item, i) => {
-        const subtotal = item.preco * item.quantidade;
-        const total = subtotal - (item.desconto || 0);
-        totalVenda += total;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item.nome}</td>
-            <td>${item.quantidade}</td>
-            <td>${item.preco.toFixed(2)}</td>
-            <td>${item.desconto?.toFixed(2) || '0.00'}</td>
-            <td>${subtotal.toFixed(2)}</td>
-            <td>${total.toFixed(2)}</td>
-            <td>
-                <button onclick="removerItemVenda(${i})">X</button>
-                <button onclick="abrirModalDesconto(${i}, 'item')">Desconto</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-
-    document.getElementById('totalVenda').textContent = totalVenda.toFixed(2);
-}
-
-function renderizarItensVenda() {
-    atualizarTabelaVendas();
-}
 
 // ===============================
 // REMOVER ITEM
@@ -772,3 +740,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
