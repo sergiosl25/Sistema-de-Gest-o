@@ -503,6 +503,7 @@ function removerItemVenda(index) {
   // Atualiza a tabela após a remoção
   renderizarItensVenda();
 }
+window.removerItemVenda = removerItemVenda;
 
 // ===============================
 // FINALIZAR VENDA
@@ -614,6 +615,7 @@ async function abrirModalExcluir(idVenda) {
     alert("Erro ao excluir venda. Verifique o console.");
   }
 }
+window.abrirModalExcluir = abrirModalExcluir;
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 async function abrirModalDesconto(idVenda) {
@@ -654,6 +656,7 @@ async function abrirModalDesconto(idVenda) {
     alert("Erro ao aplicar desconto. Verifique o console.");
   }
 }
+window.abrirModalDesconto = abrirModalDesconto;
 
 async function gerarPdfVenda(idVenda) {
   if (!idVenda || typeof idVenda !== "string") {
@@ -697,6 +700,7 @@ async function gerarPdfVenda(idVenda) {
     alert("Erro ao gerar PDF. Verifique o console.");
   }
 }
+window.gerarPdfVenda = gerarPdfVenda;
 
 // ==========================
 // 🔹 Orçamentos
