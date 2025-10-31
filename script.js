@@ -594,10 +594,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
-  if (!idVenda) {
-    alert("Erro: ID da venda não foi passado.");
-    return;
-  }
   try {
     // Verifica se o ID é válido antes de tentar excluir
     if (!idVenda || typeof idVenda !== "string") {
@@ -620,7 +616,7 @@ async function abrirModalExcluir(idVenda) {
     alert("Erro ao excluir venda. Verifique o console.");
   }
 }
-abrirModalExcluir(idVenda);
+abrirModalExcluir();
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 async function abrirModalDesconto(idVenda) {
@@ -888,5 +884,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
