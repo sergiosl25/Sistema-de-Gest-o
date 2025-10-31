@@ -35,21 +35,12 @@ const tipoPrecoSelect = document.getElementById('tipoPrecoSelect'); // Ex: Estam
 const precoSelecionado = document.getElementById("precoSelecionado");
 const quantidadeVenda = document.getElementById("quantidadeVenda");
 
-const modalDesconto = document.getElementById('modalDesconto');
-const tituloModalDesconto = document.getElementById('tituloModalDesconto');
-const valorDescontoInput = document.getElementById('valorDesconto');
-const tipoDescontoSelect = document.getElementById('tipoDesconto');
-const btnAplicarDesconto = document.getElementById('btnAplicarDesconto');
-const btnCancelarDesconto = document.getElementById('btnCancelarDesconto');
-
 // Coleções
 const clientesCol = collection(db, 'clientes');
 const produtosCol = collection(db, 'produtos');
 const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
-let descontoIndex = null;  // índice do item ou null para desconto geral
-let descontoTipo = 'item'; // 'item' ou 'venda'
 let itensVendaAtual = [];
 let itensOrcamentoAtual = [];
 let produtosMap = {}; // será carregado do Firestor
@@ -578,10 +569,11 @@ async function carregarRegistrosVendas() {
        <td>${total.toFixed(2)}</td>
        <td>${venda.tipoPagamento || "-"}</td>
        <td>
-         <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
-         <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
-         <button class="btnDesconto" onclick="abrirModalDesconto('${id}')">💸</button>
-      </td>
+           <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
+           <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
+           <button class="btnDesconto" onclick="abrirModalDesconto('${id}')">💸</button>
+       </td>
+
     `;
       tabela.appendChild(row);
     });
@@ -650,12 +642,13 @@ async function abrirModalDesconto(idVenda) {
     });
 
     alert(`Desconto de R$ ${valorDesconto.toFixed(2)} aplicado com sucesso!`);
-    carregarRegistrosVendas();
+    await carregarRegistrosVendas();
   } catch (error) {
     console.error("Erro ao aplicar desconto:", error);
     alert("Erro ao aplicar desconto. Verifique o console.");
   }
 }
+
 window.abrirModalDesconto = abrirModalDesconto;
 
 async function gerarPdfVenda(idVenda) {
