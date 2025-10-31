@@ -571,7 +571,6 @@ async function carregarRegistrosVendas() {
        <td>
            <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
            <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
-           <button class="btnDesconto" onclick="abrirModalDesconto('${id}')">💸</button>
        </td>
 
     `;
@@ -891,4 +890,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
