@@ -240,16 +240,20 @@
 </div>
 
 <!-- Modal Exclusão -->
-<div id="modalExcluir" class="modal">
+<div id="modalConfirmarExclusao" class="modal" style="display:none;">
   <div class="modal-content">
     <p>Deseja realmente excluir?</p>
-    <button id="btnConfirmarExcluir">Sim</button>
-    <button id="btnCancelarExcluir">Não</button>
+    <div style="text-align:center; margin-top:15px;">
+      <button id="confirmarExclusao">Sim</button>
+      <button id="cancelarExclusao">Não</button>
+    </div>
   </div>
 </div>
+
 <script type="module" src="firebase-config.js"></script>
 <script type="module" src="script.js"></script>
 
 </body>
 </html>
+
 
