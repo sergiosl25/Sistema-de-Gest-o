@@ -126,8 +126,6 @@
 <p>Total da Venda: R$ <span id="totalVenda">0.00</span></p>
 
 <button onclick="abrirModalDesconto(null, 'venda')">Desconto na Venda</button>
-<button onclick="removerItemVenda(0)">Remover</button>
-<button onclick="removerItemVenda(1)">Remover</button>
 
 <!-- Modal de Desconto -->
 <div id="modalDesconto" class="modal">
@@ -166,6 +164,8 @@
           <th>Total Após</th>
           <th>Pagamento</th>
           <th>Ações</th>
+          <button id="btnGerarPDF">Gerar PDF</button>
+          <button id="btnExcluir">Excluir</button>
         </tr>
       </thead>
       <tbody></tbody>
@@ -247,6 +247,7 @@
 
 </body>
 </html>
+
 
 
 
