@@ -228,20 +228,29 @@ async function carregarEstoque() {
 // CARREGAR PRODUTOS DO FIREBASE
 // ===============================
 async function carregarProdutos() {
-  const produtosSnapshot = await getDocs(collection(db, "produtos"));
-  produtosMap = {};
-  produtoSelect.innerHTML = '<option value="">Selecione</option>';
+  try {
+    const produtosSnapshot = await getDocs(collection(db, "produtos"));
+    produtosMap = {}; // reinicia o mapa
+    const produtoSelect = document.getElementById("produtoSelect"); 
+    produtoSelect.innerHTML = '<option value="">Selecione</option>';
 
-  produtosSnapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    produtosMap[docSnap.id] = data;
+    produtosSnapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      produtosMap[docSnap.id] = data;
 
-    const option = document.createElement('option');
-    option.value = docSnap.id;
-    option.textContent = data.nome;
-    produtoSelect.appendChild(option);
-  });
+      const option = document.createElement('option');
+      option.value = docSnap.id;
+      option.textContent = data.nome;
+      produtoSelect.appendChild(option);
+    });
+  } catch (error) {
+    console.error("Erro ao carregar produtos:", error);
+  }
 }
+document.addEventListener("DOMContentLoaded", () => {
+  carregarProdutos();
+});
+
 
 // ===============================
 // AO SELECIONAR PRODUTO OU TIPO DE PREÇO
@@ -302,9 +311,10 @@ document.getElementById("btnCadastrarProduto")?.addEventListener("click", async 
 // ===============================
 // ADICIONAR ITEM À VENDA
 // ===============================
-const btnAdicionarItemVenda = document.getElementById("btnAdicionarItemVenda");
-
-btnAdicionarItemVenda?.addEventListener("click", adicionarItemVenda);
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAdicionarItemVenda = document.getElementById("btnAdicionarItemVenda");
+  btnAdicionarItemVenda.addEventListener("click", adicionarItemVenda);
+});
 
 function adicionarItemVenda() {
   const produtoId = produtoSelect.value;
@@ -327,14 +337,6 @@ function adicionarItemVenda() {
   });
 
   atualizarTabelaItensVenda();
-}
-
-// ===============================
-// REMOVER ITEM
-// ===============================
-function removerItemVenda(i) {
-  itensVendaAtual.splice(i, 1);
-  atualizarTabelaVendas();
 }
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
@@ -420,8 +422,37 @@ function atualizarTabelaVendas() {
 }
 
 function renderizarItensVenda() {
-  atualizarTabelaVendas();
+  const tabela = document.getElementById("tabelaItensVenda").querySelector("tbody");
+  tabela.innerHTML = ""; // limpa a tabela antes de renderizar
+
+  let totalVenda = 0;
+
+  itensVendaAtual.forEach((item, index) => {
+    const subtotal = item.quantidade * item.preco;
+    totalVenda += subtotal;
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${item.nome}</td>
+      <td>${item.quantidade}</td>
+      <td>R$ ${item.preco.toFixed(2)}</td>
+      <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
+      <td>R$ ${subtotal.toFixed(2)}</td>
+      <td>R$ ${(subtotal - (item.desconto || 0)).toFixed(2)}</td>
+      <td>
+        <button onclick="removerItemVenda(${index})">Remover</button>
+      </td>
+    `;
+
+    tabela.appendChild(tr);
+  });
+
+  document.getElementById("totalVenda").textContent = totalVenda.toFixed(2);
 }
+document.addEventListener("DOMContentLoaded", () => {
+  renderizarItensVenda();
+});
 
 function atualizarTabelaItensVenda() {
   const tbody = document.querySelector("#tabelaItensVenda tbody");
@@ -450,8 +481,11 @@ function atualizarTabelaItensVenda() {
 }
 
 function removerItemVenda(index) {
+  // Remove o item do array de vendas
   itensVendaAtual.splice(index, 1);
-  atualizarTabelaItensVenda();
+
+  // Atualiza a tabela após a remoção
+  renderizarItensVenda();
 }
 
 // ===============================
@@ -496,7 +530,7 @@ async function carregarRegistrosVendas() {
 
     (venda.itens || []).forEach(item => {
       const subtotal = item.quantidade * item.preco;
-      const total = subtotal - (item.desconto || 0)
+      const total = subtotal - (item.desconto || 0);
       totalGeral += total;
 
       const linha = document.createElement("tr");
@@ -507,7 +541,7 @@ async function carregarRegistrosVendas() {
         <td>${item.tipoPreco}</td>
         <td>${item.quantidade}</td>
         <td>R$ ${item.preco.toFixed(2)}</td>
-        <td>R$ ${item.desconto.toFixed(2)}</td>
+        <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
         <td>R$ ${total.toFixed(2)}</td>
         <td><button onclick="excluirRegistro('${docSnap.id}')">Excluir</button></td>
       `;
@@ -517,7 +551,9 @@ async function carregarRegistrosVendas() {
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
-
+document.addEventListener("DOMContentLoaded", () => {
+  carregarRegistrosVendas();
+});
 // ==========================
 // 🔹 Orçamentos
 // ==========================
