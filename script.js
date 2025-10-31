@@ -31,7 +31,7 @@ const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
 const clienteSelect = document.getElementById('clienteSelect');
 const produtoSelect = document.getElementById('produtoSelect');
 const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
-const tipoPrecoSelect = document.getElementById('tipoPreco'); // Ex: Estampa Frente, Branca, etc
+const tipoPrecoSelect = document.getElementById('tipoPrecoSelect'); // Ex: Estampa Frente, Branca, etc
 
 // Coleções
 const clientesCol = collection(db, 'clientes');
@@ -740,5 +740,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
