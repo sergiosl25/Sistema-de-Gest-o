@@ -547,36 +547,27 @@ async function carregarRegistrosVendas() {
   const vendasSnapshot = await getDocs(collection(db, "vendas"));
   let totalGeral = 0;
 
-  vendasSnapshot.forEach(docSnap => {
-    const venda = docSnap.data();
-    const dataVenda = venda.data?.seconds ? new Date(venda.data.seconds * 1000).toLocaleString() : "";
-    const cliente = venda.clienteNome || "";
-    const formaPagamento = venda.formaPagamento || "";
+ vendasSnapshot.forEach((doc) => {
+  const venda = doc.data();
+  const row = document.createElement("tr");
 
-    (venda.itens || []).forEach(item => {
-      const subtotal = item.quantidade * item.preco;
-      const total = subtotal - (item.desconto || 0);
-      totalGeral += total;
-
-      const linha = document.createElement("tr");
-      linha.innerHTML = `
-        <td>${dataVenda}</td>
-        <td>${cliente}</td>
-        <td>${item.nome}</td>
-        <td>${item.quantidade}</td>
-        <td>${item.tipoPreco}</td>        
-        <td>R$ ${item.preco.toFixed(2)}</td>
-        <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
-        <td>R$ ${total.toFixed(2)}</td>
-        <td>${formaPagamento}</td>
-        <td>
-          <button onclick="excluirRegistro('${docSnap.id}')">Excluir</button>
-          <button onclick="gerarPDF('${docSnap.id}')">Gerar PDF</button>
-        </td>
-      `;
-      tabela.appendChild(linha);
-    });
-  });
+  row.innerHTML = `
+    <td>${formatarData(venda.data)}</td>
+    <td>${venda.cliente}</td>
+    <td>${venda.produto}</td>
+    <td>${venda.quantidade}</td>
+    <td>${venda.precoUnitario.toFixed(2)}</td>
+    <td>${venda.desconto.toFixed(2)}</td>
+    <td>${venda.totalAntes.toFixed(2)}</td>
+    <td>${venda.totalApos.toFixed(2)}</td>
+    <td>${venda.tipoPagamento || "-"}</td>
+    <td>
+      <button class="btnExcluir" onclick="abrirModalExcluir('${doc.id}')">🗑️</button>
+      <button class="btnPDF" onclick="gerarPdfVenda('${doc.id}')">📄</button>
+    </td>
+  `;
+  listaVendas.appendChild(row);
+});
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
@@ -832,6 +823,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
