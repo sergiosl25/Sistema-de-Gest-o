@@ -130,7 +130,7 @@ function mostrarSecao(secaoId) {
     case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
     case "registrosVendas": carregarTabelaVendas(); break;
     case "precos": carregarTabelaPrecos(); break;
-    case "tabelaPrecos" : carregarTabelaPrecos(); break;
+    case 'tabelaPrecos' : carregarTabelaPrecos(); break;
   }
 }
 
@@ -503,7 +503,6 @@ function atualizarTabelaItensVenda() {
 function removerItemVenda(index) {
   // Remove o item do array de vendas
   itensVendaAtual.splice(index, 1);
-
   // Atualiza a tabela após a remoção
   renderizarItensVenda();
 }
@@ -596,22 +595,75 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarRegistrosVendas();
 });
 
-function abrirModalExcluir(idVenda) {
-  // Exemplo simples: confirmação de exclusão
-  if (confirm("Deseja realmente excluir esta venda?")) {
-    // Aqui você chamaria a função do Firestore para deletar
-    deleteDoc(doc(db, "vendas", idVenda))
-      .then(() => {
-        alert("Venda excluída com sucesso!");
-        carregarRegistrosVendas(); // Recarrega a tabela
-      })
-      .catch((error) => {
-        console.error("Erro ao excluir venda:", error);
-        alert("Erro ao excluir venda!");
-      });
+// --- Função para excluir venda ---
+async function abrirModalExcluir(idVenda) {
+  try {
+    // Verifica se o ID é válido antes de tentar excluir
+    if (!idVenda || typeof idVenda !== "string") {
+      alert("ID da venda inválido. Não foi possível excluir.");
+      console.error("ID inválido recebido em abrirModalExcluir:", idVenda);
+      return;
+    }
+
+    // Confirmação antes de excluir
+    const confirmar = confirm("Deseja realmente excluir esta venda?");
+    if (!confirmar) return;
+
+    // Exclui o documento do Firestore
+    await deleteDoc(doc(db, "vendas", idVenda));
+
+    alert("Venda excluída com sucesso!");
+    carregarRegistrosVendas(); // Atualiza a tabela após exclusão
+  } catch (error) {
+    console.error("Erro ao excluir venda:", error);
+    alert("Erro ao excluir venda. Verifique o console.");
   }
 }
-abrirModalExcluir();
+abrirModalExcluir(idVenda);
+
+// --- Função para abrir modal ou aplicar desconto (versão funcional) ---
+async function abrirModalDesconto(idVenda) {
+  try {
+    // Solicita valor do desconto ao usuário
+    const valorDesconto = parseFloat(prompt("Digite o valor do desconto em R$:"));
+
+    // Verifica se o valor é válido
+    if (isNaN(valorDesconto) || valorDesconto <= 0) {
+      alert("Valor de desconto inválido.");
+      return;
+    }
+
+    // Busca a venda no Firestore
+    const vendaRef = doc(db, "vendas", idVenda);
+    const vendaSnap = await getDoc(vendaRef);
+
+    if (!vendaSnap.exists()) {
+      alert("Venda não encontrada!");
+      return;
+    }
+
+    const venda = vendaSnap.data();
+
+    // Atualiza o valor total com desconto aplicado
+    const totalAtual = venda.total || 0;
+    const novoTotal = totalAtual - valorDesconto;
+
+    // Atualiza o registro no Firestore
+    await updateDoc(vendaRef, {
+      descontoAplicado: valorDesconto,
+      totalComDesconto: novoTotal
+    });
+
+    alert(`Desconto de R$ ${valorDesconto.toFixed(2)} aplicado com sucesso!`);
+
+    // Recarrega a tabela para atualizar os valores
+    carregarRegistrosVendas();
+
+  } catch (error) {
+    console.error("Erro ao aplicar desconto:", error);
+    alert("Erro ao aplicar desconto. Verifique o console.");
+  }
+}
 
 function gerarPdfVenda(idVenda) {
   // Aqui você buscaria a venda no Firestore
@@ -719,7 +771,7 @@ async function carregarTabelaPrecos() {
       <td>${produto.nome || ""}</td>
       <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
       <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
+      <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>>
     `;
 
     tabela.appendChild(linha);
@@ -863,7 +915,6 @@ window.addEventListener('click', (e) => {
 
 window.abrirModalDesconto = abrirModalDesconto;
 
-
 // === Funções “placeholder” para evitar erros ===
 
 // carrega os clientes disponíveis na aba de Vendas
@@ -879,4 +930,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
