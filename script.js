@@ -71,7 +71,6 @@ function mostrarLogin() {
   header.style.display = "none";
 }
 
-
 // =====================
 // 🔹 Autenticação
 // =====================
@@ -263,7 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
   carregarProdutos();
 });
 
-
 // ===============================
 // AO SELECIONAR PRODUTO OU TIPO DE PREÇO
 // ===============================
@@ -288,7 +286,6 @@ function atualizarPrecoProduto() {
 
 produtoSelect.addEventListener("change", atualizarPrecoProduto);
 tipoPrecoSelect.addEventListener("change", atualizarPrecoProduto);
-
 
 window.editarProduto = async (id, nome, qtd, preco) => {
     const novoNome = prompt("Nome:", nome);
@@ -664,6 +661,7 @@ async function abrirModalDesconto(idVenda) {
     alert("Erro ao aplicar desconto. Verifique o console.");
   }
 }
+abrirModalDesconto(idVenda);
 
 function gerarPdfVenda(idVenda) {
   // Aqui você buscaria a venda no Firestore
@@ -871,50 +869,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// ===============================
-// MODAL DE DESCONTO
-// ===============================
-function abrirModalDesconto(index = null, tipo = 'item') {
-  const modal = document.getElementById("modalDesconto");
-  const campoValor = document.getElementById("valorDesconto");
-  modal.style.display = "block";
-
-  // salva índice atual
-  modal.dataset.index = index;
-  modal.dataset.tipo = tipo;
-  campoValor.value = "";
-}
-// Ao confirmar o desconto
-document.getElementById("btnAplicarDesconto").addEventListener("click", () => {
-  const modal = document.getElementById("modalDesconto");
-  const index = parseInt(modal.dataset.index);
-  const tipo = modal.dataset.tipo;
-  const valor = parseFloat(document.getElementById("valorDesconto").value) || 0;
-
-  if (tipo === 'item' && itensVendaAtual[index]) {
-    itensVendaAtual[index].desconto = valor;
-  }
-
-  modal.style.display = "none";
-  atualizarTabelaVendas();
-})
-
-// Cancelar desconto
-btnCancelarDesconto.addEventListener('click', fecharModalDesconto);
-
-// Fechar modal
-function fecharModalDesconto() {
-  modalDesconto.style.display = 'none';
-  valorDescontoInput.value = '';
-}
-  
-// Fechar clicando fora do conteúdo
-window.addEventListener('click', (e) => {
-  if (e.target === modalDesconto) fecharModalDesconto();
-});
-
-window.abrirModalDesconto = abrirModalDesconto;
-
 // === Funções “placeholder” para evitar erros ===
 
 // carrega os clientes disponíveis na aba de Vendas
@@ -930,3 +884,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
