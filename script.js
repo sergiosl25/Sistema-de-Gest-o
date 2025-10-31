@@ -567,20 +567,21 @@ async function carregarRegistrosVendas() {
 
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td>${dataFormatada}</td>
-        <td>${venda.clienteNome || "Cliente"}</td>
-        <td>${produtoNome}</td>
-        <td>${item.quantidade || 0}</td>
-        <td>${(item.preco || 0).toFixed(2)}</td>
-        <td>${(item.desconto || 0).toFixed(2)}</td>
-        <td>${subtotal.toFixed(2)}</td>
-        <td>${total.toFixed(2)}</td>
-        <td>${venda.tipoPagamento || venda.formaPagamento || "-"}</td>
-        <td>
-          <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
-          <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
-        </td>
-      `;
+       <td>${dataFormatada}</td>
+       <td>${venda.clienteNome || "Cliente"}</td>
+       <td>${item.produto || "-"}</td>
+       <td>${item.quantidade}</td>
+       <td>${item.preco.toFixed(2)}</td>
+       <td>${(item.desconto || 0).toFixed(2)}</td>
+       <td>${subtotal.toFixed(2)}</td>
+       <td>${total.toFixed(2)}</td>
+       <td>${venda.tipoPagamento || "-"}</td>
+       <td>
+         <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
+         <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
+         <button class="btnDesconto" onclick="abrirModalDesconto('${id}')">💸</button>
+      </td>
+    `;
       tabela.appendChild(row);
     });
   });
@@ -595,44 +596,73 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
   try {
-    // Verifica se o ID é válido antes de tentar excluir
     if (!idVenda || typeof idVenda !== "string") {
       alert("ID da venda inválido. Não foi possível excluir.");
       console.error("ID inválido recebido em abrirModalExcluir:", idVenda);
       return;
     }
 
-    // Confirmação antes de excluir
     const confirmar = confirm("Deseja realmente excluir esta venda?");
     if (!confirmar) return;
 
-    // Exclui o documento do Firestore
     await deleteDoc(doc(db, "vendas", idVenda));
 
     alert("Venda excluída com sucesso!");
-    carregarRegistrosVendas(); // Atualiza a tabela após exclusão
+    carregarRegistrosVendas();
   } catch (error) {
     console.error("Erro ao excluir venda:", error);
     alert("Erro ao excluir venda. Verifique o console.");
   }
 }
-document.addEventListener("DOMContentLoaded", () => {
-  abrirModalExcluir();
-});
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 async function abrirModalDesconto(idVenda) {
-  try {
-    // Solicita valor do desconto ao usuário
-    const valorDesconto = parseFloat(prompt("Digite o valor do desconto em R$:"));
+  if (!idVenda || typeof idVenda !== "string") {
+    alert("ID inválido para desconto!");
+    console.error("abrirModalDesconto recebeu ID inválido:", idVenda);
+    return;
+  }
 
-    // Verifica se o valor é válido
-    if (isNaN(valorDesconto) || valorDesconto <= 0) {
-      alert("Valor de desconto inválido.");
+  const valorDesconto = parseFloat(prompt("Digite o valor do desconto em R$:"));
+  if (isNaN(valorDesconto) || valorDesconto <= 0) {
+    alert("Valor de desconto inválido.");
+    return;
+  }
+
+  try {
+    const vendaRef = doc(db, "vendas", idVenda);
+    const vendaSnap = await getDoc(vendaRef);
+
+    if (!vendaSnap.exists()) {
+      alert("Venda não encontrada!");
       return;
     }
 
-    // Busca a venda no Firestore
+    const venda = vendaSnap.data();
+    const totalAtual = venda.total || 0;
+    const novoTotal = totalAtual - valorDesconto;
+
+    await updateDoc(vendaRef, {
+      descontoAplicado: valorDesconto,
+      totalComDesconto: novoTotal
+    });
+
+    alert(`Desconto de R$ ${valorDesconto.toFixed(2)} aplicado com sucesso!`);
+    carregarRegistrosVendas();
+  } catch (error) {
+    console.error("Erro ao aplicar desconto:", error);
+    alert("Erro ao aplicar desconto. Verifique o console.");
+  }
+}
+
+async function gerarPdfVenda(idVenda) {
+  if (!idVenda || typeof idVenda !== "string") {
+    alert("ID da venda inválido para gerar PDF.");
+    console.error("gerarPdfVenda recebeu ID inválido:", idVenda);
+    return;
+  }
+
+  try {
     const vendaRef = doc(db, "vendas", idVenda);
     const vendaSnap = await getDoc(vendaRef);
 
@@ -643,54 +673,30 @@ async function abrirModalDesconto(idVenda) {
 
     const venda = vendaSnap.data();
 
-    // Atualiza o valor total com desconto aplicado
-    const totalAtual = venda.total || 0;
-    const novoTotal = totalAtual - valorDesconto;
+    // --- Geração do PDF ---
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+    pdf.text(`Venda ID: ${idVenda}`, 10, 10);
+    pdf.text(`Cliente: ${venda.clienteNome || "-"}`, 10, 20);
+    pdf.text(`Pagamento: ${venda.tipoPagamento || "-"}`, 10, 30);
 
-    // Atualiza o registro no Firestore
-    await updateDoc(vendaRef, {
-      descontoAplicado: valorDesconto,
-      totalComDesconto: novoTotal
+    let y = 40;
+    (venda.itens || []).forEach(item => {
+      pdf.text(
+        `${item.produtoNome || item.nome || "-"} - ${item.quantidade} x R$${item.preco.toFixed(2)}`,
+        10,
+        y
+      );
+      y += 10;
     });
 
-    alert(`Desconto de R$ ${valorDesconto.toFixed(2)} aplicado com sucesso!`);
-
-    // Recarrega a tabela para atualizar os valores
-    carregarRegistrosVendas();
-
+    pdf.text(`Total: R$ ${(venda.total || 0).toFixed(2)}`, 10, y + 10);
+    pdf.save(`venda_${idVenda}.pdf`);
   } catch (error) {
-    console.error("Erro ao aplicar desconto:", error);
-    alert("Erro ao aplicar desconto. Verifique o console.");
+    console.error("Erro ao gerar PDF:", error);
+    alert("Erro ao gerar PDF. Verifique o console.");
   }
 }
-document.addEventListener("DOMContentLoaded", () => {
-  abrirModalDesconto();
-});
-
-function gerarPdfVenda(idVenda) {
-  // Aqui você buscaria a venda no Firestore
-  getDocs(doc(db, "vendas", idVenda))
-    .then((docSnap) => {
-      if (docSnap.exists()) {
-        const venda = docSnap.data();
-        // Exemplo simples usando jsPDF (se estiver usando essa biblioteca)
-        const doc = new jsPDF();
-        doc.text(`Venda ID: ${idVenda}`, 10, 10);
-        doc.text(`Cliente: ${venda.clienteNome || "-"}`, 10, 20);
-        venda.itens.forEach((item, index) => {
-          doc.text(`${item.produto || item.nome || "-"} - ${item.quantidade} x R$${item.preco}`, 10, 30 + index * 10);
-        });
-        doc.save(`venda_${idVenda}.pdf`);
-      } else {
-        alert("Venda não encontrada!");
-      }
-    })
-    .catch((error) => {
-      console.error("Erro ao gerar PDF:", error);
-      alert("Erro ao gerar PDF!");
-    });
-}
-gerarPdfVenda();
 
 // ==========================
 // 🔹 Orçamentos
@@ -888,7 +894,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
