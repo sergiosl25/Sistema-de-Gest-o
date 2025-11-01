@@ -469,8 +469,8 @@ function limparTelaVenda() {
     totalVenda = 0;
 
     // Limpa tabela de itens da venda
-    const corpoTabelaItensVenda = document.querySelector("#tabela-ItensVenda tbody");
-    if (corpoTabelaVenda) corpoTabelaItensVenda.innerHTML = "";
+    const corpoTabelaItensVenda = document.querySelector("#tabelaItensVenda tbody");
+    if (corpoTabelaItensVenda) corpoTabelaItensVenda.innerHTML = "";
 
     // Reseta total exibido
     const totalSpan = document.getElementById("totalVenda");
@@ -590,13 +590,13 @@ function renderizarItensVenda() {
     tr.innerHTML = `
       <td>${item.nome}</td>
       <td>${item.quantidade}</td>
-      <td>R$ ${item.preco.toFixed(2)}</td>
+      <td>R$ ${item.valorUnitario?.toFixed(2) || "0.00"}</td>
       <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${(subtotal - (item.desconto || 0)).toFixed(2)}</td>
-      <td>${venda.tipoPagamento || "-"}</td>
+      <td>-</td>
       <td>
-        <button onclick="removerItemVenda(${index})">Remover</button>
+       <button onclick="removerItemVenda(${index})">Remover</button>
       </td>
     `;
 
@@ -647,7 +647,7 @@ window.removerItemVenda = removerItemVenda;
 // CARREGAR REGISTROS DE VENDAS
 // ===============================
 async function carregarRegistrosVendas() {
-  const tabela = document.querySelector("#tabelaRegistros tbody");
+  const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
   const totalGeralSpan = document.getElementById("totalGeralRegistros");
   if (!tabela || !totalGeralSpan) return;
 
