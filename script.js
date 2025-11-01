@@ -1,6 +1,6 @@
 import { app } from "./firebase-config.js";
 import { 
-  getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp 
+  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { 
   getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, setPersistence, browserLocalPersistence 
@@ -837,6 +837,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
