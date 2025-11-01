@@ -353,44 +353,47 @@ const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
 btnFinalizarVenda.addEventListener("click", async () => {
     try {
-        if (btnFinalizarVenda.disabled) return; // Evita cliques múltiplos
+        if (btnFinalizarVenda.disabled) return;
         btnFinalizarVenda.disabled = true;
 
         const tipoPagamentoSelect = document.getElementById("tipoPagamento");
         const clienteSelect = document.getElementById("clienteSelect");
 
         if (!clienteSelect || !tipoPagamentoSelect) throw new Error("Selecione cliente e tipo de pagamento.");
+        if (itensVendaAtual.length === 0) throw new Error("Nenhum item adicionado à venda.");
 
         const tipoPagamento = tipoPagamentoSelect.value;
         const clienteId = clienteSelect.value;
         const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-        if (itensVendaAtual.length === 0) throw new Error("Nenhum item adicionado à venda.");
+        const itensParaSalvar = [...itensVendaAtual];
+        const totalParaSalvar = totalVenda;
 
-        // Adiciona venda ao Firestore
-        await addDoc(collection(db, "vendas"), {
+        // Limpa array e total imediatamente para evitar duplicações
+        itensVendaAtual = [];
+        totalVenda = 0;
+
+        // Salva no Firestore
+        const docRef = await addDoc(collection(db, "vendas"), {
             clienteId,
             clienteNome,
             tipoPagamento,
-            itens: itensVendaAtual,
-            total: totalVenda,
+            itens: itensParaSalvar,
+            total: totalParaSalvar,
             data: serverTimestamp()
         });
 
         // Gera PDF
         gerarPdfVendaPremium({
+            id: docRef.id,
             clienteNome,
             tipoPagamento,
-            itens: itensVendaAtual,
-            total: totalVenda
+            itens: itensParaSalvar,
+            total: totalParaSalvar,
+            data: new Date()
         });
 
-        alert(`Venda registrada! Total: R$ ${totalVenda.toFixed(2)}`);
-
-        // Limpa array de itens e total
-        itensVendaAtual = [];
-        totalVenda = 0;
-
+        alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
     } catch (error) {
         console.error("Erro ao registrar venda:", error);
         alert("Erro ao registrar venda: " + error.message);
@@ -398,7 +401,6 @@ btnFinalizarVenda.addEventListener("click", async () => {
         btnFinalizarVenda.disabled = false;
     }
 });
-
 
 async function gerarPdfVendaPremium(venda) {
     try {
@@ -879,3 +881,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
