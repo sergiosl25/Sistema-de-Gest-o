@@ -318,8 +318,9 @@ function adicionarItemVenda() {
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
   const quantidadeInput = document.getElementById("quantidadeVenda");
   const precoInput = document.getElementById("precoSelecionado");
+  const tipoPagamento = document.getElementById("tipoPagamento");
 
-  if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
+  if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput || !tipoPagamento) {
     console.error("Algum elemento do formulário não foi encontrado!");
     return;
   }
@@ -328,6 +329,7 @@ function adicionarItemVenda() {
   const tipoPreco = tipoPrecoSelect.value;
   const quantidade = Number(quantidadeInput.value);
   const preco = Number(precoInput.value);
+  const pagamento = tipoPagamento.value;
 
   if (!produtoId || quantidade <= 0 || preco <= 0) {
     alert("Preencha todos os campos corretamente!");
@@ -341,7 +343,8 @@ function adicionarItemVenda() {
   produtoId,
   nome: produtoNome, 
   quantidade,
-  preco
+  preco,
+  tipoPagamento
 });
 
   atualizarTabelaItensVenda();
@@ -359,6 +362,7 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
         clienteId,
         itens: itensVendaAtual,
         total,
+        tipoPagamento,
         data: serverTimestamp()
     });
 
@@ -391,6 +395,7 @@ function renderizarItensVenda() {
       <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${(subtotal - (item.desconto || 0)).toFixed(2)}</td>
+      <td>${venda.tipoPagamento || "-"}</td>
       <td>
         <button onclick="removerItemVenda(${index})">Remover</button>
       </td>
@@ -423,6 +428,7 @@ function atualizarTabelaItensVenda() {
       <td>0.00</td>
       <td>${subtotal.toFixed(2)}</td>
       <td>${subtotal.toFixed(2)}</td>
+      <td>${venda.tipoPagamento || "-"}</td>
       <td><button onclick="removerItemVenda(${index})">Remover</button></td>
     `;
     tbody.appendChild(tr);
