@@ -119,7 +119,7 @@ function mostrarSecao(secaoId) {
     case "estoque": carregarEstoque(); break;
     case "vendas": carregarClientesVenda(); carregarProdutosVenda(); break;
     case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
-    case "registrosVendas": carregar.TabelaRegistrosVendas(); break;
+    case "registrosVendas": carregarTabelaRegistrosVendas(); break;
     case "precos": carregarTabelaPrecos(); break;
     case 'tabelaPrecos' : carregarTabelaPrecos(); break;
   }
@@ -708,7 +708,7 @@ async function abrirModalExcluir(idVenda) {
     await deleteDoc(doc(db, "vendas", idVenda));
 
     alert("Venda excluída com sucesso!");
-    carregarRegistrosVendas();
+    carregarTabelaRegistrosVendas();
   } catch (error) {
     console.error("Erro ao excluir venda:", error);
     alert("Erro ao excluir venda. Verifique o console.");
@@ -953,4 +953,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
