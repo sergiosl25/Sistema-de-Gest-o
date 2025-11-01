@@ -352,52 +352,63 @@ function adicionarItemVenda() {
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
 btnFinalizarVenda.addEventListener("click", async () => {
-    try {
-        if (btnFinalizarVenda.disabled) return;
-        btnFinalizarVenda.disabled = true;
+  try {
+    if (btnFinalizarVenda.disabled) return;
+    btnFinalizarVenda.disabled = true;
 
-        const tipoPagamentoSelect = document.getElementById("tipoPagamento");
-        const clienteSelect = document.getElementById("clienteSelect");
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+    const clienteSelect = document.getElementById("clienteSelect");
 
-        if (!clienteSelect || !tipoPagamentoSelect) throw new Error("Selecione cliente e tipo de pagamento.");
-        if (itensVendaAtual.length === 0) throw new Error("Nenhum item adicionado à venda.");
+    if (!clienteSelect || !tipoPagamentoSelect)
+      throw new Error("Selecione cliente e tipo de pagamento.");
 
-        const tipoPagamento = tipoPagamentoSelect.value;
-        const clienteId = clienteSelect.value;
-        const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
-     
-        // Salva no Firestore
-        const docRef = await addDoc(collection(db, "vendas"), {
-            clienteId,
-            clienteNome,
-            tipoPagamento,
-            itens: itensVendaAtual,
-            total: totalVenda,
-            data: serverTimestamp()
-        });
+    if (itensVendaAtual.length === 0)
+      throw new Error("Nenhum item adicionado à venda.");
 
-        // Gera PDF
-        gerarPdfVendaPremium({
-            id: docRef.id,
-            clienteNome,
-            tipoPagamento,
-            itens: itensVendaAtual,
-            total: totalVenda,
-            data: new Date()
-        });
+    // ✅ Aqui pegamos apenas os valores, não os elementos
+    const tipoPagamento = tipoPagamentoSelect.value;
+    const clienteId = clienteSelect.value;
+    const clienteNome =
+      clienteSelect.options[clienteSelect.selectedIndex]?.text || "Cliente";
 
-        alert(`Venda registrada! Total: R$ ${totalVenda.toFixed(2)}`);
+    const itensParaSalvar = [...itensVendaAtual];
+    const totalParaSalvar = totalVenda;
 
-      // Limpa array e total imediatamente para evitar duplicações
-        itensVendaAtual = [];
-        totalVenda = 0;
-      
-    } catch (error) {
-        console.error("Erro ao registrar venda:", error);
-        alert("Erro ao registrar venda: " + error.message);
-    } finally {
-        btnFinalizarVenda.disabled = false;
-    }
+    // ✅ Dados seguros para o Firestore (nada de HTML)
+    const dadosVenda = {
+      clienteId,
+      clienteNome,
+      tipoPagamento,
+      itens: itensParaSalvar,
+      total: totalParaSalvar,
+      data: serverTimestamp()
+    };
+
+    const docRef = await addDoc(collection(db, "vendas"), dadosVenda);
+
+    gerarPdfVendaPremium({
+      id: docRef.id,
+      clienteNome,
+      tipoPagamento,
+      itens: itensParaSalvar,
+      total: totalParaSalvar,
+      data: new Date()
+    });
+
+    alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
+
+    // 🔹 Limpa após salvar
+    itensVendaAtual = [];
+    totalVenda = 0;
+
+    carregarRegistrosVendas();
+
+  } catch (error) {
+    console.error("Erro ao registrar venda:", error);
+    alert("Erro ao registrar venda: " + error.message);
+  } finally {
+    btnFinalizarVenda.disabled = false;
+  }
 });
 
 async function gerarPdfVendaPremium(venda) {
@@ -879,6 +890,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
