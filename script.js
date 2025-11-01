@@ -445,13 +445,14 @@ window.removerItemVenda = removerItemVenda;
 // FINALIZAR VENDA
 // ===============================
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
-  const clienteSelect = document.getElementById("clienteSelect");
-  const tipoPagamentoSelect = document.getElementById("tipoPagamento"); 
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+    const clienteSelect = document.getElementById("clienteSelect");
 
-  const clienteId = clienteSelect.value;
-  const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
-  const tipoPagamento = tipoPagamentoSelect?.value || "Não informado";
+    const tipoPagamento = tipoPagamentoSelect.value;
+    const clienteId = clienteSelect.value;
 
+    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text; 
+    
   if (!clienteId || itensVendaAtual.length === 0) {
     return alert("Selecione o cliente e adicione itens.");
   }
@@ -836,4 +837,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
