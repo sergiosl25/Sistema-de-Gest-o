@@ -352,81 +352,72 @@ function adicionarItemVenda() {
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
 // 🔹 Função principal: finalizar venda
+// 🔹 Finalizar venda (corrigido — sem duplicar registros)
 btnFinalizarVenda.addEventListener("click", async () => {
-    try {
-        if (btnFinalizarVenda.disabled) return;
-        btnFinalizarVenda.disabled = true;
+  try {
+    if (btnFinalizarVenda.disabled) return;
+    btnFinalizarVenda.disabled = true;
 
-        const tipoPagamentoSelect = document.getElementById("tipoPagamento");
-        const clienteSelect = document.getElementById("clienteSelect");
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+    const clienteSelect = document.getElementById("clienteSelect");
 
-        if (!clienteSelect || !tipoPagamentoSelect)
-            throw new Error("Selecione cliente e tipo de pagamento.");
-        if (itensVendaAtual.length === 0)
-            throw new Error("Nenhum item adicionado à venda.");
+    if (!clienteSelect || !tipoPagamentoSelect)
+      throw new Error("Selecione cliente e tipo de pagamento.");
+    if (itensVendaAtual.length === 0)
+      throw new Error("Nenhum item adicionado à venda.");
 
-        const tipoPagamento = tipoPagamentoSelect.value;
-        const clienteId = clienteSelect.value;
-        const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
+    const tipoPagamento = tipoPagamentoSelect.value;
+    const clienteId = clienteSelect.value;
+    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-        // 🔹 Prepara os itens corretamente (sem referências de HTML)
-        const itensParaSalvar = itensVendaAtual.map(item => ({
-            nome: String(item.nome || ""),
-            quantidade: Number(item.quantidade || 0),
-            valorUnitario: Number(item.valorUnitario || item.preco || 0),
-            subtotal: Number(item.quantidade || 0) * Number(item.valorUnitario || item.preco || 0)
-        }));
+    // 🔹 Prepara os itens da venda
+    const itensParaSalvar = itensVendaAtual.map(item => ({
+      nome: String(item.nome || ""),
+      quantidade: Number(item.quantidade || 0),
+      valorUnitario: Number(item.valorUnitario || item.preco || 0),
+      subtotal: Number(item.quantidade || 0) * Number(item.valorUnitario || item.preco || 0)
+    }));
 
-        // 🔹 Calcula o total real
-        const totalParaSalvar = itensParaSalvar.reduce((soma, item) => soma + item.subtotal, 0);
+    // 🔹 Calcula o total
+    const totalParaSalvar = itensParaSalvar.reduce((soma, item) => soma + item.subtotal, 0);
 
-        // 🔹 Monta o objeto da venda
-        const venda = {
-            clienteId,
-            clienteNome,
-            tipoPagamento,
-            itens: itensParaSalvar,
-            total: totalParaSalvar,
-            data: serverTimestamp()
-        };
+    // 🔹 Monta o objeto da venda
+    const venda = {
+      clienteId,
+      clienteNome,
+      tipoPagamento,
+      itens: itensParaSalvar,
+      total: totalParaSalvar,
+      data: serverTimestamp()
+    };
 
-        // 🔹 Salva no Firestore
-        const docRef = await addDoc(collection(db, "vendas"), venda);        
+    // 🔹 Salva no Firestore
+    const docRef = await addDoc(collection(db, "vendas"), venda);
 
-        // 🔹 Gera o PDF com as informações corretas
-        gerarPdfVendaPremium({
-            id: docRef.id,
-            clienteNome,
-            tipoPagamento,
-            itens: itensParaSalvar,
-            total: totalParaSalvar,
-            data: new Date()
-        });
+    // 🔹 Gera o PDF
+    gerarPdfVendaPremium({
+      id: docRef.id,
+      clienteNome,
+      tipoPagamento,
+      itens: itensParaSalvar,
+      total: totalParaSalvar,
+      data: new Date()
+    });
 
-        // 🔹 Mostra mensagem
-        alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
-        await carregarTabelaRegistrosVendas();
+    alert(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
 
-        // 🔹 Limpa tabela de itens e total
-        itensVendaAtual = [];
-        totalVenda = 0;
+    // 🔹 Atualiza a tabela de registros (sem duplicar)
+    await carregarTabelaRegistrosVendas();
 
-        const corpoTabela = document.querySelector("#tabela-venda tbody");
-        if (corpoTabela) corpoTabela.innerHTML = "";
+    // 🔹 Limpa os campos e tabela da tela de venda
+    limparTelaVenda();
 
-        const totalSpan = document.getElementById("totalVenda");
-        if (totalSpan) totalSpan.textContent = "0.00";
-
-        clienteSelect.selectedIndex = 0;
-        tipoPagamentoSelect.selectedIndex = 0;
-
-    } catch (error) {
-        console.error("Erro ao registrar venda:", error);
-        alert("Erro ao registrar venda: " + error.message);
-    } finally {
-        btnFinalizarVenda.disabled = false;    
-    }
-    limparTelaVenda()  
+  } catch (error) {
+    console.error("Erro ao registrar venda:", error);
+    alert("Erro ao registrar venda: " + error.message);
+  } finally {
+    btnFinalizarVenda.disabled = false;
+  }
 });
 
 // Limpar tela de venda após finalizar
@@ -920,6 +911,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
