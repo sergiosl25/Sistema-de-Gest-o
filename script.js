@@ -631,50 +631,6 @@ async function abrirModalDesconto(idVenda) {
 }
 window.abrirModalDesconto = abrirModalDesconto;
 
-async function gerarPdfVenda(idVenda) {
-  if (!idVenda || typeof idVenda !== "string") {
-    alert("ID da venda inválido para gerar PDF.");
-    console.error("gerarPdfVenda recebeu ID inválido:", idVenda);
-    return;
-  }
-
-  try {
-    const vendaRef = doc(db, "vendas", idVenda);
-    const vendaSnap = await getDoc(vendaRef);
-
-    if (!vendaSnap.exists()) {
-      alert("Venda não encontrada!");
-      return;
-    }
-
-    const venda = vendaSnap.data();
-
-    // --- Geração do PDF ---
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-    pdf.text(`Venda ID: ${idVenda}`, 10, 10);
-    pdf.text(`Cliente: ${venda.clienteNome || "-"}`, 10, 20);
-    pdf.text(`Pagamento: ${venda.tipoPagamento || "-"}`, 10, 30);
-
-    let y = 40;
-    (venda.itens || []).forEach(item => {
-      pdf.text(
-        `${item.nome || "-"} - ${item.quantidade} x R$${item.preco.toFixed(2)}`,
-        10,
-        y
-      );
-      y += 10;
-    });
-
-    pdf.text(`Total: R$ ${(venda.total || 0).toFixed(2)}`, 10, y + 10);
-    pdf.save(`venda_${idVenda}.pdf`);
-  } catch (error) {
-    console.error("Erro ao gerar PDF:", error);
-    alert("Erro ao gerar PDF. Verifique o console.");
-  }
-}
-window.gerarPdfVenda = gerarPdfVenda;
-
 // ==========================
 // 🔹 Orçamentos
 // ==========================
@@ -871,5 +827,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
