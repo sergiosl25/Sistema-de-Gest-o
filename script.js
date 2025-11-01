@@ -420,7 +420,6 @@ function atualizarTabelaVendas() {
       <td>${total.toFixed(2)}</td>
       <td>
         <button onclick="removerItemVenda(${i})">🗑️</button>
-        <button onclick="abrirModalDesconto(${i}, 'item')">💲 Desconto</button>
       </td>
     `;
     tabelaItensVenda.appendChild(tr);
@@ -889,6 +888,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
