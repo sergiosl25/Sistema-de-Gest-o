@@ -365,11 +365,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
         const tipoPagamento = tipoPagamentoSelect.value;
         const clienteId = clienteSelect.value;
         const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
-
-        // Limpa array e total imediatamente para evitar duplicações
-        itensVendaAtual = [];
-        totalVenda = 0;
-
+     
         // Salva no Firestore
         const docRef = await addDoc(collection(db, "vendas"), {
             clienteId,
@@ -391,6 +387,11 @@ btnFinalizarVenda.addEventListener("click", async () => {
         });
 
         alert(`Venda registrada! Total: R$ ${totalVenda.toFixed(2)}`);
+
+      // Limpa array e total imediatamente para evitar duplicações
+        itensVendaAtual = [];
+        totalVenda = 0;
+      
     } catch (error) {
         console.error("Erro ao registrar venda:", error);
         alert("Erro ao registrar venda: " + error.message);
@@ -878,6 +879,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
