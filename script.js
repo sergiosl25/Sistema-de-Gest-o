@@ -459,7 +459,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
     } finally {
         btnFinalizarVenda.disabled = false;
     }
-  limparTelaVenda()
+    limparTelaVenda()
 });
 
 // Limpar tela de venda após finalizar
@@ -469,8 +469,8 @@ function limparTelaVenda() {
     totalVenda = 0;
 
     // Limpa tabela de itens da venda
-    const corpoTabelaVenda = document.querySelector("#tabela-venda tbody");
-    if (corpoTabelaVenda) corpoTabelaVenda.innerHTML = "";
+    const corpoTabelaItensVenda = document.querySelector("#tabela-ItensVenda tbody");
+    if (corpoTabelaVenda) corpoTabelaItensVenda.innerHTML = "";
 
     // Reseta total exibido
     const totalSpan = document.getElementById("totalVenda");
@@ -953,6 +953,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
