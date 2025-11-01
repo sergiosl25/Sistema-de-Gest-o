@@ -366,9 +366,6 @@ btnFinalizarVenda.addEventListener("click", async () => {
         const clienteId = clienteSelect.value;
         const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-        const itensParaSalvar = [...itensVendaAtual];
-        const totalParaSalvar = totalVenda;
-
         // Limpa array e total imediatamente para evitar duplicações
         itensVendaAtual = [];
         totalVenda = 0;
@@ -881,5 +878,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
