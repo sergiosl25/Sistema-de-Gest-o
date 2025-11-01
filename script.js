@@ -646,7 +646,6 @@ async function abrirModalDesconto(idVenda) {
     console.error("Erro ao aplicar desconto:", error);
     alert("Erro ao aplicar desconto. Verifique o console.");
   }
-      <button class="btnDesconto" onclick="abrirModalDesconto('${id}')">💸</button>
 }
 window.abrirModalDesconto = abrirModalDesconto;
 
@@ -890,6 +889,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
