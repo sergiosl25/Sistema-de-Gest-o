@@ -427,7 +427,6 @@ function atualizarTabelaItensVenda() {
       <td>0.00</td>
       <td>${subtotal.toFixed(2)}</td>
       <td>${subtotal.toFixed(2)}</td>
-      <td>${venda.tipoPagamento || "-"}</td>
       <td><button onclick="removerItemVenda(${index})">Remover</button></td>
     `;
     tbody.appendChild(tr);
@@ -838,5 +837,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
