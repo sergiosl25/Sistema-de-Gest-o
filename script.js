@@ -349,31 +349,24 @@ function adicionarItemVenda() {
 }
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
     const clienteSelect = document.getElementById("clienteSelect");
+
+    const tipoPagamento = tipoPagamentoSelect.value;
     const clienteId = clienteSelect.value;
+
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
-    if (!clienteId || itensVendaAtual.length === 0) return alert("Dados incompletos");
-
-    // 🔹 Calcula total da venda
-    const total = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
-    
-    const tipoPagamentoSelect = document.getElementById("tipoPagamento");    
-    const tipoPagamento = tipoPagamentoSelect?.value || "Não informado";
-
-     await addDoc(collection(db, "vendas"), {
+    await addDoc(collection(db, "vendas"), {
        clienteId,
        clienteNome,
        tipoPagamento,
        itens: itensVendaAtual,
-       total,
+       total: totalVenda,
        data: serverTimestamp()
-     });
-
-
-    // 🔹 Exibe confirmação
+    });
+  
     alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
 
-    // 🔹 Limpa a venda
     itensVendaAtual = [];
 });
 
@@ -843,3 +836,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
