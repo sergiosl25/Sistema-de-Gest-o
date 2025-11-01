@@ -442,42 +442,6 @@ function removerItemVenda(index) {
 window.removerItemVenda = removerItemVenda;
 
 // ===============================
-// FINALIZAR VENDA
-// ===============================
-document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
-    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
-    const clienteSelect = document.getElementById("clienteSelect");
-
-    const tipoPagamento = tipoPagamentoSelect.value;
-    const clienteId = clienteSelect.value;
-
-    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text; 
-    
-  if (!clienteId || itensVendaAtual.length === 0) {
-    return alert("Selecione o cliente e adicione itens.");
-  }
-
-  const total = itensVendaAtual.reduce(
-    (s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)),
-    0
-  );
-
-  await addDoc(collection(db, "vendas"), {
-    clienteId,
-    clienteNome,       
-    tipoPagamento,    
-    itens: itensVendaAtual,
-    total,
-    data: serverTimestamp()
-  });
-
-  alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
-
-  itensVendaAtual = [];
-  carregarRegistrosVendas(); 
-});
-
-// ===============================
 // CARREGAR REGISTROS DE VENDAS
 // ===============================
 async function carregarRegistrosVendas() {
@@ -837,3 +801,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
