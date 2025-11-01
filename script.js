@@ -662,6 +662,53 @@ function atualizarTabelaRegistrosVendas(venda, docId) {
     }
 }
 
+async function carregarRegistrosVendas() {
+  const tabela = document.querySelector("#tabelaRegistros tbody");
+  const totalGeralSpan = document.getElementById("totalGeralRegistros");
+  if (!tabela || !totalGeralSpan) return;
+
+  tabela.innerHTML = "";
+  let totalGeral = 0;
+
+  const vendasSnapshot = await getDocs(collection(db, "vendas"));
+  
+  vendasSnapshot.forEach((doc) => {
+    const venda = doc.data();
+    const id = doc.id;
+    const dataFormatada = venda.data?.seconds
+      ? new Date(venda.data.seconds * 1000).toLocaleDateString("pt-BR")
+      : "-";
+
+    (venda.itens || []).forEach((item) => {
+      const produtoNome = item.nome || "-";
+      const subtotal = item.quantidade * item.valorUnitario;
+      const total = subtotal;
+
+      totalGeral += total;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${dataFormatada}</td>
+        <td>${venda.clienteNome || "Cliente"}</td>
+        <td>${produtoNome}</td>
+        <td>${item.quantidade}</td>
+        <td>${item.valorUnitario.toFixed(2)}</td>
+        <td>0.00</td>
+        <td>${subtotal.toFixed(2)}</td>
+        <td>${total.toFixed(2)}</td>
+        <td>${venda.tipoPagamento || "-"}</td>
+        <td>
+          <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
+          <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
+        </td>
+      `;
+      tabela.appendChild(row);
+    });
+  });
+
+  totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
+}
+
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
   try {
@@ -922,3 +969,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
