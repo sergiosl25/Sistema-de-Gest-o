@@ -646,45 +646,6 @@ window.removerItemVenda = removerItemVenda;
 // ===============================
 // CARREGAR REGISTROS DE VENDAS
 // ===============================
-function atualizarTabelaRegistrosVendas(venda, docId) {
-    const tabela = document.getElementById("tabelaRegistros")?.querySelector("tbody");
-    if (!tabela) return; // Se a aba ainda não foi carregada
-
-    const dataVenda = new Date().toLocaleDateString("pt-BR");
-
-    (venda.itens || []).forEach((item) => {
-        const produtoNome = item.nome || "-";
-        const subtotal = item.quantidade * item.valorUnitario;
-        const total = subtotal; // se quiser descontar, ajuste aqui
-
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${dataVenda}</td>
-            <td>${venda.clienteNome || "Cliente"}</td>
-            <td>${produtoNome}</td>
-            <td>${item.quantidade}</td>
-            <td>${item.valorUnitario.toFixed(2)}</td>
-            <td>0.00</td>
-            <td>${subtotal.toFixed(2)}</td>
-            <td>${total.toFixed(2)}</td>
-            <td>${venda.tipoPagamento || "-"}</td>
-            <td>
-                <button class="btnExcluir" onclick="abrirModalExcluir('${docId}')">🗑️</button>
-                <button class="btnPDF" onclick="gerarPdfVenda('${docId}')">📄</button>
-            </td>
-        `;
-        tabela.prepend(row);
-    });
-
-    // Atualizar total geral na interface
-    const totalGeralSpan = document.getElementById("totalGeralRegistros");
-    if (totalGeralSpan) {
-        // Para manter o totalGeral correto, você precisa somar ao total anterior:
-        // Mas o mais simples, chame novamente carregarRegistrosVendas() para recarregar tudo.
-        carregarRegistrosVendas();
-    }
-}
-
 async function carregarRegistrosVendas() {
   const tabela = document.querySelector("#tabelaRegistros tbody");
   const totalGeralSpan = document.getElementById("totalGeralRegistros");
@@ -992,5 +953,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
