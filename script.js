@@ -422,10 +422,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
         };
 
         // 🔹 Salva no Firestore
-        const docRef = await addDoc(collection(db, "vendas"), venda);
-
-        // 🔹 Atualiza imediatamente a tabela de registros
-        atualizarTabelaRegistrosVendas(venda, docRef.id);
+        const docRef = await addDoc(collection(db, "vendas"), venda);        
 
         // 🔹 Gera o PDF com as informações corretas
         gerarPdfVendaPremium({
@@ -953,5 +950,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
