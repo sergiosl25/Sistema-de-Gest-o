@@ -320,7 +320,7 @@ function adicionarItemVenda() {
   const precoInput = document.getElementById("precoSelecionado");
   const tipoPagamento = document.getElementById("tipoPagamento");
 
-  if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput || !tipoPagamento) {
+  if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
     console.error("Algum elemento do formulário não foi encontrado!");
     return;
   }
@@ -839,3 +839,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
