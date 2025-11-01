@@ -356,14 +356,20 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
     // 🔹 Calcula total da venda
     const total = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
 
-    // 🔹 Salva no Firebase
-    await addDoc(vendasCol, {
-        clienteId,
-        itens: itensVendaAtual,
-        total,
-        tipoPagamento,
-        data: serverTimestamp()
-    });
+    const clienteSelect = document.getElementById("clienteSelect");
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+
+    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
+    const tipoPagamento = tipoPagamentoSelect?.value || "Não informado";
+
+     await addDoc(collection(db, "vendas"), {
+       clienteId,
+       clienteNome,
+       tipoPagamento,
+       itens: itensVendaAtual,
+       total,
+       data: serverTimestamp()
+     });
 
     // 🔹 Exibe confirmação
     alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
@@ -837,6 +843,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
