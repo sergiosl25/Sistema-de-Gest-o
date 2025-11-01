@@ -365,26 +365,39 @@ btnFinalizarVenda.addEventListener("click", async () => {
     if (itensVendaAtual.length === 0)
       throw new Error("Nenhum item adicionado à venda.");
 
-    // ✅ Aqui pegamos apenas os valores, não os elementos
     const tipoPagamento = tipoPagamentoSelect.value;
     const clienteId = clienteSelect.value;
     const clienteNome =
       clienteSelect.options[clienteSelect.selectedIndex]?.text || "Cliente";
 
-    const itensParaSalvar = [...itensVendaAtual];
-    const totalParaSalvar = totalVenda;
+    // 🔹 Limpa dados de itens (evita elementos HTML)
+    const itensParaSalvar = itensVendaAtual.map(item => ({
+      nome: String(item.nome || ""),
+      quantidade: Number(item.quantidade || 0),
+      valorUnitario: Number(item.valorUnitario || 0),
+      subtotal: Number(item.subtotal || (item.quantidade * item.valorUnitario) || 0)
+    }));
 
-    // ✅ Dados seguros para o Firestore (nada de HTML)
-    const dadosVenda = {
+    const totalParaSalvar = Number(totalVenda);
+
+    // 🔹 Debug para verificar se ainda há algo errado
+    console.log("✅ Dados preparados para Firestore:", {
+      clienteId,
+      clienteNome,
+      tipoPagamento,
+      itensParaSalvar,
+      totalParaSalvar
+    });
+
+    // 🔹 Salva no Firestore
+    const docRef = await addDoc(collection(db, "vendas"), {
       clienteId,
       clienteNome,
       tipoPagamento,
       itens: itensParaSalvar,
       total: totalParaSalvar,
       data: serverTimestamp()
-    };
-
-    const docRef = await addDoc(collection(db, "vendas"), dadosVenda);
+    });
 
     gerarPdfVendaPremium({
       id: docRef.id,
@@ -397,10 +410,8 @@ btnFinalizarVenda.addEventListener("click", async () => {
 
     alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
 
-    // 🔹 Limpa após salvar
     itensVendaAtual = [];
     totalVenda = 0;
-
     carregarRegistrosVendas();
 
   } catch (error) {
@@ -890,6 +901,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
