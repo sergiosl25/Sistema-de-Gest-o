@@ -367,67 +367,11 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
 
     // 🔹 Limpa a venda
     itensVendaAtual = [];
-    atualizarTabelaVendas();
 });
-
-async function carregarTabelaVendas() {
-    const snapshot = await getDocs(vendasCol);
-    const tabelaRegistros = document.querySelector('#tabelaRegistros tbody');
-    tabelaRegistros.innerHTML = '';
-
-    if (!snapshot.empty) {
-        snapshot.forEach(docSnap => {
-            const venda = docSnap.data() || {};
-            (venda.itens || []).forEach(item => {
-                const subtotal = item.quantidade * item.preco;
-                const total = subtotal - (item.desconto || 0);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${venda.data?.seconds ? new Date(venda.data.seconds * 1000).toLocaleDateString() : ''}</td>
-                    <td>${venda.clienteNome || venda.clienteId || ''}</td>
-                    <td>${item.nome || ''}</td>
-                    <td>${item.quantidade || 0}</td>
-                    <td>${item.preco?.toFixed(2) || '0.00'}</td>
-                    <td>${item.desconto?.toFixed(2) || '0.00'}</td>
-                    <td>${subtotal.toFixed(2)}</td>
-                    <td>${total.toFixed(2)}</td>`;
-                tabelaRegistros.appendChild(tr);
-            });
-        });
-    }
-}
 
 // ===============================
 // ATUALIZAR TABELA DE ITENS
 // ===============================
-function atualizarTabelaVendas() {
-  tabelaItensVenda.innerHTML = '';
-  let totalVenda = 0;
-
-  itensVendaAtual.forEach((item, i) => {
-    const subtotal = item.preco * item.quantidade;
-    const total = subtotal - (item.desconto || 0);
-    totalVenda += total;
-
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${item.nome}</td>
-      <td>${item.tipoPreco}</td>
-      <td>${item.quantidade}</td>
-      <td>${item.preco.toFixed(2)}</td>
-      <td>${item.desconto.toFixed(2)}</td>
-      <td>${subtotal.toFixed(2)}</td>
-      <td>${total.toFixed(2)}</td>
-      <td>
-        <button onclick="removerItemVenda(${i})">🗑️</button>
-      </td>
-    `;
-    tabelaItensVenda.appendChild(tr);
-  });
-
-  document.getElementById('totalVenda').textContent = totalVenda.toFixed(2);
-}
-
 function renderizarItensVenda() {
   const tabela = document.getElementById("tabelaItensVenda").querySelector("tbody");
   tabela.innerHTML = ""; // limpa a tabela antes de renderizar
@@ -526,7 +470,6 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
   alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
 
   itensVendaAtual = [];
-  atualizarTabelaVendas();
   carregarRegistrosVendas(); // ✅ atualiza lista após salvar
 });
 
