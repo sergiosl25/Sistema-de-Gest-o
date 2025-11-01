@@ -409,38 +409,64 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
 });
 
 // Função para gerar PDF a partir do ID do documento
-async function gerarPdfVenda(vendaId) {
-    try {
-        const docSnap = await getDoc(doc(db, "vendas", vendaId));
-        if (!docSnap.exists()) {
-            alert("Venda não encontrada para gerar PDF.");
-            return;
-        }
+async function gerarPdfVenda(idVenda) {
+  try {
+    const vendaRef = doc(db, "vendas", idVenda);
+    const vendaSnap = await getDoc(vendaRef);
 
-        const venda = docSnap.data();
-
-        // Aqui você cria o conteúdo do PDF (exemplo usando jsPDF)
-        const docPDF = new jsPDF();
-        docPDF.text(`Venda ID: ${vendaId}`, 10, 10);
-        docPDF.text(`Cliente: ${venda.clienteNome}`, 10, 20);
-        docPDF.text(`Tipo Pagamento: ${venda.tipoPagamento}`, 10, 30);
-        docPDF.text(`Total: R$ ${venda.total.toFixed(2)}`, 10, 40);
-
-        // Lista os itens da venda
-        let y = 50;
-        venda.itens.forEach(item => {
-            docPDF.text(`${item.nome} - Qtd: ${item.quantidade} - R$ ${item.preco.toFixed(2)}`, 10, y);
-            y += 10;
-        });
-
-        // Salva o PDF
-        docPDF.save(`Venda_${vendaId}.pdf`);
-
-    } catch (erro) {
-        console.error("Erro ao gerar PDF:", erro);
-        alert("Erro ao gerar PDF da venda.");
+    if (!vendaSnap.exists()) {
+      alert("Venda não encontrada!");
+      return;
     }
+
+    const venda = vendaSnap.data();
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+
+    // Adiciona logo (se houver)
+    const logoImg = document.getElementById("logo");
+    if (logoImg) {
+      pdf.addImage(logoImg, "PNG", 10, 10, 50, 20); // x, y, width, height
+    }
+
+    let y = 40;
+
+    // Dados do cliente e venda
+    pdf.setFontSize(12);
+    pdf.text(`Cliente: ${venda.clienteNome || "-"}`, 10, y);
+    y += 10;
+    pdf.text(`Tipo de Pagamento: ${venda.tipoPagamento || "-"}`, 10, y);
+    y += 10;
+
+    // Data formatada
+    const data = venda.data?.toDate ? venda.data.toDate() : new Date();
+    pdf.text(`Data: ${data.toLocaleString()}`, 10, y);
+    y += 10;
+
+    pdf.text("Itens:", 10, y);
+    y += 10;
+
+    // Tabela de itens
+    (venda.itens || []).forEach(item => {
+      pdf.text(
+        `${item.nome || "-"} - ${item.quantidade}x R$${item.preco.toFixed(2)}`,
+        10,
+        y
+      );
+      y += 10;
+    });
+
+    pdf.text(`Total: R$ ${(venda.total || 0).toFixed(2)}`, 10, y + 10);
+
+    pdf.save(`venda.pdf`);
+  } catch (error) {
+    console.error("Erro ao gerar PDF:", error);
+    alert("Erro ao gerar PDF. Verifique o console.");
+  }
 }
+
+window.gerarPdfVenda = gerarPdfVenda;
 
 // ===============================
 // ATUALIZAR TABELA DE ITENS
@@ -829,8 +855,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
