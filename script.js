@@ -119,7 +119,7 @@ function mostrarSecao(secaoId) {
     case "estoque": carregarEstoque(); break;
     case "vendas": carregarClientesVenda(); carregarProdutosVenda(); break;
     case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
-    case "registrosVendas": atualizarTabelaRegistrosVendas(); break;
+    case "registrosVendas": carregar.TabelaRegistrosVendas(); break;
     case "precos": carregarTabelaPrecos(); break;
     case 'tabelaPrecos' : carregarTabelaPrecos(); break;
   }
@@ -646,7 +646,7 @@ window.removerItemVenda = removerItemVenda;
 // ===============================
 // CARREGAR REGISTROS DE VENDAS
 // ===============================
-async function carregarRegistrosVendas() {
+async function carregarTabelaRegistrosVendas() {
   const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
   const totalGeralSpan = document.getElementById("totalGeralRegistros");
   if (!tabela || !totalGeralSpan) return;
@@ -749,7 +749,7 @@ async function abrirModalDesconto(idVenda) {
     });
 
     alert(`Desconto de R$ ${valorDesconto.toFixed(2)} aplicado com sucesso!`);
-    await carregarRegistrosVendas();
+    await carregarTabelaRegistrosVendas();
   } catch (error) {
     console.error("Erro ao aplicar desconto:", error);
     alert("Erro ao aplicar desconto. Verifique o console.");
@@ -931,7 +931,7 @@ document.addEventListener("DOMContentLoaded", () => {
         case 'clientes': await carregarClientes(); break;
         case 'estoque': await carregarEstoque(); break;
         case 'orcamentos': await carregarOrcamentos(); break;
-        case 'registrosVendas': await atualizarTabelaRegistrosVendas(); break;
+        case 'registrosVendas': await carregarTabelaRegistrosVendas(); break;
         case 'tabelaPrecos' : await carregarTabelaPrecos(); break;
       }
     });
@@ -953,3 +953,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
