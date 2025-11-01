@@ -352,7 +352,7 @@ function adicionarItemVenda() {
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
 // 🔹 Função para adicionar automaticamente a venda na aba "Registros de Vendas"
-function atualizarTabelaRegistros(venda, docId) {
+function atualizarTabelaRegistrosVendas(venda, docId) {
     const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
     if (!tabela) return; // Se a aba ainda não foi carregada
 
@@ -459,7 +459,30 @@ btnFinalizarVenda.addEventListener("click", async () => {
     } finally {
         btnFinalizarVenda.disabled = false;
     }
+  limparTelaVenda()
 });
+
+// Limpar tela de venda após finalizar
+function limparTelaVenda() {
+    // Limpa array e total
+    itensVendaAtual = [];
+    totalVenda = 0;
+
+    // Limpa tabela de itens da venda
+    const corpoTabelaVenda = document.querySelector("#tabela-venda tbody");
+    if (corpoTabelaVenda) corpoTabelaVenda.innerHTML = "";
+
+    // Reseta total exibido
+    const totalSpan = document.getElementById("totalVenda");
+    if (totalSpan) totalSpan.textContent = "0.00";
+
+    // Reseta selects
+    const clienteSelect = document.getElementById("clienteSelect");
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+
+    if (clienteSelect) clienteSelect.selectedIndex = 0;
+    if (tipoPagamentoSelect) tipoPagamentoSelect.selectedIndex = 0;
+}
 
 async function gerarPdfVendaPremium(venda) {
     try {
@@ -969,4 +992,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
