@@ -351,37 +351,6 @@ function adicionarItemVenda() {
 
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
-// 🔹 Função para adicionar automaticamente a venda na aba "Registros de Vendas"
-function atualizarTabelaRegistrosVendas(venda, docId) {
-    const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
-    if (!tabela) return; // Se a aba ainda não foi carregada
-
-    const novaLinha = document.createElement("tr");
-
-    const dataVenda = new Date().toLocaleString("pt-BR");
-
-    novaLinha.innerHTML = `
-        <td>${dataVenda}</td>
-        <td>${venda.clienteNome}</td>
-        <td>${venda.tipoPagamento}</td>
-        <td>R$ ${venda.total.toFixed(2)}</td>
-        <td>
-            <button class="btn btn-sm btn-primary" onclick="gerarPdfVendaPremium({
-                id: '${docId}',
-                clienteNome: '${venda.clienteNome}',
-                tipoPagamento: '${venda.tipoPagamento}',
-                itens: ${JSON.stringify(venda.itens)},
-                total: ${venda.total},
-                data: new Date('${dataVenda}')
-            })">Gerar PDF</button>
-
-            <button class="btn btn-sm btn-danger" onclick="excluirVenda('${docId}')">Excluir</button>
-        </td>
-    `;
-
-    tabela.prepend(novaLinha); // Adiciona no topo
-}
-
 // 🔹 Função principal: finalizar venda
 btnFinalizarVenda.addEventListener("click", async () => {
     try {
@@ -436,6 +405,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
 
         // 🔹 Mostra mensagem
         alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
+        await carregarTabelaRegistrosVendas();
 
         // 🔹 Limpa tabela de itens e total
         itensVendaAtual = [];
@@ -454,9 +424,9 @@ btnFinalizarVenda.addEventListener("click", async () => {
         console.error("Erro ao registrar venda:", error);
         alert("Erro ao registrar venda: " + error.message);
     } finally {
-        btnFinalizarVenda.disabled = false;
+        btnFinalizarVenda.disabled = false;    
     }
-    limparTelaVenda()
+    limparTelaVenda()  
 });
 
 // Limpar tela de venda após finalizar
@@ -950,6 +920,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
