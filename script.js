@@ -606,7 +606,7 @@ async function gerarPdfVenda(idVenda) {
 
   try {
     const vendaRef = doc(db, "vendas", idVenda);
-    const vendaSnap = await getDocs(vendaRef);
+    const vendaSnap = await getDoc(vendaRef);
 
     if (!vendaSnap.exists()) {
       alert("Venda não encontrada!");
@@ -837,6 +837,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
