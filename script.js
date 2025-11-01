@@ -351,6 +351,38 @@ function adicionarItemVenda() {
 
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
+// 🔹 Função para adicionar automaticamente a venda na aba "Registros de Vendas"
+function atualizarTabelaRegistros(venda, docId) {
+    const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
+    if (!tabela) return; // Se a aba ainda não foi carregada
+
+    const novaLinha = document.createElement("tr");
+
+    const dataVenda = new Date().toLocaleString("pt-BR");
+
+    novaLinha.innerHTML = `
+        <td>${dataVenda}</td>
+        <td>${venda.clienteNome}</td>
+        <td>${venda.tipoPagamento}</td>
+        <td>R$ ${venda.total.toFixed(2)}</td>
+        <td>
+            <button class="btn btn-sm btn-primary" onclick="gerarPdfVendaPremium({
+                id: '${docId}',
+                clienteNome: '${venda.clienteNome}',
+                tipoPagamento: '${venda.tipoPagamento}',
+                itens: ${JSON.stringify(venda.itens)},
+                total: ${venda.total},
+                data: new Date('${dataVenda}')
+            })">Gerar PDF</button>
+
+            <button class="btn btn-sm btn-danger" onclick="excluirVenda('${docId}')">Excluir</button>
+        </td>
+    `;
+
+    tabela.prepend(novaLinha); // Adiciona no topo
+}
+
+// 🔹 Função principal: finalizar venda
 btnFinalizarVenda.addEventListener("click", async () => {
     try {
         if (btnFinalizarVenda.disabled) return;
@@ -359,14 +391,16 @@ btnFinalizarVenda.addEventListener("click", async () => {
         const tipoPagamentoSelect = document.getElementById("tipoPagamento");
         const clienteSelect = document.getElementById("clienteSelect");
 
-        if (!clienteSelect || !tipoPagamentoSelect) throw new Error("Selecione cliente e tipo de pagamento.");
-        if (itensVendaAtual.length === 0) throw new Error("Nenhum item adicionado à venda.");
+        if (!clienteSelect || !tipoPagamentoSelect)
+            throw new Error("Selecione cliente e tipo de pagamento.");
+        if (itensVendaAtual.length === 0)
+            throw new Error("Nenhum item adicionado à venda.");
 
         const tipoPagamento = tipoPagamentoSelect.value;
         const clienteId = clienteSelect.value;
         const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-        // 🔹 Monta os itens para salvar (sem referências a elementos HTML)
+        // 🔹 Prepara os itens corretamente (sem referências de HTML)
         const itensParaSalvar = itensVendaAtual.map(item => ({
             nome: String(item.nome || ""),
             quantidade: Number(item.quantidade || 0),
@@ -374,20 +408,26 @@ btnFinalizarVenda.addEventListener("click", async () => {
             subtotal: Number(item.quantidade || 0) * Number(item.valorUnitario || item.preco || 0)
         }));
 
-        // 🔹 Calcula o total correto com base nos itens
+        // 🔹 Calcula o total real
         const totalParaSalvar = itensParaSalvar.reduce((soma, item) => soma + item.subtotal, 0);
 
-        // 🔹 Salva no Firestore
-        const docRef = await addDoc(collection(db, "vendas"), {
+        // 🔹 Monta o objeto da venda
+        const venda = {
             clienteId,
             clienteNome,
             tipoPagamento,
             itens: itensParaSalvar,
             total: totalParaSalvar,
             data: serverTimestamp()
-        });
+        };
 
-        // 🔹 Gera o PDF com o total certo
+        // 🔹 Salva no Firestore
+        const docRef = await addDoc(collection(db, "vendas"), venda);
+
+        // 🔹 Atualiza imediatamente a tabela de registros
+        atualizarTabelaRegistros(venda, docRef.id);
+
+        // 🔹 Gera o PDF com as informações corretas
         gerarPdfVendaPremium({
             id: docRef.id,
             clienteNome,
@@ -397,11 +437,21 @@ btnFinalizarVenda.addEventListener("click", async () => {
             data: new Date()
         });
 
+        // 🔹 Mostra mensagem
         alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
 
-        // 🔹 Limpa itens e total (somente depois)
+        // 🔹 Limpa tabela de itens e total
         itensVendaAtual = [];
         totalVenda = 0;
+
+        const corpoTabela = document.querySelector("#tabela-venda tbody");
+        if (corpoTabela) corpoTabela.innerHTML = "";
+
+        const totalSpan = document.getElementById("totalVenda");
+        if (totalSpan) totalSpan.textContent = "0.00";
+
+        clienteSelect.selectedIndex = 0;
+        tipoPagamentoSelect.selectedIndex = 0;
 
     } catch (error) {
         console.error("Erro ao registrar venda:", error);
@@ -886,6 +936,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
