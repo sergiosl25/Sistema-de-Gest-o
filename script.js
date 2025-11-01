@@ -375,8 +375,8 @@ btnFinalizarVenda.addEventListener("click", async () => {
             clienteId,
             clienteNome,
             tipoPagamento,
-            itens: itensParaSalvar,
-            total: totalParaSalvar,
+            itens: itensVendaAtual,
+            total: totalVenda,
             data: serverTimestamp()
         });
 
@@ -878,6 +878,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
