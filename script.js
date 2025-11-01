@@ -349,61 +349,52 @@ function adicionarItemVenda() {
 }
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
-    try {
-        // Pega os elementos select
-        const tipoPagamentoSelect = document.getElementById("tipoPagamento");
-        const clienteSelect = document.getElementById("clienteSelect");
+  try {
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+    const clienteSelect = document.getElementById("clienteSelect");
 
-        // Valida se há valores selecionados
-        if (!tipoPagamentoSelect.value) {
-            alert("Selecione um tipo de pagamento.");
-            return;
-        }
-        if (!clienteSelect.value) {
-            alert("Selecione um cliente.");
-            return;
-        }
+    // Pegue APENAS os valores e textos:
+    const tipoPagamento = tipoPagamentoSelect.value;                     // string
+    const clienteId = clienteSelect.value;                               // string
+    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex]?.text || "";
 
-        // Pega valores dos selects
-        const tipoPagamento = tipoPagamentoSelect.value;
-        const clienteId = clienteSelect.value;
-        const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
-
-        // Verifica se há itens na venda
-        if (!itensVendaAtual || itensVendaAtual.length === 0) {
-            alert("Adicione itens à venda antes de finalizar.");
-            return;
-        }
-
-        // Adiciona a venda ao Firestore
-        const docRef = await addDoc(collection(db, "vendas"), {
-            clienteId,
-            clienteNome,
-            tipoPagamento,
-            itens: itensVendaAtual,
-            total: totalVenda,
-            data: serverTimestamp()
-        });
-
-        // Confirmação
-        alert(`Venda registrada com sucesso! Total: R$ ${totalVenda.toFixed(2)}`);
-
-        // Gera PDF da venda
-        await gerarPdfVenda(docRef.id);
-
-        // Resetar selects e itens
-        clienteSelect.selectedIndex = 0;
-        tipoPagamentoSelect.selectedIndex = 0;
-        itensVendaAtual = [];
-        totalVenda = 0;
-
-        // Atualizar interface caso tenha uma tabela ou total exibido
-        atualizarInterfaceVenda();
-
-    } catch (erro) {
-        console.error("Erro ao registrar venda:", erro);
-        alert("Ocorreu um erro ao registrar a venda. Tente novamente.");
+    // Verificações básicas
+    if (!clienteId || !tipoPagamento) {
+      alert("Selecione o cliente e o tipo de pagamento.");
+      return;
     }
+
+    if (!itensVendaAtual || itensVendaAtual.length === 0) {
+      alert("Adicione itens à venda antes de finalizar.");
+      return;
+    }
+
+    // Calcular total
+    const totalVenda = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
+
+    // ✅ Aqui só vão tipos primitivos (string, number, array, objeto simples)
+    const docRef = await addDoc(collection(db, "vendas"), {
+      clienteId,
+      clienteNome,
+      tipoPagamento,
+      itens: itensVendaAtual,
+      total: totalVenda,
+      data: serverTimestamp()
+    });
+
+    alert(`Venda registrada com sucesso! Total: R$ ${totalVenda.toFixed(2)}`);
+
+    // Gera o PDF depois de salvar
+    await gerarPdfVenda(docRef.id);
+
+    // Limpa os campos
+    clienteSelect.selectedIndex = 0;
+    tipoPagamentoSelect.selectedIndex = 0;
+    itensVendaAtual = [];
+  } catch (erro) {
+    console.error("Erro ao registrar venda:", erro);
+    alert("Erro ao registrar venda. Verifique o console.");
+  }
 });
 
 // Função para gerar PDF a partir do ID do documento
@@ -827,6 +818,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
