@@ -118,7 +118,7 @@ function mostrarSecao(secaoId) {
     case "estoque": carregarEstoque(); break;
     case "vendas": carregarClientesVenda(); carregarProdutosVenda(); break;
     case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
-    case "registrosVendas": carregarTabelaVendas(); break;
+    case "registrosVendas": carregarRegistrosVendas(); break;
     case "precos": carregarTabelaPrecos(); break;
     case 'tabelaPrecos' : carregarTabelaPrecos(); break;
   }
@@ -602,7 +602,7 @@ async function gerarPdfVenda(idVenda) {
 
   try {
     const vendaRef = doc(db, "vendas", idVenda);
-    const vendaSnap = await getDoc(vendaRef);
+    const vendaSnap = await getDocs(vendaRef);
 
     if (!vendaSnap.exists()) {
       alert("Venda não encontrada!");
@@ -811,7 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
         case 'clientes': await carregarClientes(); break;
         case 'estoque': await carregarEstoque(); break;
         case 'orcamentos': await carregarOrcamentos(); break;
-        case 'registrosVendas': await carregarTabelaVendas(); break;
+        case 'registrosVendas': await carregarRegistrosVendas(); break;
         case 'tabelaPrecos' : await carregarTabelaPrecos(); break;
       }
     });
