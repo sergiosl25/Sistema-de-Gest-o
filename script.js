@@ -350,50 +350,61 @@ function adicionarItemVenda() {
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
   try {
-    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+    // Pegue os elementos <select>
     const clienteSelect = document.getElementById("clienteSelect");
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
 
-    // Pegue APENAS os valores e textos:
-    const tipoPagamento = tipoPagamentoSelect.value;                     // string
-    const clienteId = clienteSelect.value;                               // string
-    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex]?.text || "";
+    // ✅ Pegue apenas os valores, não os elementos
+    const clienteId = clienteSelect?.value || "";
+    const clienteNome = clienteSelect?.options[clienteSelect.selectedIndex]?.text || "";
+    const tipoPagamento = tipoPagamentoSelect?.value || "";
 
-    // Verificações básicas
     if (!clienteId || !tipoPagamento) {
-      alert("Selecione o cliente e o tipo de pagamento.");
+      alert("Selecione o cliente e o tipo de pagamento antes de finalizar.");
       return;
     }
 
-    if (!itensVendaAtual || itensVendaAtual.length === 0) {
+    if (!Array.isArray(itensVendaAtual) || itensVendaAtual.length === 0) {
       alert("Adicione itens à venda antes de finalizar.");
       return;
     }
 
-    // Calcular total
-    const totalVenda = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
+    // 🔹 Calcula total
+    const totalVenda = itensVendaAtual.reduce(
+      (soma, item) => soma + (item.quantidade * item.preco - (item.desconto || 0)),
+      0
+    );
 
-    // ✅ Aqui só vão tipos primitivos (string, number, array, objeto simples)
+    // 🔹 Salva no Firestore — apenas dados simples!
     const docRef = await addDoc(collection(db, "vendas"), {
-      clienteId,
-      clienteNome,
-      tipoPagamento,
-      itens: itensVendaAtual,
-      total: totalVenda,
+      clienteId: String(clienteId),
+      clienteNome: String(clienteNome),
+      tipoPagamento: String(tipoPagamento),
+      itens: itensVendaAtual.map(item => ({
+        produtoId: item.produtoId || "",
+        nome: item.nome || item.produtoNome || "-",
+        quantidade: Number(item.quantidade) || 0,
+        preco: Number(item.preco) || 0,
+        desconto: Number(item.desconto) || 0
+      })),
+      total: Number(totalVenda),
       data: serverTimestamp()
     });
 
-    alert(`Venda registrada com sucesso! Total: R$ ${totalVenda.toFixed(2)}`);
+    alert(`✅ Venda registrada com sucesso! Total: R$ ${totalVenda.toFixed(2)}`);
 
-    // Gera o PDF depois de salvar
+    // Gera PDF
     await gerarPdfVenda(docRef.id);
 
-    // Limpa os campos
+    // Limpa a venda
+    itensVendaAtual = [];
     clienteSelect.selectedIndex = 0;
     tipoPagamentoSelect.selectedIndex = 0;
-    itensVendaAtual = [];
+    document.getElementById("totalVenda").textContent = "0.00";
+
   } catch (erro) {
     console.error("Erro ao registrar venda:", erro);
-    alert("Erro ao registrar venda. Verifique o console.");
+    alert("❌ Erro ao registrar venda. Veja o console para detalhes.");
   }
 });
 
@@ -818,6 +829,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
