@@ -318,8 +318,7 @@ function adicionarItemVenda() {
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
   const quantidadeInput = document.getElementById("quantidadeVenda");
   const precoInput = document.getElementById("precoSelecionado");
-  const tipoPagamento = document.getElementById("tipoPagamento");
-
+ 
   if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
     console.error("Algum elemento do formulário não foi encontrado!");
     return;
@@ -329,7 +328,7 @@ function adicionarItemVenda() {
   const tipoPreco = tipoPrecoSelect.value;
   const quantidade = Number(quantidadeInput.value);
   const preco = Number(precoInput.value);
-  
+ 
   if (!produtoId || quantidade <= 0 || preco <= 0) {
     alert("Preencha todos os campos corretamente!");
     return;
@@ -350,16 +349,15 @@ function adicionarItemVenda() {
 }
 
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
+    const clienteSelect = document.getElementById("clienteSelect");
     const clienteId = clienteSelect.value;
+    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
     if (!clienteId || itensVendaAtual.length === 0) return alert("Dados incompletos");
 
     // 🔹 Calcula total da venda
     const total = itensVendaAtual.reduce((s, i) => s + (i.quantidade * i.preco - (i.desconto || 0)), 0);
-
-    const clienteSelect = document.getElementById("clienteSelect");
-    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
-
-    const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
+    
+    const tipoPagamentoSelect = document.getElementById("tipoPagamento");    
     const tipoPagamento = tipoPagamentoSelect?.value || "Não informado";
 
      await addDoc(collection(db, "vendas"), {
@@ -370,6 +368,7 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
        total,
        data: serverTimestamp()
      });
+
 
     // 🔹 Exibe confirmação
     alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
@@ -454,7 +453,8 @@ window.removerItemVenda = removerItemVenda;
 // ===============================
 document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
   const clienteSelect = document.getElementById("clienteSelect");
-  const tipoPagamentoSelect = document.getElementById("tipoPagamento"); // 🔹 adicione um select no HTML para o pagamento
+  const tipoPagamentoSelect = document.getElementById("tipoPagamento"); 
+
   const clienteId = clienteSelect.value;
   const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
   const tipoPagamento = tipoPagamentoSelect?.value || "Não informado";
@@ -470,8 +470,8 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
 
   await addDoc(collection(db, "vendas"), {
     clienteId,
-    clienteNome,        // ✅ salva o nome do cliente
-    tipoPagamento,      // ✅ salva o tipo de pagamento
+    clienteNome,       
+    tipoPagamento,    
     itens: itensVendaAtual,
     total,
     data: serverTimestamp()
@@ -480,7 +480,7 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
   alert(`Venda registrada! Total: R$ ${total.toFixed(2)}`);
 
   itensVendaAtual = [];
-  carregarRegistrosVendas(); // ✅ atualiza lista após salvar
+  carregarRegistrosVendas(); 
 });
 
 // ===============================
@@ -843,9 +843,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
