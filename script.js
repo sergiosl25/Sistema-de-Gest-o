@@ -352,88 +352,76 @@ function adicionarItemVenda() {
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
 btnFinalizarVenda.addEventListener("click", async () => {
-  try {
-    if (btnFinalizarVenda.disabled) return;
-    btnFinalizarVenda.disabled = true;
+    try {
+        if (btnFinalizarVenda.disabled) return;
+        btnFinalizarVenda.disabled = true;
 
-    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
-    const clienteSelect = document.getElementById("clienteSelect");
+        const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+        const clienteSelect = document.getElementById("clienteSelect");
 
-    if (!clienteSelect || !tipoPagamentoSelect)
-      throw new Error("Selecione cliente e tipo de pagamento.");
+        if (!clienteSelect || !tipoPagamentoSelect) throw new Error("Selecione cliente e tipo de pagamento.");
+        if (itensVendaAtual.length === 0) throw new Error("Nenhum item adicionado à venda.");
 
-    if (itensVendaAtual.length === 0)
-      throw new Error("Nenhum item adicionado à venda.");
+        const tipoPagamento = tipoPagamentoSelect.value;
+        const clienteId = clienteSelect.value;
+        const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-    const tipoPagamento = tipoPagamentoSelect.value;
-    const clienteId = clienteSelect.value;
-    const clienteNome =
-      clienteSelect.options[clienteSelect.selectedIndex]?.text || "Cliente";
+        // 🔹 Monta os itens para salvar (sem referências a elementos HTML)
+        const itensParaSalvar = itensVendaAtual.map(item => ({
+            nome: String(item.nome || ""),
+            quantidade: Number(item.quantidade || 0),
+            valorUnitario: Number(item.valorUnitario || item.preco || 0),
+            subtotal: Number(item.quantidade || 0) * Number(item.valorUnitario || item.preco || 0)
+        }));
 
-    // 🔹 Limpa dados de itens (evita elementos HTML)
-    const itensParaSalvar = itensVendaAtual.map(item => ({
-      nome: String(item.nome || ""),
-      quantidade: Number(item.quantidade || 0),
-      valorUnitario: Number(item.valorUnitario || 0),
-      subtotal: Number(item.subtotal || (item.quantidade * item.valorUnitario) || 0)
-    }));
+        // 🔹 Calcula o total correto com base nos itens
+        const totalParaSalvar = itensParaSalvar.reduce((soma, item) => soma + item.subtotal, 0);
 
-    const totalParaSalvar = Number(totalVenda);
+        // 🔹 Salva no Firestore
+        const docRef = await addDoc(collection(db, "vendas"), {
+            clienteId,
+            clienteNome,
+            tipoPagamento,
+            itens: itensParaSalvar,
+            total: totalParaSalvar,
+            data: serverTimestamp()
+        });
 
-    // 🔹 Debug para verificar se ainda há algo errado
-    console.log("✅ Dados preparados para Firestore:", {
-      clienteId,
-      clienteNome,
-      tipoPagamento,
-      itensParaSalvar,
-      totalParaSalvar
-    });
+        // 🔹 Gera o PDF com o total certo
+        gerarPdfVendaPremium({
+            id: docRef.id,
+            clienteNome,
+            tipoPagamento,
+            itens: itensParaSalvar,
+            total: totalParaSalvar,
+            data: new Date()
+        });
 
-    // 🔹 Salva no Firestore
-    const docRef = await addDoc(collection(db, "vendas"), {
-      clienteId,
-      clienteNome,
-      tipoPagamento,
-      itens: itensParaSalvar,
-      total: totalParaSalvar,
-      data: serverTimestamp()
-    });
+        alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
 
-    gerarPdfVendaPremium({
-      id: docRef.id,
-      clienteNome,
-      tipoPagamento,
-      itens: itensParaSalvar,
-      total: totalParaSalvar,
-      data: new Date()
-    });
+        // 🔹 Limpa itens e total (somente depois)
+        itensVendaAtual = [];
+        totalVenda = 0;
 
-    alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
-
-    itensVendaAtual = [];
-    totalVenda = 0;
-    carregarRegistrosVendas();
-
-  } catch (error) {
-    console.error("Erro ao registrar venda:", error);
-    alert("Erro ao registrar venda: " + error.message);
-  } finally {
-    btnFinalizarVenda.disabled = false;
-  }
+    } catch (error) {
+        console.error("Erro ao registrar venda:", error);
+        alert("Erro ao registrar venda: " + error.message);
+    } finally {
+        btnFinalizarVenda.disabled = false;
+    }
 });
 
 async function gerarPdfVendaPremium(venda) {
     try {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-
         const pdfWidth = doc.internal.pageSize.getWidth();
 
         // ---------------- Logo ----------------
         const logo = document.getElementById("logo");
         if (logo) {
             const imgProps = doc.getImageProperties(logo);
-            const logoWidth = 50;
+            const logoWidth = 40;
             const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
             const xPos = (pdfWidth - logoWidth) / 2;
             doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
@@ -442,58 +430,56 @@ async function gerarPdfVendaPremium(venda) {
         // ---------------- Cabeçalho ----------------
         doc.setFontSize(16);
         doc.setFont(undefined, "bold");
-        doc.text("RECIBO DE VENDA", pdfWidth / 2, 40, { align: "center" });
+        doc.text("RECIBO DE VENDA", pdfWidth / 2, 55, { align: "center" });
 
-        // Número do recibo / ID da venda
         doc.setFontSize(10);
         doc.setFont(undefined, "normal");
-        doc.text(`Recibo: ${venda.id || "N/A"}`, pdfWidth - 14, 45, { align: "right" });
+        doc.text(`Recibo: ${venda.id || "-"}`, pdfWidth - 14, 60, { align: "right" });
+
+        const dataVenda = venda.data instanceof Date
+            ? venda.data
+            : new Date();
 
         doc.setFontSize(12);
-        doc.text(`Cliente: ${venda.clienteNome}`, 14, 55);
-        doc.text(`Data: ${new Date(venda.data.seconds * 1000).toLocaleString()}`, pdfWidth - 14, 55, { align: "right" });
-        doc.text(`Pagamento: ${venda.tipoPagamento}`, 14, 63);
+        doc.text(`Cliente: ${venda.clienteNome}`, 14, 70);
+        doc.text(`Pagamento: ${venda.tipoPagamento}`, 14, 77);
+        doc.text(`Data: ${dataVenda.toLocaleDateString()} ${dataVenda.toLocaleTimeString()}`, pdfWidth - 14, 70, { align: "right" });
 
         // ---------------- Tabela ----------------
-        const startY = 75;
+        const startY = 90;
         const rowHeight = 8;
-        const colX = [14, 90, 130, 170]; // posições X das colunas
+        const colX = [14, 90, 130, 170];
 
-        // Cabeçalho da tabela
         doc.setFont(undefined, "bold");
         ["Produto", "Qtde", "Valor Unitário", "Subtotal"].forEach((text, i) => {
             doc.text(text, colX[i], startY);
         });
-
-        // Linha horizontal abaixo do cabeçalho
         doc.line(14, startY + 2, pdfWidth - 14, startY + 2);
 
-        // Itens
         let currentY = startY + rowHeight;
         doc.setFont(undefined, "normal");
 
-        venda.itens.forEach((item, index) => {
-            // Linha alternada
+        (venda.itens || []).forEach((item, index) => {
+            const nome = item.nome || "-";
+            const qtd = Number(item.quantidade || 0);
+            const valorUnitario = Number(item.valorUnitario || item.preco || 0);
+            const subtotal = qtd * valorUnitario;
+
+            // Linha alternada de fundo
             if (index % 2 === 0) {
-                doc.setFillColor(245); // cinza muito claro
+                doc.setFillColor(245);
                 doc.rect(14, currentY - 6, pdfWidth - 28, rowHeight, "F");
             }
 
-            // Linha separadora entre itens
-            doc.setDrawColor(200);
-            doc.line(14, currentY - 2, pdfWidth - 14, currentY - 2);
-
-            doc.text(item.nome, colX[0], currentY);
-            doc.text(item.quantidade.toString(), colX[1], currentY);
-            doc.text(`R$ ${item.valorUnitario.toFixed(2)}`, colX[2], currentY);
-            const subtotal = item.quantidade * item.valorUnitario;
+            doc.text(nome, colX[0], currentY);
+            doc.text(String(qtd), colX[1], currentY);
+            doc.text(`R$ ${valorUnitario.toFixed(2)}`, colX[2], currentY);
             doc.text(`R$ ${subtotal.toFixed(2)}`, colX[3], currentY);
 
             currentY += rowHeight;
         });
 
-        // Linha acima do total
-        doc.setDrawColor(0);
+        // Linha separadora
         doc.line(14, currentY, pdfWidth - 14, currentY);
 
         // ---------------- Total ----------------
@@ -506,7 +492,6 @@ async function gerarPdfVendaPremium(venda) {
         doc.setFont(undefined, "normal");
         doc.text("Obrigado pela preferência!", pdfWidth / 2, currentY + 25, { align: "center" });
 
-        // ---------------- Salvar PDF ----------------
         doc.save(`venda_${venda.clienteNome}.pdf`);
     } catch (error) {
         console.error("Erro ao gerar PDF:", error);
@@ -901,6 +886,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
