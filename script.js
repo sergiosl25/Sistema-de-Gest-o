@@ -338,11 +338,11 @@ function adicionarItemVenda() {
 
   // Adiciona ao array de itens da venda
   itensVendaAtual.push({
-    produtoId,
-    produtoNome,
-    quantidade,
-    preco
-  });
+  produtoId,
+  nome: produtoNome, 
+  quantidade,
+  preco
+});
 
   atualizarTabelaItensVenda();
 }
@@ -473,7 +473,7 @@ function atualizarTabelaItensVenda() {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${item.produtoNome}</td>
+      <td>${item.nome}</td>
       <td>${item.quantidade}</td>
       <td>${item.preco.toFixed(2)}</td>
       <td>0.00</td>
@@ -535,7 +535,6 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
 // ===============================
 async function carregarRegistrosVendas() {
   console.log("carregarRegistrosVendas() iniciada");
-
   const tabela = document.querySelector("#tabelaRegistros tbody");
   const totalGeralSpan = document.getElementById("totalGeralRegistros");
   tabela.innerHTML = "";
@@ -551,7 +550,7 @@ async function carregarRegistrosVendas() {
       : "-";
 
     (venda.itens || []).forEach((item) => {
-      const produtoNome = item.produto || item.produtoNome || item.nome || "-";
+      const produtoNome = item.nome || item.produtoNome || "-";
       const subtotal = (item.quantidade || 0) * (item.preco || 0);
       const total = subtotal - (item.desconto || 0);
       totalGeral += total;
@@ -560,7 +559,7 @@ async function carregarRegistrosVendas() {
       row.innerHTML = `
        <td>${dataFormatada}</td>
        <td>${venda.clienteNome || "Cliente"}</td>
-       <td>${item.produto || "-"}</td>
+       <td>${produtoNome}</td>
        <td>${item.quantidade}</td>
        <td>${item.preco.toFixed(2)}</td>
        <td>${(item.desconto || 0).toFixed(2)}</td>
@@ -578,6 +577,9 @@ async function carregarRegistrosVendas() {
   });
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
+
+  document.getElementById("registrosVendas").style.display = "block";
+
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -676,7 +678,7 @@ async function gerarPdfVenda(idVenda) {
     let y = 40;
     (venda.itens || []).forEach(item => {
       pdf.text(
-        `${item.produtoNome || item.nome || "-"} - ${item.quantidade} x R$${item.preco.toFixed(2)}`,
+        `${item.nome || "-"} - ${item.quantidade} x R$${item.preco.toFixed(2)}`,
         10,
         y
       );
@@ -703,7 +705,7 @@ function renderizarOrcamentos() {
         tr.innerHTML = `
             <td>${new Date().toLocaleDateString()}</td>
             <td>${item.clienteNome}</td>
-            <td>${item.produtoNome}</td>
+            <td>${item.nome}</td>
             <td>${item.quantidade}</td>
             <td>${item.preco.toFixed(2)}</td>
             <td>${total.toFixed(2)}</td>
@@ -728,7 +730,7 @@ async function carregarOrcamentos() {
                 tr.innerHTML = `
                     <td>${orcamento.data?.seconds ? new Date(orcamento.data.seconds*1000).toLocaleDateString() : new Date().toLocaleDateString()}</td>
                     <td>${item.clienteNome || ''}</td>
-                    <td>${item.produtoNome || ''}</td>
+                    <td>${item.nome || ''}</td>
                     <td>${item.quantidade || 0}</td>
                     <td>${item.preco.toFixed(2)}</td>
                     <td>${(item.quantidade*item.preco).toFixed(2)}</td>`;
@@ -807,7 +809,7 @@ function gerarPdfOrcamento() {
     const doc = new jsPDF();
     doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
     const rows = itensOrcamentoAtual.map(item => [
-        item.clienteNome, item.produtoNome, item.quantidade, item.preco.toFixed(2), (item.quantidade * item.preco).toFixed(2)
+        item.clienteNome, item.nome, item.quantidade, item.preco.toFixed(2), (item.quantidade * item.preco).toFixed(2)
     ]);
     doc.autoTable({ head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']], body: rows, startY: 20 });
     doc.save('orcamento.pdf');
@@ -888,8 +890,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
