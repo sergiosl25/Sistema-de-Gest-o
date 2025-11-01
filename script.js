@@ -119,7 +119,7 @@ function mostrarSecao(secaoId) {
     case "estoque": carregarEstoque(); break;
     case "vendas": carregarClientesVenda(); carregarProdutosVenda(); break;
     case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
-    case "registrosVendas": carregarRegistrosVendas(); break;
+    case "registrosVendas": atualizarTabelaRegistrosVendas(); break;
     case "precos": carregarTabelaPrecos(); break;
     case 'tabelaPrecos' : carregarTabelaPrecos(); break;
   }
@@ -425,7 +425,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
         const docRef = await addDoc(collection(db, "vendas"), venda);
 
         // 🔹 Atualiza imediatamente a tabela de registros
-        atualizarTabelaRegistros(venda, docRef.id);
+        atualizarTabelaRegistrosVendas(venda, docRef.id);
 
         // 🔹 Gera o PDF com as informações corretas
         gerarPdfVendaPremium({
@@ -623,7 +623,7 @@ window.removerItemVenda = removerItemVenda;
 // ===============================
 // CARREGAR REGISTROS DE VENDAS
 // ===============================
-function atualizarTabelaRegistros(venda, docId) {
+function atualizarTabelaRegistrosVendas(venda, docId) {
     const tabela = document.getElementById("tabelaRegistros")?.querySelector("tbody");
     if (!tabela) return; // Se a aba ainda não foi carregada
 
@@ -900,7 +900,7 @@ document.addEventListener("DOMContentLoaded", () => {
         case 'clientes': await carregarClientes(); break;
         case 'estoque': await carregarEstoque(); break;
         case 'orcamentos': await carregarOrcamentos(); break;
-        case 'registrosVendas': await carregarRegistrosVendas(); break;
+        case 'registrosVendas': await atualizarTabelaRegistrosVendas(); break;
         case 'tabelaPrecos' : await carregarTabelaPrecos(); break;
       }
     });
@@ -922,14 +922,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
-
-
