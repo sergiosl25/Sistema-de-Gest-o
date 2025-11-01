@@ -42,6 +42,7 @@ const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
 let itensVendaAtual = [];
+let totalVenda = 0;       // Total da venda
 let itensOrcamentoAtual = [];
 let produtosMap = {}; // será carregado do Firestor
 
@@ -348,65 +349,56 @@ function adicionarItemVenda() {
   atualizarTabelaItensVenda();
 }
 
-document.getElementById("btnFinalizarVenda")?.addEventListener("click", async () => {
-  try {
-    // Pegue os elementos <select>
-    const clienteSelect = document.getElementById("clienteSelect");
-    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
-    // ✅ Pegue apenas os valores, não os elementos
-    const clienteId = clienteSelect?.value || "";
-    const clienteNome = clienteSelect?.options[clienteSelect.selectedIndex]?.text || "";
-    const tipoPagamento = tipoPagamentoSelect?.value || "";
+btnFinalizarVenda.addEventListener("click", async () => {
+    try {
+        if (btnFinalizarVenda.disabled) return; // Evita cliques múltiplos
+        btnFinalizarVenda.disabled = true;
 
-    if (!clienteId || !tipoPagamento) {
-      alert("Selecione o cliente e o tipo de pagamento antes de finalizar.");
-      return;
+        const tipoPagamentoSelect = document.getElementById("tipoPagamento");
+        const clienteSelect = document.getElementById("clienteSelect");
+
+        if (!clienteSelect || !tipoPagamentoSelect) throw new Error("Selecione cliente e tipo de pagamento.");
+
+        const tipoPagamento = tipoPagamentoSelect.value;
+        const clienteId = clienteSelect.value;
+        const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
+
+        if (itensVendaAtual.length === 0) throw new Error("Nenhum item adicionado à venda.");
+
+        // Adiciona venda ao Firestore
+        await addDoc(collection(db, "vendas"), {
+            clienteId,
+            clienteNome,
+            tipoPagamento,
+            itens: itensVendaAtual,
+            total: totalVenda,
+            data: serverTimestamp()
+        });
+
+        // Gera PDF
+        gerarPdfVendaPremium({
+            clienteNome,
+            tipoPagamento,
+            itens: itensVendaAtual,
+            total: totalVenda
+        });
+
+        alert(`Venda registrada! Total: R$ ${totalVenda.toFixed(2)}`);
+
+        // Limpa array de itens e total
+        itensVendaAtual = [];
+        totalVenda = 0;
+
+    } catch (error) {
+        console.error("Erro ao registrar venda:", error);
+        alert("Erro ao registrar venda: " + error.message);
+    } finally {
+        btnFinalizarVenda.disabled = false;
     }
-
-    if (!Array.isArray(itensVendaAtual) || itensVendaAtual.length === 0) {
-      alert("Adicione itens à venda antes de finalizar.");
-      return;
-    }
-
-    // 🔹 Calcula total
-    const totalVenda = itensVendaAtual.reduce(
-      (soma, item) => soma + (item.quantidade * item.preco - (item.desconto || 0)),
-      0
-    );
-
-    // 🔹 Salva no Firestore — apenas dados simples!
-    const docRef = await addDoc(collection(db, "vendas"), {
-      clienteId: String(clienteId),
-      clienteNome: String(clienteNome),
-      tipoPagamento: String(tipoPagamento),
-      itens: itensVendaAtual.map(item => ({
-        produtoId: item.produtoId || "",
-        nome: item.nome || item.produtoNome || "-",
-        quantidade: Number(item.quantidade) || 0,
-        preco: Number(item.preco) || 0,
-        desconto: Number(item.desconto) || 0
-      })),
-      total: Number(totalVenda),
-      data: serverTimestamp()
-    });
-
-    alert(`✅ Venda registrada com sucesso! Total: R$ ${totalVenda.toFixed(2)}`);
-
-    // Gera PDF
-    await gerarPdfVendaPremium(docRef.id);
-
-    // Limpa a venda
-    itensVendaAtual = [];
-    clienteSelect.selectedIndex = 0;
-    tipoPagamentoSelect.selectedIndex = 0;
-    document.getElementById("totalVenda").textContent = "0.00";
-
-  } catch (erro) {
-    console.error("Erro ao registrar venda:", erro);
-    alert("❌ Erro ao registrar venda. Veja o console para detalhes.");
-  }
 });
+
 
 async function gerarPdfVendaPremium(venda) {
     try {
@@ -887,4 +879,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
