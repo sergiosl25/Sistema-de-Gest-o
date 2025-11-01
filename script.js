@@ -390,7 +390,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
             data: new Date()
         });
 
-        alert(`Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
+        alert(`Venda registrada! Total: R$ ${totalVenda.toFixed(2)}`);
     } catch (error) {
         console.error("Erro ao registrar venda:", error);
         alert("Erro ao registrar venda: " + error.message);
@@ -878,6 +878,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
