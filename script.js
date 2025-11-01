@@ -394,7 +394,7 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
     alert(`✅ Venda registrada com sucesso! Total: R$ ${totalVenda.toFixed(2)}`);
 
     // Gera PDF
-    await gerarPdfVenda(docRef.id);
+    await gerarPdfVendaPremium(docRef.id);
 
     // Limpa a venda
     itensVendaAtual = [];
@@ -408,65 +408,97 @@ document.getElementById("btnFinalizarVenda")?.addEventListener("click", async ()
   }
 });
 
-// Função para gerar PDF a partir do ID do documento
-async function gerarPdfVenda(idVenda) {
-  try {
-    const vendaRef = doc(db, "vendas", idVenda);
-    const vendaSnap = await getDoc(vendaRef);
+async function gerarPdfVendaPremium(venda) {
+    try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
 
-    if (!vendaSnap.exists()) {
-      alert("Venda não encontrada!");
-      return;
+        const pdfWidth = doc.internal.pageSize.getWidth();
+
+        // ---------------- Logo ----------------
+        const logo = document.getElementById("logo");
+        if (logo) {
+            const imgProps = doc.getImageProperties(logo);
+            const logoWidth = 50;
+            const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+            const xPos = (pdfWidth - logoWidth) / 2;
+            doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
+        }
+
+        // ---------------- Cabeçalho ----------------
+        doc.setFontSize(16);
+        doc.setFont(undefined, "bold");
+        doc.text("RECIBO DE VENDA", pdfWidth / 2, 40, { align: "center" });
+
+        // Número do recibo / ID da venda
+        doc.setFontSize(10);
+        doc.setFont(undefined, "normal");
+        doc.text(`Recibo: ${venda.id || "N/A"}`, pdfWidth - 14, 45, { align: "right" });
+
+        doc.setFontSize(12);
+        doc.text(`Cliente: ${venda.clienteNome}`, 14, 55);
+        doc.text(`Data: ${new Date(venda.data.seconds * 1000).toLocaleString()}`, pdfWidth - 14, 55, { align: "right" });
+        doc.text(`Pagamento: ${venda.tipoPagamento}`, 14, 63);
+
+        // ---------------- Tabela ----------------
+        const startY = 75;
+        const rowHeight = 8;
+        const colX = [14, 90, 130, 170]; // posições X das colunas
+
+        // Cabeçalho da tabela
+        doc.setFont(undefined, "bold");
+        ["Produto", "Qtde", "Valor Unitário", "Subtotal"].forEach((text, i) => {
+            doc.text(text, colX[i], startY);
+        });
+
+        // Linha horizontal abaixo do cabeçalho
+        doc.line(14, startY + 2, pdfWidth - 14, startY + 2);
+
+        // Itens
+        let currentY = startY + rowHeight;
+        doc.setFont(undefined, "normal");
+
+        venda.itens.forEach((item, index) => {
+            // Linha alternada
+            if (index % 2 === 0) {
+                doc.setFillColor(245); // cinza muito claro
+                doc.rect(14, currentY - 6, pdfWidth - 28, rowHeight, "F");
+            }
+
+            // Linha separadora entre itens
+            doc.setDrawColor(200);
+            doc.line(14, currentY - 2, pdfWidth - 14, currentY - 2);
+
+            doc.text(item.nome, colX[0], currentY);
+            doc.text(item.quantidade.toString(), colX[1], currentY);
+            doc.text(`R$ ${item.valorUnitario.toFixed(2)}`, colX[2], currentY);
+            const subtotal = item.quantidade * item.valorUnitario;
+            doc.text(`R$ ${subtotal.toFixed(2)}`, colX[3], currentY);
+
+            currentY += rowHeight;
+        });
+
+        // Linha acima do total
+        doc.setDrawColor(0);
+        doc.line(14, currentY, pdfWidth - 14, currentY);
+
+        // ---------------- Total ----------------
+        doc.setFont(undefined, "bold");
+        doc.setFontSize(14);
+        doc.text(`TOTAL: R$ ${venda.total.toFixed(2)}`, 14, currentY + 10);
+
+        // ---------------- Mensagem final ----------------
+        doc.setFontSize(12);
+        doc.setFont(undefined, "normal");
+        doc.text("Obrigado pela preferência!", pdfWidth / 2, currentY + 25, { align: "center" });
+
+        // ---------------- Salvar PDF ----------------
+        doc.save(`venda_${venda.clienteNome}.pdf`);
+    } catch (error) {
+        console.error("Erro ao gerar PDF:", error);
+        alert("Erro ao gerar PDF!");
     }
-
-    const venda = vendaSnap.data();
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-
-    // Adiciona logo (se houver)
-    const logoImg = document.getElementById("logo");
-    if (logoImg) {
-      pdf.addImage(logoImg, "PNG", 10, 10, 50, 20); // x, y, width, height
-    }
-
-    let y = 40;
-
-    // Dados do cliente e venda
-    pdf.setFontSize(12);
-    pdf.text(`Cliente: ${venda.clienteNome || "-"}`, 10, y);
-    y += 10;
-    pdf.text(`Tipo de Pagamento: ${venda.tipoPagamento || "-"}`, 10, y);
-    y += 10;
-
-    // Data formatada
-    const data = venda.data?.toDate ? venda.data.toDate() : new Date();
-    pdf.text(`Data: ${data.toLocaleString()}`, 10, y);
-    y += 10;
-
-    pdf.text("Itens:", 10, y);
-    y += 10;
-
-    // Tabela de itens
-    (venda.itens || []).forEach(item => {
-      pdf.text(
-        `${item.nome || "-"} - ${item.quantidade}x R$${item.preco.toFixed(2)}`,
-        10,
-        y
-      );
-      y += 10;
-    });
-
-    pdf.text(`Total: R$ ${(venda.total || 0).toFixed(2)}`, 10, y + 10);
-
-    pdf.save(`venda.pdf`);
-  } catch (error) {
-    console.error("Erro ao gerar PDF:", error);
-    alert("Erro ao gerar PDF. Verifique o console.");
-  }
 }
-
-window.gerarPdfVenda = gerarPdfVenda;
 
 // ===============================
 // ATUALIZAR TABELA DE ITENS
@@ -855,3 +887,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
