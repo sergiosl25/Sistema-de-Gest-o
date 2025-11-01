@@ -623,58 +623,44 @@ window.removerItemVenda = removerItemVenda;
 // ===============================
 // CARREGAR REGISTROS DE VENDAS
 // ===============================
-async function carregarRegistrosVendas() {
-  console.log("carregarRegistrosVendas() iniciada");
-  const tabela = document.querySelector("#tabelaRegistros tbody");
-  const totalGeralSpan = document.getElementById("totalGeralRegistros");
-  tabela.innerHTML = "";
+function atualizarTabelaRegistros(venda, docId) {
+    const tabela = document.getElementById("tabelaRegistros")?.querySelector("tbody");
+    if (!tabela) return; // Se a aba ainda não foi carregada
 
-  const vendasSnapshot = await getDocs(collection(db, "vendas"));
-  let totalGeral = 0;
-
-  vendasSnapshot.forEach((doc) => {
-    const venda = doc.data();
-    const id = doc.id;
-    const dataFormatada = venda.data?.seconds
-      ? new Date(venda.data.seconds * 1000).toLocaleDateString()
-      : "-";
+    const dataVenda = new Date().toLocaleDateString("pt-BR");
 
     (venda.itens || []).forEach((item) => {
-      const produtoNome = item.nome || item.produtoNome || "-";
-      const subtotal = (item.quantidade || 0) * (item.preco || 0);
-      const total = subtotal - (item.desconto || 0);
-      totalGeral += total;
+        const produtoNome = item.nome || "-";
+        const subtotal = item.quantidade * item.valorUnitario;
+        const total = subtotal; // se quiser descontar, ajuste aqui
 
-      const row = document.createElement("tr");
-      row.innerHTML = `
-       <td>${dataFormatada}</td>
-       <td>${venda.clienteNome || "Cliente"}</td>
-       <td>${produtoNome}</td>
-       <td>${item.quantidade}</td>
-       <td>${item.preco.toFixed(2)}</td>
-       <td>${(item.desconto || 0).toFixed(2)}</td>
-       <td>${subtotal.toFixed(2)}</td>
-       <td>${total.toFixed(2)}</td>
-       <td>${venda.tipoPagamento || "-"}</td>
-       <td>
-           <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
-           <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
-       </td>
-
-    `;
-      tabela.appendChild(row);
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${dataVenda}</td>
+            <td>${venda.clienteNome || "Cliente"}</td>
+            <td>${produtoNome}</td>
+            <td>${item.quantidade}</td>
+            <td>${item.valorUnitario.toFixed(2)}</td>
+            <td>0.00</td>
+            <td>${subtotal.toFixed(2)}</td>
+            <td>${total.toFixed(2)}</td>
+            <td>${venda.tipoPagamento || "-"}</td>
+            <td>
+                <button class="btnExcluir" onclick="abrirModalExcluir('${docId}')">🗑️</button>
+                <button class="btnPDF" onclick="gerarPdfVenda('${docId}')">📄</button>
+            </td>
+        `;
+        tabela.prepend(row);
     });
-  });
 
-  totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
-
-  document.getElementById("registrosVendas").style.display = "block";
-
+    // Atualizar total geral na interface
+    const totalGeralSpan = document.getElementById("totalGeralRegistros");
+    if (totalGeralSpan) {
+        // Para manter o totalGeral correto, você precisa somar ao total anterior:
+        // Mas o mais simples, chame novamente carregarRegistrosVendas() para recarregar tudo.
+        carregarRegistrosVendas();
+    }
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  carregarRegistrosVendas();
-});
 
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
@@ -936,6 +922,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
