@@ -329,8 +329,7 @@ function adicionarItemVenda() {
   const tipoPreco = tipoPrecoSelect.value;
   const quantidade = Number(quantidadeInput.value);
   const preco = Number(precoInput.value);
-  const pagamento = tipoPagamento.value;
-
+  
   if (!produtoId || quantidade <= 0 || preco <= 0) {
     alert("Preencha todos os campos corretamente!");
     return;
@@ -839,4 +838,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
