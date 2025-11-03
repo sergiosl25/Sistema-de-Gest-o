@@ -319,6 +319,7 @@ function adicionarItemVenda() {
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
   const quantidadeInput = document.getElementById("quantidadeVenda");
   const precoInput = document.getElementById("precoSelecionado");
+  const tbody = document.querySelector("#tabelaItensVenda tbody");
  
   if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
     console.error("Algum elemento do formulário não foi encontrado!");
@@ -351,8 +352,6 @@ function adicionarItemVenda() {
 
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
-// 🔹 Função principal: finalizar venda
-// 🔹 Finalizar venda (corrigido — sem duplicar registros)
 btnFinalizarVenda.addEventListener("click", async () => {
   try {
     if (btnFinalizarVenda.disabled) return;
@@ -384,12 +383,12 @@ btnFinalizarVenda.addEventListener("click", async () => {
 
     // 🔹 Monta o objeto da venda
     const venda = {
-      clienteId,
-      clienteNome,
+      clienteNome: clienteSelecionado,
       tipoPagamento,
       itens: itensParaSalvar,
-      total: totalParaSalvar,
-      data: serverTimestamp()
+      total: totalVenda,
+      descontoVenda: descontoTotalVenda || 0,
+      data: new Date()
     };
 
     // 🔹 Salva no Firestore
