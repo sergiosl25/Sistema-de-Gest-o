@@ -698,7 +698,6 @@ async function carregarTabelaRegistrosVendas() {
         <td>${total.toFixed(2)}</td>
         <td>${venda.tipoPagamento || "-"}</td>
         <td>
-          <button class="btnDesconto" onclick="abrirModalDesconto('${id}')">💸</button
           <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
           <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
         </td>
@@ -1009,3 +1008,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
