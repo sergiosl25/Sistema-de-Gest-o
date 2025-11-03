@@ -677,17 +677,23 @@ function atualizarTabelaItensVenda() {
   let totalVenda = 0;
 
   itensVendaAtual.forEach((item) => {
-    const subtotal = item.quantidade * item.valorUnitario;
-    totalVenda += subtotal;
+    const quantidade = item.quantidade || 0;
+    const valorUnitario = item.valorUnitario || 0;
+    const desconto = item.desconto || 0;
+    
+    const subtotal = quantidade * valorUnitario;
+    const totalItem = subtotal - desconto;
+
+    totalVenda += totalItem
 
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${item.nome}</td>
-      <td>${item.quantidade}</td>
-      <td>R$ ${item.preco.toFixed(2)}</td>
-      <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
+      <td>${quantidade}</td>
+      <td>R$ ${valorUnitario.toFixed(2)}</td>
+      <td>R$ ${desconto.toFixed(2)}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
-      <td>R$ ${total.toFixed(2)}</td>
+      <td>R$ ${totalItem.toFixed(2)}</td>
     `;
     tbody.appendChild(row);
   });
@@ -1056,5 +1062,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
