@@ -757,18 +757,24 @@ async function carregarTabelaRegistrosVendas() {
   let totalGeral = 0;
 
   const vendasSnapshot = await getDocs(collection(db, "vendas"));
-  
+
   vendasSnapshot.forEach((doc) => {
     const venda = doc.data();
     const id = doc.id;
+
     const dataFormatada = venda.data?.seconds
       ? new Date(venda.data.seconds * 1000).toLocaleDateString("pt-BR")
       : "-";
 
     (venda.itens || []).forEach((item) => {
       const produtoNome = item.nome || "-";
-      const subtotal = item.quantidade * item.valorUnitario;
-      const total = subtotal;
+      const quantidade = item.quantidade || 0;
+      const valorUnitario = item.valorUnitario || 0;
+
+      // 🧩 Usa os campos gravados corretamente, com fallback para compatibilidade
+      const desconto = item.desconto || 0;
+      const subtotal = quantidade * valorUnitario;
+      const total = item.totalItem || (subtotal - desconto);
 
       totalGeral += total;
 
@@ -777,11 +783,11 @@ async function carregarTabelaRegistrosVendas() {
         <td>${dataFormatada}</td>
         <td>${venda.clienteNome || "Cliente"}</td>
         <td>${produtoNome}</td>
-        <td>${item.quantidade}</td>
-        <td>${item.valorUnitario.toFixed(2)}</td>
-        <td>0.00</td>
-        <td>${subtotal.toFixed(2)}</td>
-        <td>${total.toFixed(2)}</td>
+        <td>${quantidade}</td>
+        <td>R$ ${valorUnitario.toFixed(2)}</td>
+        <td>R$ ${desconto.toFixed(2)}</td>
+        <td>R$ ${subtotal.toFixed(2)}</td>
+        <td>R$ ${total.toFixed(2)}</td>
         <td>${venda.tipoPagamento || "-"}</td>
         <td>
           <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
@@ -1094,6 +1100,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
