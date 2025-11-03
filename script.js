@@ -670,6 +670,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function atualizarTabelaItensVenda() {
   const tbody = document.getElementById("#tabelaItensVenda tbody");
+  if (!tbody) {
+    console.error("Tabela de itens não encontrada!");
+    return;
+  }
   tbody.innerHTML = "";
 
   let totalVenda = 0;
@@ -1054,5 +1058,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
