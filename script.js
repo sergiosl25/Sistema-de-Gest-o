@@ -576,6 +576,61 @@ window.gerarPdfVenda = async function (idVenda) {
   }
 };
 
+// --- Função para aplicar desconto em um item da venda ---
+btnDescontoItem.addEventListener("click", () => {
+  if (itensVendaAtual.length === 0) {
+    alert("Nenhum item na venda para aplicar desconto.");
+    return;
+  }
+
+  const listaProdutos = itensVendaAtual
+    .map((item, index) => `${index + 1} - ${item.nome}`)
+    .join("\n");
+
+  const indice = parseInt(prompt(`Escolha o número do item para aplicar desconto:\n${listaProdutos}`)) - 1;
+
+  if (isNaN(indice) || indice < 0 || indice >= itensVendaAtual.length) {
+    alert("Item inválido!");
+    return;
+  }
+
+  const item = itensVendaAtual[indice];
+  const desconto = parseFloat(prompt(`Digite o valor do desconto para ${item.nome}:`, "0"));
+
+  if (isNaN(desconto) || desconto < 0) {
+    alert("Desconto inválido!");
+    return;
+  }
+
+  item.desconto = desconto;
+  atualizarTabelaItensVenda();
+});
+
+
+// --- Função para aplicar desconto total na venda ---
+btnDescontoVenda.addEventListener("click", () => {
+  if (itensVendaAtual.length === 0) {
+    alert("Nenhum item na venda para aplicar desconto.");
+    return;
+  }
+
+  const totalAtual = itensVendaAtual.reduce((soma, item) => {
+    const subtotal = (item.quantidade * item.preco) - (item.desconto || 0);
+    return soma + subtotal;
+  }, 0);
+
+  const descontoGeral = parseFloat(prompt(`Total atual: R$ ${totalAtual.toFixed(2)}\nDigite o valor do desconto geral:`));
+
+  if (isNaN(descontoGeral) || descontoGeral < 0 || descontoGeral > totalAtual) {
+    alert("Valor de desconto inválido!");
+    return;
+  }
+
+  // Guarda o desconto geral na venda
+  descontoTotalVenda = descontoGeral;
+  atualizarTabelaItensVenda();
+});
+
 // ===============================
 // ATUALIZAR TABELA DE ITENS
 // ===============================
@@ -601,7 +656,6 @@ function renderizarItensVenda() {
       <td>-</td>
       <td>
        <button onclick="removerItemVenda(${index})">Remover</button>
-       <td><button onclick="aplicarDescontoItem(${index})">Desconto</button></td>
       </td>
     `;
 
@@ -615,31 +669,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function atualizarTabelaItensVenda() {
-  const tbody = document.querySelector("#tabelaItensVenda tbody");
+  const tbody = document.getElementById("tbodyItensVenda");
   tbody.innerHTML = "";
 
   let totalVenda = 0;
 
-  itensVendaAtual.forEach((item, index) => {
+  itensVendaAtual.forEach((item) => {
     const subtotal = (item.quantidade * item.preco) - (item.desconto || 0);
     totalVenda += subtotal;
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const row = document.createElement("tr");
+    row.innerHTML = `
       <td>${item.nome}</td>
       <td>${item.quantidade}</td>
-      <td>${item.preco.toFixed(2)}</td>
-      <td>0.00</td>
-      <td>${subtotal.toFixed(2)}</td>
-      <td>${subtotal.toFixed(2)}</td>
-      <td><button onclick="removerItemVenda(${index})">Remover</button></td>
-      <td><button onclick="aplicarDescontoItem(${index})">Desconto</button></td>
+      <td>R$ ${item.preco.toFixed(2)}</td>
+      <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
+      <td>R$ ${subtotal.toFixed(2)}</td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(row);
   });
 
-  document.getElementById("totalVenda").innerText = totalVenda.toFixed(2);
-}
+  if (typeof descontoTotalVenda !== "undefined" && descontoTotalVenda > 0) {
+    totalVenda -= descontoTotalVenda;
+  }
+
+  document.getElementById("totalVenda").textContent = totalVenda.toFixed(2);
+} 
 
 function removerItemVenda(index) {
   // Remove o item do array de vendas
@@ -647,15 +702,6 @@ function removerItemVenda(index) {
   // Atualiza a tabela após a remoção
   renderizarItensVenda();
 }
-
-window.aplicarDescontoItem = function (index) {
-  const item = itensVendaAtual[index];
-  const valorDesconto = parseFloat(prompt(`Desconto para ${item.nome}:`, "0"));
-  if (isNaN(valorDesconto) || valorDesconto < 0) return alert("Valor inválido!");
-
-  item.desconto = valorDesconto;
-  atualizarTabelaItensVenda();
-};
 
 window.removerItemVenda = removerItemVenda;
 
@@ -1008,4 +1054,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
