@@ -674,37 +674,46 @@ function atualizarTabelaItensVenda() {
   }
   tbody.innerHTML = "";
 
+  // Calcula o subtotal de todos os itens para distribuir o desconto proporcionalmente
+  let somaSubtotais = 0;
+  itensVendaAtual.forEach(item => {
+    somaSubtotais += (item.quantidade || 0) * (item.valorUnitario || 0);
+  });
+
   let totalVenda = 0;
 
-  itensVendaAtual.forEach((item) => {
+  itensVendaAtual.forEach(item => {
     const quantidade = item.quantidade || 0;
     const valorUnitario = item.valorUnitario || 0;
-    const desconto = item.desconto || 0;
-    
-    const subtotal = quantidade * valorUnitario;
-    const totalItem = subtotal - desconto;
+    const descontoItem = item.desconto || 0;
 
-    totalVenda += totalItem
+    const subtotal = quantidade * valorUnitario;
+
+    // Calcula desconto proporcional do desconto total da venda
+    const descontoProporcional = descontoTotalVenda 
+        ? (subtotal / somaSubtotais) * descontoTotalVenda
+        : 0;
+
+    const totalItem = subtotal - descontoItem - descontoProporcional;
+
+    totalVenda += totalItem;
 
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${item.nome}</td>
       <td>${quantidade}</td>
       <td>R$ ${valorUnitario.toFixed(2)}</td>
-      <td>R$ ${desconto.toFixed(2)}</td>
+      <td>R$ ${(descontoItem + descontoProporcional).toFixed(2)}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${totalItem.toFixed(2)}</td>
     `;
     tbody.appendChild(row);
   });
 
-  if (descontoTotalVenda) totalVenda -= descontoTotalVenda;
-
   document.getElementById("totalVenda").textContent = totalVenda.toFixed(2);
 
-  window.totalVenda = totalVenda
-
-} 
+  window.totalVenda = totalVenda;
+}
 
 function removerItemVenda(index) {
   itensVendaAtual.splice(index, 1);
@@ -1062,6 +1071,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
