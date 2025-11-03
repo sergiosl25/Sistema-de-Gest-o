@@ -877,6 +877,7 @@ window.abrirModalDesconto = abrirModalDesconto;
 // ==========================
 // 🔹 Orçamentos
 // ==========================
+// Renderiza a tabela de orçamento
 function renderizarOrcamentos() {
     tabelaOrcamentos.innerHTML = '';
     itensOrcamentoAtual.forEach((item, index) => {
@@ -894,81 +895,101 @@ function renderizarOrcamentos() {
     });
 }
 
+// Remove item do orçamento
 window.removerItemOrcamento = (index) => {
     itensOrcamentoAtual.splice(index, 1);
     renderizarOrcamentos();
 };
 
-async function carregarOrcamentos() {
-    const snapshot = await getDocs(orcamentosCol);
-    tabelaOrcamentos.innerHTML = '';
-    if (!snapshot.empty) {
-        snapshot.forEach(docSnap => {
-            const orcamento = docSnap.data() || {};
-            (orcamento.itens || []).forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${orcamento.data?.seconds ? new Date(orcamento.data.seconds*1000).toLocaleDateString() : new Date().toLocaleDateString()}</td>
-                    <td>${item.clienteNome || ''}</td>
-                    <td>${item.nome || ''}</td>
-                    <td>${item.quantidade || 0}</td>
-                    <td>${item.preco.toFixed(2)}</td>
-                    <td>${(item.quantidade*item.preco).toFixed(2)}</td>`;
-                tabelaOrcamentos.appendChild(tr);
-            });
-        });
-    }
-}
-
+// Carrega produtos no select
 async function carregarProdutosOrcamento() {
-  console.log("carregarProdutosOrcamento() iniciada");
+    const select = document.getElementById("produtoSelectOrcamento");
+    select.innerHTML = "<option value=''>Selecione o produto</option>";
 
-  const select = document.getElementById("produtoSelectOrcamento");
-  select.innerHTML = "<option value=''>Selecione o produto</option>";
-
-  const produtosSnapshot = await getDocs(collection(db, "produtos"));
-  produtosSnapshot.forEach(docSnap => {
-    const produto = docSnap.data();
-    const option = document.createElement("option");
-    option.value = docSnap.id;
-    option.textContent = produto.nome;
-    select.appendChild(option);
-  });
+    const produtosSnapshot = await getDocs(collection(db, "produtos"));
+    produtosSnapshot.forEach(docSnap => {
+        const produto = docSnap.data();
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.textContent = produto.nome || "Produto";
+        select.appendChild(option);
+    });
 }
 
-async function adicionarProdutoOrcamento() {
-  const select = document.getElementById("produtoSelectOrcamento");
-  const produtoId = select.value;
+// Adiciona produto ao orçamento
+window.adicionarProdutoOrcamento = async function() {
+    const select = document.getElementById("produtoSelectOrcamento");
+    const produtoId = select.value;
+    if (!produtoId) return alert("Selecione um produto!");
 
-  if (!produtoId) {
-    alert("Selecione um produto!");
-    return;
-  }
+    const produtoRef = doc(db, "produtos", produtoId);
+    const produtoSnap = await getDoc(produtoRef);
+    if (!produtoSnap.exists()) return alert("Produto não encontrado!");
 
-  const produtoRef = doc(db, "produtos", produtoId);
-  const produtoSnap = await getDoc(produtoRef);
+    const produto = produtoSnap.data();
+    const nomeProduto = produto.nome || produto.descricao || "Produto";
 
-  if (!produtoSnap.exists()) {
-    alert("Produto não encontrado!");
-    return;
-  }
+    itensOrcamentoAtual.push({
+        produtoId,
+        nome: nomeProduto,
+        preco: Number(produto.preco || produto.valorUnitario || 0),
+        quantidade: 1,
+        clienteNome: clienteSelect?.value || ""
+    });
 
-  const produto = produtoSnap.data();
+    renderizarOrcamentos();
+};
 
-  // ✅ Corrigido: sempre garante que o nome esteja certo
-  const nomeProduto = produto.nome || produto.nomeProduto || produto.descricao || "Produto";
+// Gera PDF do orçamento com tabela e logo
+window.gerarPdfOrcamento = function() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-  // Adiciona ao array de itens do orçamento
-  itensOrcamentoAtual.push({
-    produtoId,
-    nome: nomeProduto,
-    preco: Number(produto.preco || produto.valorUnitario || 0),
-    quantidade: 1,
-    clienteNome: document.getElementById("clienteSelectOrcamento")?.value || ""
-  });
+    // Adiciona logo (supondo que você tenha <img id="logoOrcamento" src="logo.png"> no HTML)
+    const img = document.getElementById("logoOrcamento");
+    if (img) {
+        doc.addImage(img, 'PNG', 14, 10, 40, 20);
+    }
 
-  renderizarOrcamentos();
-}
+    doc.setFontSize(16);
+    doc.text("ORÇAMENTO", 105, 15, { align: "center" });
+
+    const rows = itensOrcamentoAtual.map(item => [
+        item.clienteNome,
+        item.nome,
+        item.quantidade,
+        item.preco.toFixed(2),
+        (item.quantidade * item.preco).toFixed(2)
+    ]);
+
+    doc.autoTable({
+        head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']],
+        body: rows,
+        startY: 35
+    });
+
+    doc.save('orcamento.pdf');
+};
+
+// =======================
+// EVENT LISTENERS
+// =======================
+document.getElementById("btnAdicionarProduto")?.addEventListener("click", () => {
+    adicionarProdutoOrcamento();
+});
+
+document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
+    gerarPdfOrcamento();
+});
+
+// =======================
+// INICIALIZAÇÃO
+// =======================
+document.addEventListener('DOMContentLoaded', () => {
+    carregarProdutosOrcamento();
+    renderizarOrcamentos();
+});
+
 
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
@@ -1015,74 +1036,6 @@ async function carregarTabelaPrecos() {
       });
     });
   });
-}
-
-function gerarPdfOrcamento() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  const pdfWidth = doc.internal.pageSize.getWidth();
-
-  // Caminho da logo (pode ser local ou URL)
-  const logoUrl = "./img/logo.png"; // ✅ ajuste o caminho conforme sua estrutura
-
-  const img = new Image();
-  img.src = logoUrl;
-
-  img.onload = function () {
-    // Adiciona a logo (x, y, largura, altura)
-    doc.addImage(img, "PNG", 14, 10, 25, 25);
-
-    // Título
-    doc.setFontSize(16);
-    doc.setFont(undefined, "bold");
-    doc.text("ORÇAMENTO", pdfWidth / 2, 25, { align: "center" });
-
-    doc.setFontSize(11);
-    doc.setFont(undefined, "normal");
-    doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 40);
-
-    // Cabeçalho e corpo da tabela
-    const cabecalho = [["Cliente", "Produto", "Qtd", "Preço Unitário", "Total"]];
-    const corpo = itensOrcamentoAtual.map(item => [
-      item.clienteNome || "-",
-      item.nome || "-",
-      item.quantidade || 0,
-      `R$ ${item.preco.toFixed(2)}`,
-      `R$ ${(item.quantidade * item.preco).toFixed(2)}`
-    ]);
-
-    // Gera tabela
-    doc.autoTable({
-      startY: 45,
-      head: cabecalho,
-      body: corpo,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
-      theme: "grid"
-    });
-
-    // Soma total
-    const totalGeral = itensOrcamentoAtual.reduce(
-      (soma, item) => soma + item.quantidade * item.preco,
-      0
-    );
-
-    doc.setFontSize(13);
-    doc.setFont(undefined, "bold");
-    doc.text(
-      `TOTAL: R$ ${totalGeral.toFixed(2)}`,
-      pdfWidth - 14,
-      doc.lastAutoTable.finalY + 10,
-      { align: "right" }
-    );
-
-    doc.save("orcamento.pdf");
-  };
-
-  img.onerror = function () {
-    alert("Erro ao carregar a logo. Verifique o caminho da imagem.");
-  };
 }
 
 // exportar registros vendas
@@ -1221,6 +1174,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
