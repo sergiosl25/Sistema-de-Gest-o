@@ -341,11 +341,12 @@ function adicionarItemVenda() {
   // Adiciona ao array de itens da venda
   itensVendaAtual.push({
   produtoId,
-  nome: produtoNome, 
+  nome: produtoNome,
   quantidade,
   preco,
-  tipoPagamento
+  tipoPreco
 });
+
 
   atualizarTabelaItensVenda();
 }
@@ -1053,3 +1054,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
