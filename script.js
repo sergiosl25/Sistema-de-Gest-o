@@ -346,10 +346,9 @@ function adicionarItemVenda() {
   preco,
   tipoPreco
 });
-
-
-  atualizarTabelaItensVenda();
 }
+
+atualizarTabelaItensVenda();
 
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
@@ -1058,6 +1057,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
