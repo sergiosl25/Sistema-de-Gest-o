@@ -372,6 +372,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
 
     // 🔹 Prepara os itens da venda
     const itensParaSalvar = itensVendaAtual.map(item => ({
+      produtoId: item.produtoId, // adicione isto!
       nome: String(item.nome || ""),
       quantidade: Number(item.quantidade || 0),
       valorUnitario: Number(item.valorUnitario || item.preco || 0),
@@ -393,6 +394,18 @@ btnFinalizarVenda.addEventListener("click", async () => {
 
     // 🔹 Salva no Firestore
     const docRef = await addDoc(collection(db, "vendas"), venda);
+
+    // 🔹 Atualiza o estoque de cada produto vendido
+for (const item of itensParaSalvar) {
+  const produtoRef = doc(db, "produtos", item.produtoId);
+  const produtoSnap = await getDoc(produtoRef);
+
+  if (produtoSnap.exists()) {
+    const produto = produtoSnap.data();
+    const novaQtd = (produto.quantidade || 0) - item.quantidade;
+    await updateDoc(produtoRef, { quantidade: novaQtd });
+  }
+}
 
     // 🔹 Gera o PDF
     gerarPdfVendaPremium({
@@ -530,6 +543,39 @@ async function gerarPdfVendaPremium(venda) {
     }
 }
 
+window.gerarPdfVenda = async function (idVenda) {
+  try {
+    const vendaRef = doc(db, "vendas", idVenda);
+    const vendaSnap = await getDoc(vendaRef);
+
+    if (!vendaSnap.exists()) {
+      alert("Venda não encontrada!");
+      return;
+    }
+
+    const venda = vendaSnap.data();
+
+    // Converte timestamp em Date
+    const dataVenda = venda.data?.seconds
+      ? new Date(venda.data.seconds * 1000)
+      : new Date();
+
+    // Chama o gerador de PDF já existente
+    await gerarPdfVendaPremium({
+      id: idVenda,
+      clienteNome: venda.clienteNome || "Cliente",
+      tipoPagamento: venda.tipoPagamento || "-",
+      itens: venda.itens || [],
+      total: venda.totalComDesconto || venda.total || 0,
+      data: dataVenda
+    });
+
+  } catch (error) {
+    console.error("Erro ao gerar PDF da venda:", error);
+    alert("Erro ao gerar PDF. Verifique o console.");
+  }
+};
+
 // ===============================
 // ATUALIZAR TABELA DE ITENS
 // ===============================
@@ -555,6 +601,7 @@ function renderizarItensVenda() {
       <td>-</td>
       <td>
        <button onclick="removerItemVenda(${index})">Remover</button>
+       <td><button onclick="aplicarDescontoItem(${index})">Desconto</button></td>
       </td>
     `;
 
@@ -574,7 +621,7 @@ function atualizarTabelaItensVenda() {
   let totalVenda = 0;
 
   itensVendaAtual.forEach((item, index) => {
-    const subtotal = item.quantidade * item.preco;
+    const subtotal = (item.quantidade * item.preco) - (item.desconto || 0);
     totalVenda += subtotal;
 
     const tr = document.createElement("tr");
@@ -586,6 +633,7 @@ function atualizarTabelaItensVenda() {
       <td>${subtotal.toFixed(2)}</td>
       <td>${subtotal.toFixed(2)}</td>
       <td><button onclick="removerItemVenda(${index})">Remover</button></td>
+      <td><button onclick="aplicarDescontoItem(${index})">Desconto</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -599,6 +647,16 @@ function removerItemVenda(index) {
   // Atualiza a tabela após a remoção
   renderizarItensVenda();
 }
+
+window.aplicarDescontoItem = function (index) {
+  const item = itensVendaAtual[index];
+  const valorDesconto = parseFloat(prompt(`Desconto para ${item.nome}:`, "0"));
+  if (isNaN(valorDesconto) || valorDesconto < 0) return alert("Valor inválido!");
+
+  item.desconto = valorDesconto;
+  atualizarTabelaItensVenda();
+};
+
 window.removerItemVenda = removerItemVenda;
 
 // ===============================
@@ -640,6 +698,7 @@ async function carregarTabelaRegistrosVendas() {
         <td>${total.toFixed(2)}</td>
         <td>${venda.tipoPagamento || "-"}</td>
         <td>
+          <button class="btnDesconto" onclick="abrirModalDesconto('${id}')">💸</button
           <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
           <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
         </td>
@@ -654,37 +713,48 @@ async function carregarTabelaRegistrosVendas() {
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
   try {
-    if (!idVenda || typeof idVenda !== "string") {
-      alert("ID da venda inválido. Não foi possível excluir.");
-      console.error("ID inválido recebido em abrirModalExcluir:", idVenda);
-      return;
-    }
-
     const confirmar = confirm("Deseja realmente excluir esta venda?");
     if (!confirmar) return;
 
-    await deleteDoc(doc(db, "vendas", idVenda));
+    const vendaRef = doc(db, "vendas", idVenda);
+    const vendaSnap = await getDoc(vendaRef);
 
-    alert("Venda excluída com sucesso!");
+    if (vendaSnap.exists()) {
+      const venda = vendaSnap.data();
+
+      // 🔹 Devolve itens ao estoque
+      for (const item of venda.itens || []) {
+        if (!item.produtoId) continue; // ignora se não houver id
+        const produtoRef = doc(db, "produtos", item.produtoId);
+        const produtoSnap = await getDoc(produtoRef);
+
+        if (produtoSnap.exists()) {
+          const produto = produtoSnap.data();
+          const novaQtd = (produto.quantidade || 0) + item.quantidade;
+          await updateDoc(produtoRef, { quantidade: novaQtd });
+        }
+      }
+    }
+
+    // 🔹 Exclui a venda
+    await deleteDoc(vendaRef);
+
+    alert("Venda excluída e estoque atualizado!");
     carregarTabelaRegistrosVendas();
+    carregarEstoque();
   } catch (error) {
     console.error("Erro ao excluir venda:", error);
     alert("Erro ao excluir venda. Verifique o console.");
   }
 }
+
 window.abrirModalExcluir = abrirModalExcluir;
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
-async function abrirModalDesconto(idVenda) {
-  if (!idVenda || typeof idVenda !== "string") {
-    alert("ID inválido para desconto!");
-    console.error("abrirModalDesconto recebeu ID inválido:", idVenda);
-    return;
-  }
-
+window.abrirModalDesconto = async function (idVenda) {
   const valorDesconto = parseFloat(prompt("Digite o valor do desconto em R$:"));
   if (isNaN(valorDesconto) || valorDesconto <= 0) {
-    alert("Valor de desconto inválido.");
+    alert("Valor inválido!");
     return;
   }
 
@@ -692,27 +762,25 @@ async function abrirModalDesconto(idVenda) {
     const vendaRef = doc(db, "vendas", idVenda);
     const vendaSnap = await getDoc(vendaRef);
 
-    if (!vendaSnap.exists()) {
-      alert("Venda não encontrada!");
-      return;
-    }
+    if (!vendaSnap.exists()) return alert("Venda não encontrada!");
 
     const venda = vendaSnap.data();
     const totalAtual = venda.total || 0;
-    const novoTotal = totalAtual - valorDesconto;
+    const novoTotal = Math.max(0, totalAtual - valorDesconto);
 
     await updateDoc(vendaRef, {
-      descontoAplicado: valorDesconto,
+      descontoVenda: valorDesconto,
       totalComDesconto: novoTotal
     });
 
-    alert(`Desconto de R$ ${valorDesconto.toFixed(2)} aplicado com sucesso!`);
-    await carregarTabelaRegistrosVendas();
+    alert(`✅ Desconto de R$ ${valorDesconto.toFixed(2)} aplicado!`);
+    carregarTabelaRegistrosVendas();
   } catch (error) {
     console.error("Erro ao aplicar desconto:", error);
-    alert("Erro ao aplicar desconto. Verifique o console.");
+    alert("Erro ao aplicar desconto!");
   }
-}
+};
+
 window.abrirModalDesconto = abrirModalDesconto;
 
 // ==========================
@@ -841,27 +909,66 @@ document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
 })
 
 // exportar registros vendas
-function exportarPDFRegistros() {
-    if (!window.jspdf) {
-        alert("Biblioteca jsPDF não carregada!");
-        return;
-    }
+async function exportarPDFRegistros() {
+  try {
+    const vendasSnapshot = await getDocs(collection(db, "vendas"));
+    if (vendasSnapshot.empty) return alert("Nenhuma venda encontrada.");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const pdfWidth = doc.internal.pageSize.getWidth();
 
-    doc.text("Registros de Vendas", 14, 16);
+    doc.setFontSize(16);
+    doc.text("REGISTROS DE VENDAS", pdfWidth / 2, 20, { align: "center" });
 
-    if (typeof doc.autoTable === "function") {
-        doc.autoTable({
-            html: '#tabelaRegistros',
-            startY: 20
-        });
-    } else {
-        alert("AutoTable não disponível!");
+    let currentY = 35;
+    let totalGeral = 0;
+
+    for (const vendaDoc of vendasSnapshot.docs) {
+      const venda = vendaDoc.data();
+      const data = venda.data?.seconds
+        ? new Date(venda.data.seconds * 1000)
+        : new Date();
+
+      const dataTexto = data.toLocaleDateString("pt-BR");
+      const cliente = venda.clienteNome || "Cliente";
+      const pagamento = venda.tipoPagamento || "-";
+      const total = (venda.totalComDesconto || venda.total || 0).toFixed(2);
+
+      doc.setFontSize(12);
+      doc.text(`${dataTexto} - ${cliente} (${pagamento})`, 14, currentY);
+      currentY += 7;
+
+      doc.setFontSize(10);
+      (venda.itens || []).forEach((item) => {
+        const linha = `${item.nome} - ${item.quantidade}x R$${item.valorUnitario.toFixed(2)} = R$${item.subtotal.toFixed(2)}`;
+        doc.text(linha, 20, currentY);
+        currentY += 6;
+      });
+
+      totalGeral += parseFloat(total);
+
+      doc.setFont(undefined, "bold");
+      doc.text(`Total: R$ ${total}`, pdfWidth - 14, currentY - 4, { align: "right" });
+      doc.setFont(undefined, "normal");
+      currentY += 8;
+
+      // quebra de página automática
+      if (currentY > 270) {
+        doc.addPage();
+        currentY = 20;
+      }
     }
 
-    doc.save("registros.pdf");
+    doc.setFont(undefined, "bold");
+    doc.setFontSize(14);
+    doc.text(`TOTAL GERAL: R$ ${totalGeral.toFixed(2)}`, 14, currentY + 10);
+
+    doc.save("registros_vendas.pdf");
+  } catch (error) {
+    console.error("Erro ao exportar PDF:", error);
+    alert("Erro ao gerar PDF de registros.");
+  }
 }
 
 document.getElementById("btnExportarPDF")?.addEventListener("click", () => {
@@ -902,11 +1009,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
