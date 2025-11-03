@@ -43,6 +43,7 @@ const orcamentosCol = collection(db, 'orcamentos');
 
 let itensVendaAtual = [];
 let totalVenda = 0;       // Total da venda
+let descontoTotalVenda = 0;
 let itensOrcamentoAtual = [];
 let produtosMap = {}; // será carregado do Firestor
 
@@ -1052,4 +1053,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
