@@ -883,13 +883,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Mostrar a seção clicada
       const secaoAlvo = document.getElementById(target);
       if (secaoAlvo) secaoAlvo.style.display = 'block';
-
-      // 🔄 Recarregar dados da seção selecionada
-      switch (target) {
-        case 'clientes': await carregarClientes(); break;
-        case 'estoque': await carregarEstoque(); break;
-        case 'orcamentos': await carregarOrcamentos(); break;
-        case 'tabelaPrecos' : await carregarTabelaPrecos(); break;
       }
     });
   });
@@ -910,6 +903,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
