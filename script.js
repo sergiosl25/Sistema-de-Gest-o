@@ -384,7 +384,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
 
     // 🔹 Monta o objeto da venda
     const venda = {
-      clienteNome: clienteSelecionado,
+      clienteNome,
       tipoPagamento,
       itens: itensParaSalvar,
       total: totalVenda,
@@ -669,7 +669,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function atualizarTabelaItensVenda() {
-  const tbody = document.getElementById("tbodyItensVenda");
+  const tbody = document.getElementById("#tabelaItensVenda tbody");
   tbody.innerHTML = "";
 
   let totalVenda = 0;
@@ -1054,4 +1054,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
