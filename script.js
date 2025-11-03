@@ -642,14 +642,15 @@ function renderizarItensVenda() {
 
   itensVendaAtual.forEach((item, index) => {
     const subtotal = item.quantidade * item.valorUnitario;
-    totalVenda += subtotal;
+    const total = subtotal - (item.desconto || 0);
+    totalVenda += total;
 
     const tr = document.createElement("tr");    
     tr.innerHTML = `
       <td>${item.nome}</td>
       <td>${item.quantidade}</td>
       <td>R$ ${item.valorUnitario?.toFixed(2) || "0.00"}</td>
-      <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
+      <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${total.toFixed(2)}</td>
       <td>
@@ -1055,4 +1056,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
