@@ -350,8 +350,6 @@ function adicionarItemVenda() {
 renderizarItensVenda();
 }
 
-const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
-
 btnFinalizarVenda.addEventListener("click", async () => {
   try {
     if (btnFinalizarVenda.disabled) return;
@@ -369,24 +367,49 @@ btnFinalizarVenda.addEventListener("click", async () => {
     const clienteId = clienteSelect.value;
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-    // 🔹 Prepara os itens da venda
-    const itensParaSalvar = itensVendaAtual.map(item => ({
-      produtoId: item.produtoId, // adicione isto!
-      nome: String(item.nome || ""),
-      quantidade: Number(item.quantidade || 0),
-      valorUnitario: Number(item.valorUnitario || item.preco || 0),
-      subtotal: Number(item.quantidade || 0) * Number(item.valorUnitario || item.preco || 0)
-    }));
+    // 🔹 Calcula a soma dos subtotais originais (sem desconto)
+    let somaSubtotais = 0;
+    itensVendaAtual.forEach(item => {
+      somaSubtotais += (item.quantidade || 0) * (item.valorUnitario || item.preco || 0);
+    });
 
-    // 🔹 Calcula o total
-    const totalParaSalvar = itensParaSalvar.reduce((soma, item) => soma + item.subtotal, 0);
+    // 🔹 Prepara os itens com desconto aplicado
+    const itensParaSalvar = itensVendaAtual.map(item => {
+      const quantidade = Number(item.quantidade || 0);
+      const valorUnitario = Number(item.valorUnitario || item.preco || 0);
+      const descontoItem = Number(item.desconto || 0);
+
+      const subtotal = quantidade * valorUnitario;
+
+      // Desconto proporcional do desconto total
+      const descontoProporcional = descontoTotalVenda
+        ? (subtotal / somaSubtotais) * descontoTotalVenda
+        : 0;
+
+      const descontoTotalItem = descontoItem + descontoProporcional;
+      const totalItem = subtotal - descontoTotalItem;
+
+      return {
+        produtoId: item.produtoId,
+        nome: String(item.nome || ""),
+        quantidade,
+        valorUnitario,
+        subtotal,
+        desconto: descontoTotalItem,
+        totalItem
+      };
+    });
+
+    // 🔹 Total final da venda (já com desconto)
+    const totalParaSalvar = itensParaSalvar.reduce((soma, item) => soma + item.totalItem, 0);
 
     // 🔹 Monta o objeto da venda
     const venda = {
+      clienteId,
       clienteNome,
       tipoPagamento,
       itens: itensParaSalvar,
-      total: totalVenda,
+      total: totalParaSalvar,
       descontoVenda: descontoTotalVenda || 0,
       data: new Date()
     };
@@ -394,17 +417,17 @@ btnFinalizarVenda.addEventListener("click", async () => {
     // 🔹 Salva no Firestore
     const docRef = await addDoc(collection(db, "vendas"), venda);
 
-    // 🔹 Atualiza o estoque de cada produto vendido
-for (const item of itensParaSalvar) {
-  const produtoRef = doc(db, "produtos", item.produtoId);
-  const produtoSnap = await getDoc(produtoRef);
+    // 🔹 Atualiza o estoque
+    for (const item of itensParaSalvar) {
+      const produtoRef = doc(db, "produtos", item.produtoId);
+      const produtoSnap = await getDoc(produtoRef);
 
-  if (produtoSnap.exists()) {
-    const produto = produtoSnap.data();
-    const novaQtd = (produto.quantidade || 0) - item.quantidade;
-    await updateDoc(produtoRef, { quantidade: novaQtd });
-  }
-}
+      if (produtoSnap.exists()) {
+        const produto = produtoSnap.data();
+        const novaQtd = (produto.quantidade || 0) - item.quantidade;
+        await updateDoc(produtoRef, { quantidade: novaQtd });
+      }
+    }
 
     // 🔹 Gera o PDF
     gerarPdfVendaPremium({
@@ -418,10 +441,10 @@ for (const item of itensParaSalvar) {
 
     alert(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
 
-    // 🔹 Atualiza a tabela de registros (sem duplicar)
+    // 🔹 Atualiza tabela de registros
     await carregarTabelaRegistrosVendas();
 
-    // 🔹 Limpa os campos e tabela da tela de venda
+    // 🔹 Limpa tela
     limparTelaVenda();
 
   } catch (error) {
@@ -1071,6 +1094,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
