@@ -889,7 +889,6 @@ document.addEventListener("DOMContentLoaded", () => {
         case 'clientes': await carregarClientes(); break;
         case 'estoque': await carregarEstoque(); break;
         case 'orcamentos': await carregarOrcamentos(); break;
-        case 'registrosVendas': await carregarTabelaRegistrosVendas(); break;
         case 'tabelaPrecos' : await carregarTabelaPrecos(); break;
       }
     });
@@ -911,6 +910,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
