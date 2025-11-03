@@ -343,9 +343,9 @@ function adicionarItemVenda() {
   produtoId,
   nome: produtoNome,
   quantidade,
-  preco,
+  valorUnitario: preco,  // usar sempre valorUnitario
   tipoPreco
-});  
+});
 
 renderizarItensVenda();
 }
@@ -641,7 +641,7 @@ function renderizarItensVenda() {
   let totalVenda = 0;
 
   itensVendaAtual.forEach((item, index) => {
-    const subtotal = item.quantidade * item.valorUnitario - (item.desconto || 0);
+    const subtotal = item.quantidade * item.valorUnitario;
     totalVenda += subtotal;
 
     const tr = document.createElement("tr");    
@@ -675,7 +675,7 @@ function atualizarTabelaItensVenda() {
   let totalVenda = 0;
 
   itensVendaAtual.forEach((item) => {
-    const subtotal = (item.quantidade * item.preco) - (item.desconto || 0);
+    const subtotal = item.quantidade * item.valorUnitario;
     totalVenda += subtotal;
 
     const row = document.createElement("tr");
@@ -1053,5 +1053,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
