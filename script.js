@@ -883,7 +883,6 @@ document.addEventListener("DOMContentLoaded", () => {
       // Mostrar a seção clicada
       const secaoAlvo = document.getElementById(target);
       if (secaoAlvo) secaoAlvo.style.display = 'block';
-      }
     });
   });
 });
@@ -903,6 +902,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
