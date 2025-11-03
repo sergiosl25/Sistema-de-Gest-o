@@ -651,6 +651,7 @@ function renderizarItensVenda() {
       <td>R$ ${item.valorUnitario?.toFixed(2) || "0.00"}</td>
       <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
+      <td>R$ ${total.toFixed(2)}</td>
       <td>
        <button onclick="removerItemVenda(${index})">Remover</button>
       </td>
@@ -685,6 +686,7 @@ function atualizarTabelaItensVenda() {
       <td>R$ ${item.preco.toFixed(2)}</td>
       <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
+      <td>R$ ${total.toFixed(2)}</td>
     `;
     tbody.appendChild(row);
   });
@@ -1053,3 +1055,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
