@@ -119,7 +119,7 @@ function mostrarSecao(secaoId) {
     case "clientes": carregarClientes(); break;
     case "estoque": carregarEstoque(); break;
     case "vendas": carregarClientesVenda(); carregarProdutosVenda(); break;
-    case "orcamentos": carregarProdutosOrcamento(); carregarOrcamentos(); break;
+    case "orcamentos": renderizarOrcamentos(); break;
     case "registrosVendas": carregarTabelaRegistrosVendas(); break;
     case "precos": carregarTabelaPrecos(); break;
     case 'tabelaPrecos' : carregarTabelaPrecos(); break;
@@ -1197,6 +1197,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
