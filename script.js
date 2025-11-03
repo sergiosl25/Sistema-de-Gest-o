@@ -636,7 +636,7 @@ function renderizarItensVenda() {
   const tbody = document.querySelector("#tabelaItensVenda tbody");
   if (!tbody) return;
 
-  tabela.innerHTML = ""; // limpa a tabela antes de renderizar
+  tbody.innerHTML = ""; // limpa a tabela antes de renderizar
   let totalVenda = 0;
 
   itensVendaAtual.forEach((item, index) => {
@@ -1052,3 +1052,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
