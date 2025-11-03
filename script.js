@@ -877,9 +877,10 @@ window.abrirModalDesconto = abrirModalDesconto;
 // ==========================
 // 🔹 Orçamentos
 // ==========================
-// Renderiza a tabela de orçamento
 function renderizarOrcamentos() {
+    if (!tabelaOrcamentos) return;
     tabelaOrcamentos.innerHTML = '';
+
     itensOrcamentoAtual.forEach((item, index) => {
         const total = item.quantidade * item.preco;
         const tr = document.createElement('tr');
@@ -890,62 +891,104 @@ function renderizarOrcamentos() {
             <td>${item.quantidade}</td>
             <td>${item.preco.toFixed(2)}</td>
             <td>${total.toFixed(2)}</td>
-            <td><button onclick="removerItemOrcamento(${index})">Remover</button></td>`;
+            <td>
+                <button class="btn-remover" onclick="removerItemOrcamento(${index})">
+                    Remover
+                </button>
+            </td>
+        `;
         tabelaOrcamentos.appendChild(tr);
     });
 }
 
-// Remove item do orçamento
+// =======================
+// REMOVER ITEM
+// =======================
 window.removerItemOrcamento = (index) => {
     itensOrcamentoAtual.splice(index, 1);
     renderizarOrcamentos();
 };
 
-// Carrega produtos no select
+// =======================
+// CARREGAR PRODUTOS DO FIRESTORE
+// =======================
 async function carregarProdutosOrcamento() {
     const select = document.getElementById("produtoSelectOrcamento");
+    if (!select) return;
+
     select.innerHTML = "<option value=''>Selecione o produto</option>";
 
-    const produtosSnapshot = await getDocs(collection(db, "produtos"));
-    produtosSnapshot.forEach(docSnap => {
-        const produto = docSnap.data();
-        const option = document.createElement("option");
-        option.value = docSnap.id;
-        option.textContent = produto.nome || "Produto";
-        select.appendChild(option);
-    });
+    try {
+        const produtosSnapshot = await getDocs(collection(db, "produtos"));
+        produtosSnapshot.forEach(docSnap => {
+            const produto = docSnap.data();
+            const option = document.createElement("option");
+            option.value = docSnap.id;
+            option.textContent = produto.nome || "Produto sem nome";
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Erro ao carregar produtos:", error);
+    }
 }
 
-// Adiciona produto ao orçamento
+// =======================
+// ADICIONAR PRODUTO AO ORÇAMENTO
+// =======================
 window.adicionarProdutoOrcamento = async function() {
-    const select = document.getElementById("produtoSelectOrcamento");
-    const produtoId = select.value;
-    if (!produtoId) return alert("Selecione um produto!");
+    const clienteInput = document.getElementById("clienteInput"); // campo de cliente
+    const produtoSelect = document.getElementById("produtoSelectOrcamento");
+    const quantidadeInput = document.getElementById("quantidadeInput");
 
-    const produtoRef = doc(db, "produtos", produtoId);
-    const produtoSnap = await getDoc(produtoRef);
-    if (!produtoSnap.exists()) return alert("Produto não encontrado!");
+    if (!clienteInput?.value.trim()) {
+        alert("Informe o nome do cliente!");
+        return;
+    }
 
-    const produto = produtoSnap.data();
-    const nomeProduto = produto.nome || produto.descricao || "Produto";
+    const produtoId = produtoSelect?.value;
+    if (!produtoId) {
+        alert("Selecione um produto!");
+        return;
+    }
 
-    itensOrcamentoAtual.push({
-        produtoId,
-        nome: nomeProduto,
-        preco: Number(produto.preco || produto.valorUnitario || 0),
-        quantidade: 1,
-        clienteNome: clienteSelect?.value || ""
-    });
+    const quantidade = Number(quantidadeInput?.value || 1);
 
-    renderizarOrcamentos();
+    try {
+        const produtoRef = doc(db, "produtos", produtoId);
+        const produtoSnap = await getDoc(produtoRef);
+
+        if (!produtoSnap.exists()) {
+            alert("Produto não encontrado!");
+            return;
+        }
+
+        const produto = produtoSnap.data();
+        const nomeProduto = produto.nome || produto.descricao || "Produto";
+        const precoUnitario = Number(produto.preco || produto.valorUnitario || 0);
+
+        itensOrcamentoAtual.push({
+            produtoId,
+            nome: nomeProduto,
+            preco: precoUnitario,
+            quantidade,
+            clienteNome: clienteInput.value.trim()
+        });
+
+        renderizarOrcamentos();
+    } catch (error) {
+        console.error("Erro ao adicionar produto:", error);
+        alert("Erro ao adicionar produto ao orçamento!");
+    }
 };
 
-// Gera PDF do orçamento com tabela e logo
+// =======================
+// GERAR PDF DO ORÇAMENTO
+// =======================
 window.gerarPdfOrcamento = function() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // Adiciona logo (supondo que você tenha <img id="logoOrcamento" src="logo.png"> no HTML)
+    // Logo (opcional)
     const img = document.getElementById("logoOrcamento");
     if (img) {
         doc.addImage(img, 'PNG', 14, 10, 40, 20);
@@ -970,26 +1013,6 @@ window.gerarPdfOrcamento = function() {
 
     doc.save('orcamento.pdf');
 };
-
-// =======================
-// EVENT LISTENERS
-// =======================
-document.getElementById("btnAdicionarProduto")?.addEventListener("click", () => {
-    adicionarProdutoOrcamento();
-});
-
-document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
-    gerarPdfOrcamento();
-});
-
-// =======================
-// INICIALIZAÇÃO
-// =======================
-document.addEventListener('DOMContentLoaded', () => {
-    carregarProdutosOrcamento();
-    renderizarOrcamentos();
-});
-
 
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
@@ -1174,6 +1197,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
