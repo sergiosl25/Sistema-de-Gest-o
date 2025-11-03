@@ -319,7 +319,6 @@ function adicionarItemVenda() {
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
   const quantidadeInput = document.getElementById("quantidadeVenda");
   const precoInput = document.getElementById("precoSelecionado");
-  const tbody = document.querySelector("#tabelaItensVenda tbody");
  
   if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
     console.error("Algum elemento do formulário não foi encontrado!");
@@ -345,10 +344,10 @@ function adicionarItemVenda() {
   quantidade,
   preco,
   tipoPreco
-});
-}
+});  
 
-atualizarTabelaItensVenda();
+renderizarItensVenda();
+}
 
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
 
@@ -634,41 +633,38 @@ btnDescontoVenda.addEventListener("click", () => {
 // ATUALIZAR TABELA DE ITENS
 // ===============================
 function renderizarItensVenda() {
-  const tabela = document.getElementById("tabelaItensVenda").querySelector("tbody");
-  tabela.innerHTML = ""; // limpa a tabela antes de renderizar
+  const tbody = document.querySelector("#tabelaItensVenda tbody");
+  if (!tbody) return;
 
+  tabela.innerHTML = ""; // limpa a tabela antes de renderizar
   let totalVenda = 0;
 
   itensVendaAtual.forEach((item, index) => {
-    const subtotal = item.quantidade * item.preco;
+    const subtotal = item.quantidade * item.valorUnitario - (item.desconto || 0);
     totalVenda += subtotal;
 
-    const tr = document.createElement("tr");
-
+    const tr = document.createElement("tr");    
     tr.innerHTML = `
       <td>${item.nome}</td>
       <td>${item.quantidade}</td>
       <td>R$ ${item.valorUnitario?.toFixed(2) || "0.00"}</td>
       <td>R$ ${item.desconto ? item.desconto.toFixed(2) : "0.00"}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
-      <td>R$ ${(subtotal - (item.desconto || 0)).toFixed(2)}</td>
-      <td>-</td>
       <td>
        <button onclick="removerItemVenda(${index})">Remover</button>
       </td>
     `;
 
-    tabela.appendChild(tr);
+    tbody.appendChild(tr);
   });
+  
+  if (descontoTotalVenda > 0) totalVenda -= descontoTotalVenda;
 
   document.getElementById("totalVenda").textContent = totalVenda.toFixed(2);
 }
-document.addEventListener("DOMContentLoaded", () => {
-  renderizarItensVenda();
-});
 
 function atualizarTabelaItensVenda() {
-  const tbody = document.getElementById("#tabelaItensVenda tbody");
+  const tbody = document.querySelector("#tabelaItensVenda tbody");
   if (!tbody) {
     console.error("Tabela de itens não encontrada!");
     return;
@@ -692,17 +688,16 @@ function atualizarTabelaItensVenda() {
     tbody.appendChild(row);
   });
 
-  if (typeof descontoTotalVenda !== "undefined" && descontoTotalVenda > 0) {
-    totalVenda -= descontoTotalVenda;
-  }
+  if (descontoTotalVenda) totalVenda -= descontoTotalVenda;
 
   document.getElementById("totalVenda").textContent = totalVenda.toFixed(2);
+
+  window.totalVenda = totalVenda
+
 } 
 
 function removerItemVenda(index) {
-  // Remove o item do array de vendas
   itensVendaAtual.splice(index, 1);
-  // Atualiza a tabela após a remoção
   renderizarItensVenda();
 }
 
@@ -1057,7 +1052,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
