@@ -936,6 +936,40 @@ async function carregarProdutosOrcamento() {
   });
 }
 
+async function adicionarProdutoOrcamento() {
+  const select = document.getElementById("produtoSelectOrcamento");
+  const produtoId = select.value;
+
+  if (!produtoId) {
+    alert("Selecione um produto!");
+    return;
+  }
+
+  const produtoRef = doc(db, "produtos", produtoId);
+  const produtoSnap = await getDoc(produtoRef);
+
+  if (!produtoSnap.exists()) {
+    alert("Produto não encontrado!");
+    return;
+  }
+
+  const produto = produtoSnap.data();
+
+  // ✅ Corrigido: sempre garante que o nome esteja certo
+  const nomeProduto = produto.nome || produto.nomeProduto || produto.descricao || "Produto";
+
+  // Adiciona ao array de itens do orçamento
+  itensOrcamentoAtual.push({
+    produtoId,
+    nome: nomeProduto,
+    preco: Number(produto.preco || produto.valorUnitario || 0),
+    quantidade: 1,
+    clienteNome: document.getElementById("clienteSelectOrcamento")?.value || ""
+  });
+
+  renderizarOrcamentos();
+}
+
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
 // ==========================
@@ -983,21 +1017,73 @@ async function carregarTabelaPrecos() {
   });
 }
 
-// gerar PDF de orçamentos (exemplo)
 function gerarPdfOrcamento() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text(`Orçamento - ${new Date().toLocaleDateString()}`, 14, 10);
-    const rows = itensOrcamentoAtual.map(item => [
-        item.clienteNome, item.nome, item.quantidade, item.preco.toFixed(2), (item.quantidade * item.preco).toFixed(2)
-    ]);
-    doc.autoTable({ head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']], body: rows, startY: 20 });
-    doc.save('orcamento.pdf');
-}
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const pdfWidth = doc.internal.pageSize.getWidth();
 
-document.getElementById("btnGerarPDF")?.addEventListener("click", () => {
-    gerarPdfOrcamento();
-})
+  // Caminho da logo (pode ser local ou URL)
+  const logoUrl = "./img/logo.png"; // ✅ ajuste o caminho conforme sua estrutura
+
+  const img = new Image();
+  img.src = logoUrl;
+
+  img.onload = function () {
+    // Adiciona a logo (x, y, largura, altura)
+    doc.addImage(img, "PNG", 14, 10, 25, 25);
+
+    // Título
+    doc.setFontSize(16);
+    doc.setFont(undefined, "bold");
+    doc.text("ORÇAMENTO", pdfWidth / 2, 25, { align: "center" });
+
+    doc.setFontSize(11);
+    doc.setFont(undefined, "normal");
+    doc.text(`Data: ${new Date().toLocaleDateString()}`, 14, 40);
+
+    // Cabeçalho e corpo da tabela
+    const cabecalho = [["Cliente", "Produto", "Qtd", "Preço Unitário", "Total"]];
+    const corpo = itensOrcamentoAtual.map(item => [
+      item.clienteNome || "-",
+      item.nome || "-",
+      item.quantidade || 0,
+      `R$ ${item.preco.toFixed(2)}`,
+      `R$ ${(item.quantidade * item.preco).toFixed(2)}`
+    ]);
+
+    // Gera tabela
+    doc.autoTable({
+      startY: 45,
+      head: cabecalho,
+      body: corpo,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      theme: "grid"
+    });
+
+    // Soma total
+    const totalGeral = itensOrcamentoAtual.reduce(
+      (soma, item) => soma + item.quantidade * item.preco,
+      0
+    );
+
+    doc.setFontSize(13);
+    doc.setFont(undefined, "bold");
+    doc.text(
+      `TOTAL: R$ ${totalGeral.toFixed(2)}`,
+      pdfWidth - 14,
+      doc.lastAutoTable.finalY + 10,
+      { align: "right" }
+    );
+
+    doc.save("orcamento.pdf");
+  };
+
+  img.onerror = function () {
+    alert("Erro ao carregar a logo. Verifique o caminho da imagem.");
+  };
+}
 
 // exportar registros vendas
 async function exportarPDFRegistros() {
@@ -1135,6 +1221,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
