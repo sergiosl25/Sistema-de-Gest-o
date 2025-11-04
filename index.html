@@ -107,7 +107,7 @@
     </select>
 
     <button id="btnAdicionarItemVenda">Adicionar Item Venda</button>
-    <button id="btnFinalizarVenda">Finalizar Venda</button>
+    <button id="btnFinalizarVenda" type="button">Finalizar Venda</button>
     <button id="btnDescontoItem">Desconto Item</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
 
@@ -155,7 +155,7 @@
   <!-- Registros -->
   <section id="registrosVendas" class="secao" style="display:none;">
     <h2>Registros de Vendas</h2>
-    <table id="tabelaRegistrosVendas">
+    <table id="tabelaRegistros">
       <thead>
         <tr>
           <th>Data</th>
@@ -242,12 +242,49 @@
   </div>
 </div>
 
+<!-- Modal genérico azul -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <h3 id="modal-title">Título</h3>
+    <p id="modal-message">Mensagem do modal</p>
+    <div id="modal-input-container" style="display: none;">
+      <input type="text" id="modal-input" placeholder="Digite aqui..." />
+    </div>
+    <div class="modal-buttons">
+      <button id="modal-ok" class="btn-ok">OK</button>
+      <button id="modal-cancel" class="btn-cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modalAlerta" class="modal">
+  <div class="modal-content">
+    <span id="modalFechar" class="close">&times;</span>
+    <p id="modalMensagem"></p>
+  </div>
+</div>
+
+<div id="modalConfirm" class="modal">
+  <div class="modal-content">
+    <p id="modalConfirmMensagem"></p>
+    <button id="modalConfirmSim">Sim</button>
+    <button id="modalConfirmNao">Não</button>
+  </div>
+</div>
+
+<div id="modalPrompt" class="modal">
+  <div class="modal-content">
+    <span id="modalPromptFechar" class="close">&times;</span>
+    <p id="modalPromptMensagem"></p>
+    <input type="text" id="modalPromptInput" />
+    <button id="modalPromptOk">OK</button>
+    <button id="modalPromptCancelar">Cancelar</button>
+  </div>
+</div>
+
 <script type="module" src="firebase-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module" src="script.js"></script>
 
 </body>
 </html>
-
-
-
-
