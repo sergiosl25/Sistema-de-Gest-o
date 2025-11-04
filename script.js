@@ -93,7 +93,7 @@ formLogin?.addEventListener("submit", async (e) => {
     mostrarPaginaLogada(userCredential.user);
     formLogin.reset();
   } catch (erro) {
-    alert("Login ou senha inválidos!");
+    mostrarModal("Login ou senha inválidos!");
     console.error(erro);
   }
 });
@@ -157,25 +157,27 @@ async function carregarClientes() {
 }
 
 window.editarCliente = async (id, nome, telefone) => {
-    const novoNome = prompt("Novo nome:", nome);
-    const novoTel = prompt("Novo telefone:", telefone);
-    if (novoNome) {
+    const novoNome = await mostrarPrompt("Novo nome:", nome);
+     if (novoNome !== null) {
+    const novoTel = await mostrarPrompt("Novo telefone:", telefone);
+     if (novoTel !== null) {
         await updateDoc(doc(db, "clientes", id), { nome: novoNome, telefone: novoTel });
         carregarClientes();
     }
 }
+}
 
 window.excluirCliente = async (id) => {
-    if (confirm("Deseja realmente excluir?")) {
-        await deleteDoc(doc(db, "clientes", id));
-        carregarClientes();
-    }
+    if (await mostrarConfirm("Deseja realmente excluir?")) {
+    await deleteDoc(doc(db, "clientes", id));
+    carregarClientes();
+}
 }
 
 document.getElementById("btnCadastrarCliente")?.addEventListener("click", async () => {
     const nome = document.getElementById("nomeCliente").value.trim();
     const telefone = document.getElementById("telefoneCliente").value.trim();
-    if (!nome) return alert("Nome é obrigatório");
+    if (!nome) return mostrarModal("Nome é obrigatório");
     await addDoc(clientesCol, { nome, telefone });
     document.getElementById("nomeCliente").value = "";
     document.getElementById("telefoneCliente").value = "";
@@ -190,7 +192,7 @@ document.getElementById("btnAdicionarProduto")?.addEventListener("click", () => 
   const produtoId = document.getElementById("produtoSelectOrcamento").value;
   const quantidade = parseInt(document.getElementById("quantidadeOrcamento").value);
   const produto = produtosMap[produtoId];
-  if (!clienteNome || !produto || !quantidade) return alert("Preencha todos os campos!");
+  if (!clienteNome || !produto || !quantidade) return mostrarModal("Preencha todos os campos!");
 
   itensOrcamentoAtual.push({
     clienteNome,
@@ -281,9 +283,9 @@ produtoSelect.addEventListener("change", atualizarPrecoProduto);
 tipoPrecoSelect.addEventListener("change", atualizarPrecoProduto);
 
 window.editarProduto = async (id, nome, qtd, preco) => {
-    const novoNome = prompt("Nome:", nome);
-    const novaQtd = parseInt(prompt("Quantidade:", qtd));
-    const novoPreco = parseFloat(prompt("Preço:", preco));
+    const novoNome = await mostrarPrompt("Nome:", nome);
+    const novaQtd = parseInt(await mostrarPrompt("Quantidade:", qtd));
+    const novoPreco = parseFloat(await mostrarPrompt("Preço:", preco));
     if (novoNome) {
         await updateDoc(doc(db, "produtos", id), { nome: novoNome, quantidade: novaQtd, preco: novoPreco });
         carregarEstoque();
@@ -291,7 +293,7 @@ window.editarProduto = async (id, nome, qtd, preco) => {
 }
 
 window.excluirProduto = async (id) => {
-    if (confirm("Excluir produto?")) {
+    if (await mostrarConfirm("Excluir produto?")) {
         await deleteDoc(doc(db, "produtos", id));
         carregarEstoque();
     }
@@ -300,7 +302,7 @@ window.excluirProduto = async (id) => {
 document.getElementById("btnCadastrarProduto")?.addEventListener("click", async () => {
     const nome = document.getElementById("nomeProduto").value.trim();
     const quantidade = parseInt(document.getElementById("quantidadeProduto").value) || 0;
-    if (!nome) return alert("Nome é obrigatório");
+    if (!nome) return mostrarModal("Nome é obrigatório");
     await addDoc(produtosCol, { nome, quantidade });
     document.getElementById("nomeProduto").value = "";
     document.getElementById("quantidadeProduto").value = "";
@@ -332,7 +334,7 @@ function adicionarItemVenda() {
   const preco = Number(precoInput.value);
  
   if (!produtoId || quantidade <= 0 || preco <= 0) {
-    alert("Preencha todos os campos corretamente!");
+    mostrarModal("Preencha todos os campos corretamente!");
     return;
   }
 
@@ -359,9 +361,9 @@ btnFinalizarVenda.addEventListener("click", async () => {
     const clienteSelect = document.getElementById("clienteSelect");
 
     if (!clienteSelect || !tipoPagamentoSelect)
-      throw new Error("Selecione cliente e tipo de pagamento.");
+      mostrarModal("Selecione cliente e tipo de pagamento.");
     if (itensVendaAtual.length === 0)
-      throw new Error("Nenhum item adicionado à venda.");
+      mostrarModal("Nenhum item adicionado à venda.");
 
     const tipoPagamento = tipoPagamentoSelect.value;
     const clienteId = clienteSelect.value;
@@ -439,7 +441,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
       data: new Date()
     });
 
-    alert(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
+    mostrarModal(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
 
     // 🔹 Atualiza tabela de registros
     await carregarTabelaRegistrosVendas();
@@ -449,7 +451,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
 
   } catch (error) {
     console.error("Erro ao registrar venda:", error);
-    alert("Erro ao registrar venda: " + error.message);
+    mostrarModal("Erro ao registrar venda: " + error.message);
   } finally {
     btnFinalizarVenda.disabled = false;
   }
@@ -561,7 +563,7 @@ async function gerarPdfVendaPremium(venda) {
         doc.save(`venda_${venda.clienteNome}.pdf`);
     } catch (error) {
         console.error("Erro ao gerar PDF:", error);
-        alert("Erro ao gerar PDF!");
+        mostrarModal("Erro ao gerar PDF!");
     }
 }
 
@@ -571,7 +573,7 @@ window.gerarPdfVenda = async function (idVenda) {
     const vendaSnap = await getDoc(vendaRef);
 
     if (!vendaSnap.exists()) {
-      alert("Venda não encontrada!");
+      mostrarModal("Venda não encontrada!");
       return;
     }
 
@@ -594,14 +596,14 @@ window.gerarPdfVenda = async function (idVenda) {
 
   } catch (error) {
     console.error("Erro ao gerar PDF da venda:", error);
-    alert("Erro ao gerar PDF. Verifique o console.");
+    mostrarModal("Erro ao gerar PDF. Verifique o console.");
   }
 };
 
 // --- Função para aplicar desconto em um item da venda ---
-btnDescontoItem.addEventListener("click", () => {
+btnDescontoItem.addEventListener("click", async () => {
   if (itensVendaAtual.length === 0) {
-    alert("Nenhum item na venda para aplicar desconto.");
+    mostrarModal("Nenhum item na venda para aplicar desconto.");
     return;
   }
 
@@ -609,18 +611,20 @@ btnDescontoItem.addEventListener("click", () => {
     .map((item, index) => `${index + 1} - ${item.nome}`)
     .join("\n");
 
-  const indice = parseInt(prompt(`Escolha o número do item para aplicar desconto:\n${listaProdutos}`)) - 1;
+  const indiceStr = await mostrarPrompt(`Escolha o número do item para aplicar desconto:\n${listaProdutos}`);
+  const indice = parseInt(indiceStr) - 1;
 
   if (isNaN(indice) || indice < 0 || indice >= itensVendaAtual.length) {
-    alert("Item inválido!");
+    mostrarModal("Item inválido!");
     return;
   }
 
   const item = itensVendaAtual[indice];
-  const desconto = parseFloat(prompt(`Digite o valor do desconto para ${item.nome}:`, "0"));
+  const descontoStr = await mostrarPrompt(`Digite o valor do desconto para ${item.nome}:`, "0");
+  const desconto = parseFloat(descontoStr);
 
   if (isNaN(desconto) || desconto < 0) {
-    alert("Desconto inválido!");
+    mostrarModal("Desconto inválido!");
     return;
   }
 
@@ -630,9 +634,9 @@ btnDescontoItem.addEventListener("click", () => {
 
 
 // --- Função para aplicar desconto total na venda ---
-btnDescontoVenda.addEventListener("click", () => {
+btnDescontoVenda.addEventListener("click", async () => {
   if (itensVendaAtual.length === 0) {
-    alert("Nenhum item na venda para aplicar desconto.");
+    mostrarModal("Nenhum item na venda para aplicar desconto.");
     return;
   }
 
@@ -641,16 +645,18 @@ btnDescontoVenda.addEventListener("click", () => {
     return soma + subtotal;
   }, 0);
 
-  const descontoGeral = parseFloat(prompt(`Total atual: R$ ${totalAtual.toFixed(2)}\nDigite o valor do desconto geral:`));
+  const descontoGeralstr = await mostrarPrompt(`Total atual: R$ ${totalAtual.toFixed(2)}\nDigite o valor do desconto geral:`);
+  const descontoGeral = parseFloat(descontoGeralstr)
 
   if (isNaN(descontoGeral) || descontoGeral < 0 || descontoGeral > totalAtual) {
-    alert("Valor de desconto inválido!");
+    mostrarModal("Valor de desconto inválido!");
     return;
   }
 
   // Guarda o desconto geral na venda
   descontoTotalVenda = descontoGeral;
   atualizarTabelaItensVenda();
+
 });
 
 // ===============================
@@ -830,12 +836,12 @@ async function abrirModalExcluir(idVenda) {
     // 🔹 Exclui a venda
     await deleteDoc(vendaRef);
 
-    alert("Venda excluída e estoque atualizado!");
+    mostrarModal("Venda excluída e estoque atualizado!");
     carregarTabelaRegistrosVendas();
     carregarEstoque();
   } catch (error) {
     console.error("Erro ao excluir venda:", error);
-    alert("Erro ao excluir venda. Verifique o console.");
+    mostrarModal("Erro ao excluir venda. Verifique o console.");
   }
 }
 
@@ -843,9 +849,9 @@ window.abrirModalExcluir = abrirModalExcluir;
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 window.abrirModalDesconto = async function (idVenda) {
-  const valorDesconto = parseFloat(prompt("Digite o valor do desconto em R$:"));
+  const valorDesconto = parseFloat(await mostrarPrompt("Digite o valor do desconto em R$:"));
   if (isNaN(valorDesconto) || valorDesconto <= 0) {
-    alert("Valor inválido!");
+    mostrarModal("Valor inválido!");
     return;
   }
 
@@ -853,7 +859,7 @@ window.abrirModalDesconto = async function (idVenda) {
     const vendaRef = doc(db, "vendas", idVenda);
     const vendaSnap = await getDoc(vendaRef);
 
-    if (!vendaSnap.exists()) return alert("Venda não encontrada!");
+    if (!vendaSnap.exists()) return mostrarModal("Venda não encontrada!");
 
     const venda = vendaSnap.data();
     const totalAtual = venda.total || 0;
@@ -864,15 +870,83 @@ window.abrirModalDesconto = async function (idVenda) {
       totalComDesconto: novoTotal
     });
 
-    alert(`✅ Desconto de R$ ${valorDesconto.toFixed(2)} aplicado!`);
+    mostrarModal(`✅ Desconto de R$ ${valorDesconto.toFixed(2)} aplicado!`);
     carregarTabelaRegistrosVendas();
   } catch (error) {
     console.error("Erro ao aplicar desconto:", error);
-    alert("Erro ao aplicar desconto!");
+    mostrarModal("Erro ao aplicar desconto!");
   }
 };
 
 window.abrirModalDesconto = abrirModalDesconto;
+
+function mostrarModal(mensagem) {
+  const modal = document.getElementById("modalAlerta");
+  const modalMensagem = document.getElementById("modalMensagem");
+  const modalFechar = document.getElementById("modalFechar");
+
+  modalMensagem.textContent = mensagem;
+  modal.style.display = "block";
+
+  modalFechar.onclick = () => modal.style.display = "none";
+  window.onclick = (event) => {
+    if (event.target == modal) modal.style.display = "none";
+  };
+}
+
+function mostrarPrompt(mensagem, valorPadrao = "") {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("modalPrompt");
+    const mensagemEl = document.getElementById("modalPromptMensagem");
+    const inputEl = document.getElementById("modalPromptInput");
+    const btnOk = document.getElementById("modalPromptOk");
+    const btnCancelar = document.getElementById("modalPromptCancelar");
+    const fechar = document.getElementById("modalPromptFechar");
+
+    mensagemEl.textContent = mensagem;
+    inputEl.value = valorPadrao;
+    modal.style.display = "block";
+
+    const fecharModal = () => {
+      modal.style.display = "none";
+    };
+
+    btnOk.onclick = () => {
+      fecharModal();
+      resolve(inputEl.value);
+    };
+    btnCancelar.onclick = () => {
+      fecharModal();
+      resolve(null);
+    };
+    fechar.onclick = () => {
+      fecharModal();
+      resolve(null);
+    };
+    window.onclick = (event) => {
+      if (event.target == modal) fecharModal();
+    };
+  });
+}
+
+function mostrarConfirm(mensagem) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("modalConfirm");
+    const mensagemEl = document.getElementById("modalConfirmMensagem");
+    const btnSim = document.getElementById("modalConfirmSim");
+    const btnNao = document.getElementById("modalConfirmNao");
+
+    mensagemEl.textContent = mensagem;
+    modal.style.display = "block";
+
+    const fecharModal = () => { modal.style.display = "none"; };
+
+    btnSim.onclick = () => { fecharModal(); resolve(true); };
+    btnNao.onclick = () => { fecharModal(); resolve(false); };
+
+    window.onclick = (event) => { if (event.target == modal) fecharModal(); resolve(false); };
+  });
+}
 
 // ==========================
 // 🔹 Orçamentos
@@ -941,13 +1015,13 @@ window.adicionarProdutoOrcamento = async function() {
     const quantidadeInput = document.getElementById("quantidadeInput");
 
     if (!clienteInput?.value.trim()) {
-        alert("Informe o nome do cliente!");
+        mostrarModal("Informe o nome do cliente!");
         return;
     }
 
     const produtoId = produtoSelect?.value;
     if (!produtoId) {
-        alert("Selecione um produto!");
+        mostrarModal("Selecione um produto!");
         return;
     }
 
@@ -958,7 +1032,7 @@ window.adicionarProdutoOrcamento = async function() {
         const produtoSnap = await getDoc(produtoRef);
 
         if (!produtoSnap.exists()) {
-            alert("Produto não encontrado!");
+            mostrarModal("Produto não encontrado!");
             return;
         }
 
@@ -977,7 +1051,7 @@ window.adicionarProdutoOrcamento = async function() {
         renderizarOrcamentos();
     } catch (error) {
         console.error("Erro ao adicionar produto:", error);
-        alert("Erro ao adicionar produto ao orçamento!");
+        mostrarModal("Erro ao adicionar produto ao orçamento!");
     }
 };
 
@@ -1042,6 +1116,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
 // ==========================
@@ -1082,7 +1157,7 @@ async function carregarTabelaPrecos() {
           console.log(`✅ ${campo} atualizado para R$ ${novoValor.toFixed(2)} (${produto.nome})`);
         } catch (erro) {
           console.error("❌ Erro ao atualizar preço:", erro);
-          alert("Erro ao salvar o novo valor. Verifique sua conexão.");
+          mostrarModal("Erro ao salvar o novo valor. Verifique sua conexão.");
         }
       });
     });
@@ -1093,7 +1168,7 @@ async function carregarTabelaPrecos() {
 async function exportarPDFRegistros() {
   try {
     const vendasSnapshot = await getDocs(collection(db, "vendas"));
-    if (vendasSnapshot.empty) return alert("Nenhuma venda encontrada.");
+    if (vendasSnapshot.empty) return mostrarModal("Nenhuma venda encontrada.");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -1185,7 +1260,7 @@ async function exportarPDFRegistros() {
     doc.save("registros_vendas.pdf");
   } catch (error) {
     console.error("Erro ao exportar PDF:", error);
-    alert("Erro ao gerar PDF de registros.");
+    mostrarModal("Erro ao gerar PDF de registros.");
   }
 }
 
@@ -1225,16 +1300,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
-
-
-
-
