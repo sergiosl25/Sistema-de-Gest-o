@@ -887,7 +887,7 @@ function renderizarOrcamentos() {
         tr.innerHTML = `
             <td>${new Date().toLocaleDateString()}</td>
             <td>${item.clienteNome}</td>
-            <td>${item.nome}</td>
+            <td>${item.produtoNome}</td>
             <td>${item.quantidade}</td>
             <td>${item.preco.toFixed(2)}</td>
             <td>${total.toFixed(2)}</td>
@@ -968,7 +968,7 @@ window.adicionarProdutoOrcamento = async function() {
 
         itensOrcamentoAtual.push({
             produtoId,
-            nome: nomeProduto,
+            produtoNome: nomeProduto,
             preco: precoUnitario,
             quantidade,
             clienteNome: clienteInput.value.trim()
@@ -999,7 +999,7 @@ window.gerarPdfOrcamento = function() {
 
     const rows = itensOrcamentoAtual.map(item => [
         item.clienteNome,
-        item.nome,
+        item.produtoNome,
         item.quantidade,
         item.preco.toFixed(2),
         (item.quantidade * item.preco).toFixed(2)
@@ -1197,6 +1197,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
