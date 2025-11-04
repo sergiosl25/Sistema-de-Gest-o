@@ -400,7 +400,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
       itens: itensParaSalvar,
       total: totalParaSalvar,
       descontoVenda: descontoTotalVenda || 0,
-      data: new Date()
+      data: serverTimestamp()
     };
 
     const docRef = await addDoc(collection(db, "vendas"), venda);
@@ -743,9 +743,14 @@ async function carregarTabelaRegistrosVendas() {
     const venda = doc.data();
     const id = doc.id;
 
-    const dataFormatada = venda.data?.seconds
-      ? new Date(venda.data.seconds * 1000).toLocaleDateString("pt-BR")
-      : "-";
+    let dataFormatada = "-";
+    if (venda.data) {
+      if (venda.data.seconds) {
+        dataFormatada = new Date(venda.data.seconds * 1000).toLocaleDateString("pt-BR");
+      } else {
+        dataFormatada = new Date(venda.data).toLocaleDateString("pt-BR");
+      }
+    }
 
     (venda.itens || []).forEach((item) => {
       const produtoNome = item.nome || "-";
@@ -1276,6 +1281,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
