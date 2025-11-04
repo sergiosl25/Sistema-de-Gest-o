@@ -360,52 +360,39 @@ btnFinalizarVenda.addEventListener("click", async () => {
     const tipoPagamentoSelect = document.getElementById("tipoPagamento");
     const clienteSelect = document.getElementById("clienteSelect");
 
-    if (!clienteSelect || !tipoPagamentoSelect)
+    if (!clienteSelect || !tipoPagamentoSelect) {
       mostrarModal("Selecione cliente e tipo de pagamento.");
-    if (itensVendaAtual.length === 0)
+      return;
+    }
+    if (itensVendaAtual.length === 0) {
       mostrarModal("Nenhum item adicionado à venda.");
+      return;
+    }
 
     const tipoPagamento = tipoPagamentoSelect.value;
     const clienteId = clienteSelect.value;
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-    // 🔹 Calcula a soma dos subtotais originais (sem desconto)
-    let somaSubtotais = 0;
-    itensVendaAtual.forEach(item => {
-      somaSubtotais += (item.quantidade || 0) * (item.valorUnitario || item.preco || 0);
-    });
+    let somaSubtotais = itensVendaAtual.reduce((acc, item) => acc + (item.quantidade * item.valorUnitario), 0);
 
-    // 🔹 Prepara os itens com desconto aplicado
     const itensParaSalvar = itensVendaAtual.map(item => {
-      const quantidade = Number(item.quantidade || 0);
-      const valorUnitario = Number(item.valorUnitario || item.preco || 0);
-      const descontoItem = Number(item.desconto || 0);
-
-      const subtotal = quantidade * valorUnitario;
-
-      // Desconto proporcional do desconto total
-      const descontoProporcional = descontoTotalVenda
-        ? (subtotal / somaSubtotais) * descontoTotalVenda
-        : 0;
-
-      const descontoTotalItem = descontoItem + descontoProporcional;
-      const totalItem = subtotal - descontoTotalItem;
+      const subtotal = item.quantidade * item.valorUnitario;
+      const descontoProporcional = descontoTotalVenda ? (subtotal / somaSubtotais) * descontoTotalVenda : 0;
+      const totalItem = subtotal - ((item.desconto || 0) + descontoProporcional);
 
       return {
         produtoId: item.produtoId,
-        nome: String(item.nome || ""),
-        quantidade,
-        valorUnitario,
+        nome: item.nome,
+        quantidade: item.quantidade,
+        valorUnitario: item.valorUnitario,
         subtotal,
-        desconto: descontoTotalItem,
+        desconto: (item.desconto || 0) + descontoProporcional,
         totalItem
       };
     });
 
-    // 🔹 Total final da venda (já com desconto)
-    const totalParaSalvar = itensParaSalvar.reduce((soma, item) => soma + item.totalItem, 0);
+    const totalParaSalvar = itensParaSalvar.reduce((acc, item) => acc + item.totalItem, 0);
 
-    // 🔹 Monta o objeto da venda
     const venda = {
       clienteId,
       clienteNome,
@@ -416,10 +403,10 @@ btnFinalizarVenda.addEventListener("click", async () => {
       data: new Date()
     };
 
-    // 🔹 Salva no Firestore
     const docRef = await addDoc(collection(db, "vendas"), venda);
+    console.log("Venda registrada com ID:", docRef.id);
 
-    // 🔹 Atualiza o estoque
+    // Atualiza estoque
     for (const item of itensParaSalvar) {
       const produtoRef = doc(db, "produtos", item.produtoId);
       const produtoSnap = await getDoc(produtoRef);
@@ -431,22 +418,10 @@ btnFinalizarVenda.addEventListener("click", async () => {
       }
     }
 
-    // 🔹 Gera o PDF
-    gerarPdfVendaPremium({
-      id: docRef.id,
-      clienteNome,
-      tipoPagamento,
-      itens: itensParaSalvar,
-      total: totalParaSalvar,
-      data: new Date()
-    });
+    gerarPdfVendaPremium({ id: docRef.id, clienteNome, tipoPagamento, itens: itensParaSalvar, total: totalParaSalvar, data: new Date() });
 
     mostrarModal(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
-
-    // 🔹 Atualiza tabela de registros
     await carregarTabelaRegistrosVendas();
-
-    // 🔹 Limpa tela
     limparTelaVenda();
 
   } catch (error) {
@@ -1300,3 +1275,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
