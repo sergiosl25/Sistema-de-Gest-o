@@ -781,6 +781,7 @@ async function carregarTabelaRegistrosVendas() {
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
+window.addEventListener('DOMContentLoaded', carregarTabelaRegistrosVendas);
 
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
@@ -1275,4 +1276,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
