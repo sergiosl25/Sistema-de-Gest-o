@@ -116,13 +116,27 @@ function mostrarSecao(secaoId) {
   }
 
   switch (secaoId) {
-    case "clientes": carregarClientes(); break;
-    case "estoque": carregarEstoque(); break;
-    case "vendas": carregarClientesVenda(); carregarProdutosVenda(); break;
-    case "orcamentos": renderizarOrcamentos(); break;
-    case "registrosVendas": carregarTabelaRegistrosVendas(); break;
-    case "precos": carregarTabelaPrecos(); break;
-    case 'tabelaPrecos' : carregarTabelaPrecos(); break;
+  case "clientes":
+    carregarClientes();
+    break;
+  case "estoque":
+    carregarEstoque();
+    break;
+  case "vendas":
+    carregarClientesVenda();
+    carregarProdutosVenda();
+    break;
+  case "orcamentos":
+    renderizarOrcamentos();
+    break;
+  case "registrosVendas":
+    // ✅ aguarda o DOM atualizar antes de carregar
+    setTimeout(() => carregarTabelaRegistrosVendas(), 110);
+    break;
+  case "precos":
+  case "tabelaPrecos":
+    carregarTabelaPrecos();
+    break;
   }
 }
 
@@ -1288,6 +1302,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
