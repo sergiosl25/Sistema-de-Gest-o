@@ -732,17 +732,23 @@ window.removerItemVenda = removerItemVenda;
 async function carregarTabelaRegistrosVendas() {
   const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
   const totalGeralSpan = document.getElementById("totalGeralRegistros");
-  if (!tabela || !totalGeralSpan) return;
+  if (!tabela || !totalGeralSpan) {
+    console.warn("Tabela ou total geral não encontrados!");
+    return;
+  }
 
   tabela.innerHTML = "";
   let totalGeral = 0;
 
   const vendasSnapshot = await getDocs(collection(db, "vendas"));
+  console.log("📦 Total de vendas encontradas:", vendasSnapshot.size);
 
-  vendasSnapshot.forEach((doc) => {
-    const venda = doc.data();
-    const id = doc.id;
+  vendasSnapshot.forEach((docSnap) => {
+    const venda = docSnap.data();
+    const id = docSnap.id;
+    console.log("🧾 Venda:", id, venda);
 
+    // --- Corrige data ---
     let dataFormatada = "-";
     if (venda.data) {
       if (venda.data.seconds) {
@@ -756,8 +762,6 @@ async function carregarTabelaRegistrosVendas() {
       const produtoNome = item.nome || "-";
       const quantidade = item.quantidade || 0;
       const valorUnitario = item.valorUnitario || 0;
-
-      // 🧩 Usa os campos gravados corretamente, com fallback para compatibilidade
       const desconto = item.desconto || 0;
       const subtotal = quantidade * valorUnitario;
       const total = item.totalItem || (subtotal - desconto);
@@ -786,6 +790,7 @@ async function carregarTabelaRegistrosVendas() {
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
+
 carregarTabelaRegistrosVendas();
 
 // --- Função para excluir venda ---
@@ -1281,6 +1286,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
