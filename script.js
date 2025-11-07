@@ -1012,7 +1012,7 @@ async function carregarProdutosOrcamento() {
 // ADICIONAR PRODUTO AO ORÇAMENTO
 // =======================
 window.adicionarProdutoOrcamento = async function() {
-    const clienteInput = document.getElementById("clienteInput"); // campo de cliente
+    const clienteInput = document.getElementById("clienteInputOrcamento");
     const produtoSelect = document.getElementById("produtoSelectOrcamento");
     const quantidadeInput = document.getElementById("quantidadeInput");
 
@@ -1302,6 +1302,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
