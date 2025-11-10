@@ -134,7 +134,6 @@ function mostrarSecao(secaoId) {
     setTimeout(() => carregarTabelaRegistrosVendas(), 110);
     break;
   case "precos":
-  case "tabelaPrecos":
     carregarTabelaPrecos();
     break;
   }
@@ -1346,6 +1345,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
