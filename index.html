@@ -78,8 +78,8 @@
   </section>
 
   <!-- Vendas -->
-<section id="vendas" class="secao" style="display:none;">
-  <h2>Vendas</h2>
+  <section id="vendas" class="secao" style="display:none;">
+   <h2>Vendas</h2>
     <select id="clienteSelect">
       <option value="">Selecione o cliente</option>
     </select>
@@ -111,46 +111,46 @@
     <button id="btnDescontoItem">Desconto Item</button>
     <button id="btnDescontoVenda">Desconto na Venda</button>
 
-<!-- Tabela de Itens da Venda -->
-<table id="tabelaItensVenda">
-  <thead>
-    <tr>
-      <th>Produto</th>
-      <th>Quantidade</th>
-      <th>Preço Unit.</th>
-      <th>Desconto</th>
-      <th>Subtotal</th>
-      <th>Total</th>
-      <th>Ações</th>
-    </tr>
-  </thead>
-  <tbody>    
-  </tbody>
-</table>
+   <!-- Tabela de Itens da Venda -->
+   <table id="tabelaItensVenda">
+     <thead>
+       <tr>
+         <th>Produto</th>
+         <th>Quantidade</th>
+         <th>Preço Unit.</th>
+         <th>Desconto</th>
+         <th>Subtotal</th>
+         <th>Total</th>
+         <th>Ações</th>
+       </tr>
+      </thead> 
+      <tbody>    
+     </tbody>
+    </table>
 
-<p>Total da Venda: R$ <span id="totalVenda">0.00</span></p>
+   <p>Total da Venda: R$ <span id="totalVenda">0.00</span></p>
 
-<!-- Modal de Desconto -->
-<div id="modalDesconto" class="modal">
-  <div class="modal-content">
-    <h3 id="tituloModalDesconto">Aplicar Desconto</h3>
+   <!-- Modal de Desconto -->
+    <div id="modalDesconto" class="modal">
+      <div class="modal-content">
+       <h3 id="tituloModalDesconto">Aplicar Desconto</h3>
 
-    <label for="tipoDesconto">Tipo de desconto:</label>
-    <select id="tipoDesconto">
-      <option value="percentual">Percentual (%)</option>
-      <option value="valor">Valor (R$)</option>
-    </select>
+       <label for="tipoDesconto">Tipo de desconto:</label>
+        <select id="tipoDesconto">
+         <option value="percentual">Percentual (%)</option>
+         <option value="valor">Valor (R$)</option>
+        </select>
 
-    <label for="valorDesconto">Valor do desconto:</label>
-    <input type="number" id="valorDesconto" placeholder="Digite o valor do desconto" step="0.01">
+       <label for="valorDesconto">Valor do desconto:</label>
+       <input type="number" id="valorDesconto" placeholder="Digite o valor do desconto" step="0.01">
 
-    <div style="margin-top: 10px;">
-      <button id="btnAplicarDesconto">Aplicar</button>
-      <button id="btnCancelarDesconto">Cancelar</button>
+        <div style="margin-top: 10px;">
+         <button id="btnAplicarDesconto">Aplicar</button>
+         <button id="btnCancelarDesconto">Cancelar</button>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-</section>
+  </section>
 
   <!-- Registros -->
   <section id="registrosVendas" class="secao" style="display:none;">
@@ -176,67 +176,83 @@
     <button id="btnExportarPDF">Exportar PDF</button>
   </section>
 
-<section id="orcamentos" class="secao" style="display:none;">
-  <h2>Orçamentos</h2>
-  <div>
-    <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
-    <select id="produtoSelectOrcamento"></select>
-     <select id="tipoPrecoSelectOrcamento">
-      <option value="">Selecione tipo de preço</option>
-      <option value="preco">Preço Normal</option>
-      <option value="estampaFrente">Estampa Frente</option>
-      <option value="estampaFrenteVerso">Frente e Verso</option>
-    </select>
-    <input type="text" id="precoInputOrcamento" placeholder="Preço (R$)" readonly />
-    <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
-    <button id="btnAdicionarProduto">Adicionar Produto</button>
-    <button id="btnGerarPDF">Gerar PDF</button>
+  <section id="orcamentos" class="secao" style="display:none;">
+    <h2>Orçamentos</h2>
+    <div>
+      <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
+      <select id="produtoSelectOrcamento"></select>
+      <select id="tipoPrecoSelectOrcamento">
+        <option value="">Selecione tipo de preço</option>
+        <option value="preco">Preço Normal</option>
+        <option value="estampaFrente">Estampa Frente</option>
+        <option value="estampaFrenteVerso">Frente e Verso</option>
+      </select>
+      <input type="text" id="precoInputOrcamento" placeholder="Preço (R$)" readonly />
+      <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
+      <button id="btnAdicionarProduto">Adicionar Produto</button>
+      <button id="btnGerarPDF">Gerar PDF</button>
+  
+     <h3>Orçamento Atual</h3>
+     <table id="tabelaOrcamentos">
+        <thead>
+          <tr>
+           <th>Data</th>
+           <th>Cliente</th>
+           <th>Produto</th>
+           <th>Quantidade</th>
+           <th>Preço unitario</th>
+           <th>Preço total</th>
+           <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="precos" class="secao" style="display:none;">
+    <h2>Tabela de Preços</h2>
+    <table id="tabelaPrecos">
+      <thead>
+        <tr>
+         <th>Produto</th>
+         <th>Preço</th>
+         <th>Estampa Frente</th>
+         <th>Estampa Frente e Verso</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- ===== Modal de Edição ===== -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content"></div>
+      <h2 id="modalEditarTitulo"></h2>
+      <label>Nome: <input id="modalEditarNome" type="text"></label>
+      <label>Telefone: <input id="modalEditarTelefone" type="text"></label>
+      <label>Quantidade: <input id="modalEditarQuantidade" type="number"></label>
+      <label>Preço: <input id="modalEditarPreco" type="number" step="0.01"></label>
+    </div>
+    <div style="margin-top:10px;">
+      <button id="btnSalvarEdicao">Salvar</button>
+      <button id="btnCancelarEdicao">Cancelar</button>
+    </div>
   </div>
 
-<section id="precos" class="secao" style="display:none;">
-  <h2>Tabela de Preços</h2>
-  <table id="tabelaPrecos">
-    <thead>
-      <tr>
-        <th>Produto</th>
-        <th>Preço</th>
-        <th>Estampa Frente</th>
-        <th>Estampa Frente e Verso</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</section>
-
-<!-- ===== Modal de Edição ===== -->
-<div id="modalEditar" class="modal">
-  <div class="modal-content"></div>
-  <h2 id="modalEditarTitulo"></h2>
-  <label>Nome: <input id="modalEditarNome" type="text"></label>
-  <label>Telefone: <input id="modalEditarTelefone" type="text"></label>
-  <label>Quantidade: <input id="modalEditarQuantidade" type="number"></label>
-  <label>Preço: <input id="modalEditarPreco" type="number" step="0.01"></label>
-  <div style="margin-top:10px;">
-  <button id="btnSalvarEdicao">Salvar</button>
-  <button id="btnCancelarEdicao">Cancelar</button>
-</div>
-</div>
-</div>
-
-<!-- Modal Exclusão -->
-<div id="modalConfirmarExclusao" class="modal" style="display:none;">
-  <div class="modal-content">
+  <!-- Modal Exclusão -->
+  <div id="modalConfirmarExclusao" class="modal" style="display:none;">
+    <div class="modal-content"></div>
     <p>Deseja realmente excluir?</p>
     <div style="text-align:center; margin-top:15px;">
       <button id="confirmarExclusao">Sim</button>
       <button id="cancelarExclusao">Não</button>
     </div>
   </div>
-</div>
 
-<!-- Modal genérico azul -->
-<div id="modal" class="modal">
-  <div class="modal-content">
+  <!-- Modal genérico azul -->
+  <div id="modal" class="modal">
+   <div class="modal-content"></div>
     <h3 id="modal-title">Título</h3>
     <p id="modal-message">Mensagem do modal</p>
     <div id="modal-input-container" style="display: none;">
@@ -247,41 +263,36 @@
       <button id="modal-cancel" class="btn-cancel">Cancelar</button>
     </div>
   </div>
-</div>
 
-<div id="modalAlerta" class="modal">
-  <div class="modal-content">
-    <span id="modalFechar" class="close">&times;</span>
-    <p id="modalMensagem"></p>
+  <div id="modalAlerta" class="modal">
+    <div class="modal-content">
+     <span id="modalFechar" class="close">&times;</span>
+     <p id="modalMensagem"></p>
+    </div>
   </div>
-</div>
 
-<div id="modalConfirm" class="modal">
-  <div class="modal-content">
-    <p id="modalConfirmMensagem"></p>
-    <button id="modalConfirmSim">Sim</button>
-    <button id="modalConfirmNao">Não</button>
+  <div id="modalConfirm" class="modal">
+    <div class="modal-content">
+     <p id="modalConfirmMensagem"></p>
+     <button id="modalConfirmSim">Sim</button>
+     <button id="modalConfirmNao">Não</button>
+    </div>
   </div>
-</div>
 
-<div id="modalPrompt" class="modal">
-  <div class="modal-content">
-    <span id="modalPromptFechar" class="close">&times;</span>
-    <p id="modalPromptMensagem"></p>
-    <input type="text" id="modalPromptInput" />
-    <button id="modalPromptOk">OK</button>
-    <button id="modalPromptCancelar">Cancelar</button>
+  <div id="modalPrompt" class="modal">
+    <div class="modal-content">
+      <span id="modalPromptFechar" class="close">&times;</span>
+      <p id="modalPromptMensagem"></p>
+      <input type="text" id="modalPromptInput" />
+      <button id="modalPromptOk">OK</button>
+      <button id="modalPromptCancelar">Cancelar</button>
+    </div>
   </div>
-</div>
 
-<script type="module" src="firebase-config.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-<script type="module" src="script.js"></script>
+ <script type="module" src="firebase-config.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+ <script type="module" src="script.js"></script>
 
 </body>
 </html>
-
-
-
-
