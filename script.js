@@ -1173,7 +1173,16 @@ async function carregarTabelaPrecos() {
 
   const produtosSnapshot = await getDocs(collection(db, "produtos"));
   console.log("Qtd de produtos:", produtosSnapshot.size);
-  
+
+  const linhaTeste = document.createElement("tr");
+linhaTeste.innerHTML = `
+  <td>Teste</td>
+  <td>10</td>
+  <td>5</td>
+  <td>8</td>
+`;
+tabela.appendChild(linhaTeste);
+
   produtosSnapshot.forEach(docSnap => {
    const produto = docSnap.data();
    const produtoId = docSnap.id; // ✅ salva o ID aqui
@@ -1341,6 +1350,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
