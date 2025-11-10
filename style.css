@@ -22,8 +22,10 @@ body {
   color: #333;
 }
 
-body { display: block; }
-.secao { display: none; }
+body {
+  display: block;
+}
+
 
 /* =========================
    💠 HEADER E NAVEGAÇÃO
@@ -120,6 +122,15 @@ header nav button:hover {
 /* =========================
    💠 SEÇÕES / CONTEÚDOS
 ========================= */
+.secao {
+  display: none;
+  padding: 20px;
+}
+
+#precos {
+  display: block !important;
+}
+
 .secao {
   display: none;
   background: linear-gradient(145deg, #ffffff, #e9eef3);
@@ -463,6 +474,7 @@ footer {
   flex: none;
   align-self: stretch;
 }
+
 
 
 
