@@ -1110,26 +1110,38 @@ carregarProdutosOrcamento();
 // GERAR PDF DO ORÇAMENTO
 // =======================
 window.gerarPdfOrcamento = function() {
-  const { jsPDF } = window.jspdf; // 👈 acessa o construtor corretamente
+  const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
   // Logo (opcional)
   const img = document.getElementById("logoOrcamento");
   if (img) {
-    doc.addImage(img, 'PNG', 14, 10, 40, 20);
+    try {
+      doc.addImage(img, 'PNG', 14, 10, 40, 20);
+    } catch (e) {
+      console.warn("Erro ao adicionar imagem no PDF:", e);
+    }
   }
 
   doc.setFontSize(16);
   doc.text("ORÇAMENTO", 105, 20, { align: "center" });
 
-  const rows = itensOrcamentoAtual.map(item => [
-    item.clienteNome,
-    item.produtoNome,
-    item.quantidade,
-    item.preco.toFixed(2),
-    (item.quantidade * item.preco).toFixed(2)
-  ]);
+  // Protege os valores numéricos
+  const rows = itensOrcamentoAtual.map(item => {
+    const preco = Number(item.preco) || 0;
+    const qtd = Number(item.quantidade) || 0;
+    const total = preco * qtd;
 
+    return [
+      item.clienteNome || "-",
+      item.produtoNome || "-",
+      qtd,
+      preco.toFixed(2),
+      total.toFixed(2)
+    ];
+  });
+
+  // Tabela
   doc.autoTable({
     head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']],
     body: rows,
@@ -1137,36 +1149,19 @@ window.gerarPdfOrcamento = function() {
   });
 
   // Total geral
-  const totalGeral = itensOrcamentoAtual.reduce(
-    (acc, item) => acc + item.quantidade * item.preco,
-    0
-  );
+  const totalGeral = itensOrcamentoAtual.reduce((acc, item) => {
+    const preco = Number(item.preco) || 0;
+    const qtd = Number(item.quantidade) || 0;
+    return acc + preco * qtd;
+  }, 0);
+
   doc.setFontSize(12);
-  doc.text(`Total geral: R$ ${totalGeral.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+  const yFinal = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 40;
+  doc.text(`Total geral: R$ ${totalGeral.toFixed(2)}`, 14, yFinal);
 
   // Salvar PDF
   doc.save('orcamento.pdf');
 };
-
-// =======================
-// EVENTOS
-// =======================
-document.addEventListener("DOMContentLoaded", () => {
-    carregarProdutosOrcamento();
-    renderizarOrcamentos();
-
-    const btnAdicionar = document.getElementById("btnAdicionarProduto");
-    const btnPdf = document.getElementById("btnGerarPDF");
-
-    if (btnAdicionar) {
-        btnAdicionar.addEventListener("click", adicionarProdutoOrcamento);
-    }
-
-    if (btnPdf) {
-        btnPdf.addEventListener("click", gerarPdfOrcamento);
-    }
-});
-
 
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
@@ -1351,6 +1346,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
