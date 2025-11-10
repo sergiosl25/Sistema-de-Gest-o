@@ -26,7 +26,6 @@ body {
   display: block;
 }
 
-
 /* =========================
    💠 HEADER E NAVEGAÇÃO
 ========================= */
@@ -125,10 +124,6 @@ header nav button:hover {
 .secao {
   display: none;
   padding: 20px;
-}
-
-#precos {
-  display: block !important;
 }
 
 .secao {
@@ -468,3 +463,4 @@ footer {
   margin: 5px;
   padding: 5px 15px;
 }
+
