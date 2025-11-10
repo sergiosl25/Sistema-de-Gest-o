@@ -1323,25 +1323,6 @@ async function exportarPDFRegistros() {
 
 document.getElementById("btnExportarPDF")?.addEventListener("click", exportarPDFRegistros);
 
-// ===== CONTROLE DE SEÇÕES =====
-document.addEventListener("DOMContentLoaded", () => {
-  const menuBtns = document.querySelectorAll('header nav button');
-  const secoes = document.querySelectorAll('.secao');
-
-  menuBtns.forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const target = btn.dataset.target;
-
-      // Esconder todas as seções
-      secoes.forEach(secao => secao.style.display = 'none');
-
-      // Mostrar a seção clicada
-      const secaoAlvo = document.getElementById(target);
-      if (secaoAlvo) secaoAlvo.style.display = 'block';
-    });
-  });
-});
-
 // === Funções “placeholder” para evitar erros ===
 
 // carrega os clientes disponíveis na aba de Vendas
@@ -1357,6 +1338,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
