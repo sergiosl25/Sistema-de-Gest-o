@@ -22,9 +22,8 @@ body {
   color: #333;
 }
 
-body {
-  display: block;
-}
+body { display: block; }
+.secao { display: none; }
 
 /* =========================
    💠 HEADER E NAVEGAÇÃO
@@ -464,6 +463,7 @@ footer {
   flex: none;
   align-self: stretch;
 }
+
 
 
 
