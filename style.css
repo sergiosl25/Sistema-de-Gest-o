@@ -455,4 +455,33 @@ footer {
   padding: 5px 15px;
 }
 
+.orcamento-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 15px;
+}
+
+.orcamento-form input,
+.orcamento-form select,
+.orcamento-form button {
+  height: 32px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.orcamento-form button {
+  background: #f8f9fa;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.orcamento-form button:hover {
+  background: #e0e0e0;
+}
+
 
