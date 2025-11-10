@@ -1016,23 +1016,23 @@ function atualizarPrecoOrcamento() {
 // =======================
 // ADICIONAR PRODUTO AO ORÇAMENTO
 // =======================
-window.adicionarProdutoOrcamento = async function () {
+window.adicionarProdutoOrcamento = function () {
   const clienteInput = document.getElementById("clienteInputOrcamento");
   const produtoSelect = document.getElementById("produtoSelectOrcamento");
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelectOrcamento");
   const precoInput = document.getElementById("precoInputOrcamento");
-  const quantidadeInput = document.getElementById("quantidadeInput");
+  const quantidadeInput = document.getElementById("quantidadeOrcamento");
 
-  if (!clienteInput?.value.trim()) {
+  const clienteNome = clienteInput.value.trim();
+  const produtoId = produtoSelect.value;
+  const tipoPreco = tipoPrecoSelect.value;
+  const precoUnitario = Number(precoInput.value || 0);
+  const quantidade = Number(quantidadeInput.value || 1);
+
+  if (!clienteNome) {
     mostrarModal("Informe o nome do cliente!");
     return;
   }
-
-  const produtoId = produtoSelect?.value;
-  const tipoPreco = tipoPrecoSelect?.value;
-  const precoUnitario = Number(precoInput?.value || 0);
-  const quantidade = Number(quantidadeInput?.value || 1);
-
   if (!produtoId) {
     mostrarModal("Selecione um produto!");
     return;
@@ -1054,7 +1054,7 @@ window.adicionarProdutoOrcamento = async function () {
     produtoNome: nomeProduto,
     preco: precoUnitario,
     quantidade,
-    clienteNome: clienteInput.value.trim(),
+    clienteNome,
     tipoPreco
   });
 
@@ -1346,6 +1346,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
