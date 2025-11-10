@@ -953,109 +953,158 @@ function mostrarConfirm(mensagem) {
 // ==========================
 // 🔹 Orçamentos
 // ==========================
-function renderizarOrcamentos() {
-    if (!tabelaOrcamentos) return;
-    tabelaOrcamentos.innerHTML = '';
+let produtosCache = {}; // Armazena produtos do Firestore
 
-    itensOrcamentoAtual.forEach((item, index) => {
-        const total = item.quantidade * item.preco;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${new Date().toLocaleDateString()}</td>
-            <td>${item.clienteNome}</td>
-            <td>${item.produtoNome}</td>
-            <td>${item.quantidade}</td>
-            <td>${item.preco.toFixed(2)}</td>
-            <td>${total.toFixed(2)}</td>
-            <td>
-                <button class="btn-remover" onclick="removerItemOrcamento(${index})">
-                    Remover
-                </button>
-            </td>
-        `;
-        tabelaOrcamentos.appendChild(tr);
+// =======================
+// CARREGAR PRODUTOS
+// =======================
+async function carregarProdutosOrcamento() {
+  const select = document.getElementById("produtoSelectOrcamento");
+  if (!select) return;
+
+  select.innerHTML = "<option value=''>Selecione o produto</option>";
+
+  try {
+    const produtosSnapshot = await getDocs(collection(db, "produtos"));
+    produtosSnapshot.forEach(docSnap => {
+      const produto = docSnap.data();
+      produtosCache[docSnap.id] = produto;
+
+      const option = document.createElement("option");
+      option.value = docSnap.id;
+      option.textContent = produto.nome || "Produto sem nome";
+      select.appendChild(option);
     });
+  } catch (error) {
+    console.error("Erro ao carregar produtos:", error);
+  }
+}
+
+// =======================
+// ATUALIZAR PREÇO AUTOMATICAMENTE
+// =======================
+function atualizarPrecoOrcamento() {
+  const produtoId = document.getElementById("produtoSelectOrcamento").value;
+  const tipoPreco = document.getElementById("tipoPrecoSelectOrcamento").value;
+  const precoInput = document.getElementById("precoInputOrcamento");
+
+  if (!produtoId || !tipoPreco) {
+    precoInput.value = "";
+    return;
+  }
+
+  const produto = produtosCache[produtoId];
+  if (!produto) return;
+
+  let preco = 0;
+
+  switch (tipoPreco) {
+    case "estampaFrente":
+      preco = Number(produto.estampaFrente || 0);
+      break;
+    case "estampaFrenteVerso":
+      preco = Number(produto.estampaFrenteVerso || 0);
+      break;
+    default:
+      preco = Number(produto.preco || produto.valorUnitario || 0);
+      break;
+  }
+
+  precoInput.value = preco > 0 ? preco.toFixed(2) : "";
+}
+
+// =======================
+// ADICIONAR PRODUTO AO ORÇAMENTO
+// =======================
+window.adicionarProdutoOrcamento = async function () {
+  const clienteInput = document.getElementById("clienteInputOrcamento");
+  const produtoSelect = document.getElementById("produtoSelectOrcamento");
+  const tipoPrecoSelect = document.getElementById("tipoPrecoSelectOrcamento");
+  const precoInput = document.getElementById("precoInputOrcamento");
+  const quantidadeInput = document.getElementById("quantidadeInput");
+
+  if (!clienteInput?.value.trim()) {
+    mostrarModal("Informe o nome do cliente!");
+    return;
+  }
+
+  const produtoId = produtoSelect?.value;
+  const tipoPreco = tipoPrecoSelect?.value;
+  const precoUnitario = Number(precoInput?.value || 0);
+  const quantidade = Number(quantidadeInput?.value || 1);
+
+  if (!produtoId) {
+    mostrarModal("Selecione um produto!");
+    return;
+  }
+  if (!tipoPreco) {
+    mostrarModal("Selecione o tipo de preço!");
+    return;
+  }
+  if (precoUnitario <= 0) {
+    mostrarModal("Preço inválido!");
+    return;
+  }
+
+  const produto = produtosCache[produtoId];
+  const nomeProduto = produto?.nome || "Produto";
+
+  itensOrcamentoAtual.push({
+    produtoId,
+    produtoNome: nomeProduto,
+    preco: precoUnitario,
+    quantidade,
+    clienteNome: clienteInput.value.trim(),
+    tipoPreco
+  });
+
+  renderizarOrcamentos();
+};
+
+// =======================
+// RENDERIZAR ORÇAMENTOS
+// =======================
+function renderizarOrcamentos() {
+  const tabela = document.querySelector("#tabelaOrcamentos tbody");
+  if (!tabela) return;
+
+  tabela.innerHTML = "";
+
+  itensOrcamentoAtual.forEach((item, index) => {
+    const preco = Number(item.preco) || 0;
+    const total = preco * (Number(item.quantidade) || 0);
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${new Date().toLocaleDateString()}</td>
+      <td>${item.clienteNome}</td>
+      <td>${item.produtoNome}</td>
+      <td>${item.quantidade}</td>
+      <td>${preco.toFixed(2)}</td>
+      <td>${total.toFixed(2)}</td>
+      <td>${item.tipoPreco || '-'}</td>
+      <td><button class="btn-remover" onclick="removerItemOrcamento(${index})">Remover</button></td>
+    `;
+    tabela.appendChild(tr);
+  });
 }
 
 // =======================
 // REMOVER ITEM
 // =======================
 window.removerItemOrcamento = (index) => {
-    itensOrcamentoAtual.splice(index, 1);
-    renderizarOrcamentos();
+  itensOrcamentoAtual.splice(index, 1);
+  renderizarOrcamentos();
 };
 
 // =======================
-// CARREGAR PRODUTOS DO FIRESTORE
+// EVENTOS
 // =======================
-async function carregarProdutosOrcamento() {
-    const select = document.getElementById("produtoSelectOrcamento");
-    if (!select) return;
+document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
+document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 
-    select.innerHTML = "<option value=''>Selecione o produto</option>";
-
-    try {
-        const produtosSnapshot = await getDocs(collection(db, "produtos"));
-        produtosSnapshot.forEach(docSnap => {
-            const produto = docSnap.data();
-            const option = document.createElement("option");
-            option.value = docSnap.id;
-            option.textContent = produto.nome || "Produto sem nome";
-            select.appendChild(option);
-        });
-    } catch (error) {
-        console.error("Erro ao carregar produtos:", error);
-    }
-}
-
-// =======================
-// ADICIONAR PRODUTO AO ORÇAMENTO
-// =======================
-window.adicionarProdutoOrcamento = async function() {
-    const clienteInput = document.getElementById("clienteInputOrcamento");
-    const produtoSelect = document.getElementById("produtoSelectOrcamento");
-    const quantidadeInput = document.getElementById("quantidadeInput");
-
-    if (!clienteInput?.value.trim()) {
-        mostrarModal("Informe o nome do cliente!");
-        return;
-    }
-
-    const produtoId = produtoSelect?.value;
-    if (!produtoId) {
-        mostrarModal("Selecione um produto!");
-        return;
-    }
-
-    const quantidade = Number(quantidadeInput?.value || 1);
-
-    try {
-        const produtoRef = doc(db, "produtos", produtoId);
-        const produtoSnap = await getDoc(produtoRef);
-
-        if (!produtoSnap.exists()) {
-            mostrarModal("Produto não encontrado!");
-            return;
-        }
-
-        const produto = produtoSnap.data();
-        const nomeProduto = produto.nome || produto.descricao || "Produto";
-        const precoUnitario = Number(produto.preco || produto.valorUnitario || 0);
-
-        itensOrcamentoAtual.push({
-            produtoId,
-            produtoNome: nomeProduto,
-            preco: precoUnitario,
-            quantidade,
-            clienteNome: clienteInput.value.trim()
-        });
-
-        renderizarOrcamentos();
-    } catch (error) {
-        console.error("Erro ao adicionar produto:", error);
-        mostrarModal("Erro ao adicionar produto ao orçamento!");
-    }
-};
+// Carrega produtos na inicialização
+carregarProdutosOrcamento();
 
 // =======================
 // GERAR PDF DO ORÇAMENTO
@@ -1302,6 +1351,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
