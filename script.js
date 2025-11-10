@@ -1168,34 +1168,57 @@ window.gerarPdfOrcamento = function() {
 async function carregarTabelaPrecos() {
   console.log("carregarTabelaPrecos() iniciada");
 
-  await new Promise(resolve => {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", resolve);
-    } else {
-      resolve();
-    }
-  });
-
   const tabela = document.querySelector("#tabelaPrecos tbody");
-  console.log("tbody encontrado?", tabela);
-  if (!tabela) {
-    console.error("❌ tbody não encontrado!");
-    return;
-  }
-
   tabela.innerHTML = "";
 
-  // linha de teste
-  const linhaTeste = document.createElement("tr");
-  linhaTeste.innerHTML = `
-    <td>Teste</td>
-    <td>10</td>
-    <td>5</td>
-    <td>8</td>
-  `;
-  tabela.appendChild(linhaTeste);
+  try {
+    const produtosSnapshot = await getDocs(collection(db, "produtos"));
+    console.log("Qtd de produtos:", produtosSnapshot.size);
 
-  console.log("✅ Linha de teste adicionada");
+    produtosSnapshot.forEach(docSnap => {
+      const produto = docSnap.data();
+      console.log("Processando:", docSnap.id, produto);
+
+      // evita erro caso o produto esteja vazio
+      if (!produto || !produto.nome) {
+        console.warn("Produto ignorado (sem nome ou dados):", docSnap.id);
+        return;
+      }
+
+      const linha = document.createElement("tr");
+      linha.innerHTML = `
+        <td>${produto.nome || ""}</td>
+        <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
+        <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
+        <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
+      `;
+
+      tabela.appendChild(linha);
+      console.log("Linha adicionada:", produto.nome);
+
+      // Escuta mudanças e salva automaticamente
+      linha.querySelectorAll("input").forEach((input, index) => {
+        input.addEventListener("change", async () => {
+          const campos = ["preco", "estampaFrente", "estampaFrenteVerso"];
+          const campo = campos[index];
+          const novoValor = parseFloat(input.value) || 0;
+
+          try {
+            await updateDoc(doc(db, "produtos", docSnap.id), { [campo]: novoValor });
+            console.log(`✅ ${campo} atualizado: R$ ${novoValor.toFixed(2)} (${produto.nome})`);
+          } catch (erro) {
+            console.error("❌ Erro ao atualizar preço:", erro);
+            mostrarModal("Erro ao salvar o novo valor. Verifique sua conexão.");
+          }
+        });
+      });
+    });
+
+    console.log("Tabela preenchida com sucesso!");
+
+  } catch (erro) {
+    console.error("❌ Erro ao carregar produtos:", erro);
+  }
 }
 
 // exportar registros vendas
@@ -1334,6 +1357,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
