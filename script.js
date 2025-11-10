@@ -1172,42 +1172,37 @@ async function carregarTabelaPrecos() {
   tabela.innerHTML = "";
 
   const produtosSnapshot = await getDocs(collection(db, "produtos"));
-  console.log("Produto carregado:", docSnap.id, produto);
+  console.log("Qtd de produtos:", produtosSnapshot.size);
   
   produtosSnapshot.forEach(docSnap => {
-    const produto = docSnap.data();
-    const linha = document.createElement("tr");
+   const produto = docSnap.data();
+   const produtoId = docSnap.id; // ✅ salva o ID aqui
 
-    linha.innerHTML = `
-      <td>${produto.nome || ""}</td>
-      <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
-    `;
+   const linha = document.createElement("tr");
+   linha.innerHTML = `
+     <td>${produto.nome || ""}</td>
+     <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
+     <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
+     <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
+   `;
+   tabela.appendChild(linha);
 
-    tabela.appendChild(linha);
+   linha.querySelectorAll("input").forEach((input, index) => {
+     input.addEventListener("change", async () => {
+       const campos = ["preco", "estampaFrente", "estampaFrenteVerso"];
+       const campo = campos[index];
+       const novoValor = parseFloat(input.value) || 0;
 
-    // Observa mudanças e salva automaticamente no Firestore
-    linha.querySelectorAll("input").forEach((input, index) => {
-      input.addEventListener("change", async () => {
-        const campos = [
-          "preco",
-          "estampaFrente",
-          "estampaFrenteVerso",
-        ];
-        const campo = campos[index];
-        const novoValor = parseFloat(input.value) || 0;
-
-        try {
-          await updateDoc(doc(db, "produtos", docSnap.id), { [campo]: novoValor });
-          console.log(`✅ ${campo} atualizado para R$ ${novoValor.toFixed(2)} (${produto.nome})`);
-        } catch (erro) {
-          console.error("❌ Erro ao atualizar preço:", erro);
-          mostrarModal("Erro ao salvar o novo valor. Verifique sua conexão.");
-        }
-      });
-    });
-  });
+       try {
+         await updateDoc(doc(db, "produtos", produtoId), { [campo]: novoValor }); // ✅ usa produtoId, não docSnap
+         console.log(`✅ ${campo} atualizado para R$ ${novoValor.toFixed(2)} (${produto.nome})`);
+       } catch (erro) {
+         console.error("❌ Erro ao atualizar preço:", erro);
+         mostrarModal("Erro ao salvar o novo valor. Verifique sua conexão.");
+       }
+     });
+   });
+ });
 }
 
 // exportar registros vendas
@@ -1346,6 +1341,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
