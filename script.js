@@ -1182,7 +1182,7 @@ async function carregarTabelaPrecos() {
       <td>${produto.nome || ""}</td>
       <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
       <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
-      <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>>
+      <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
     `;
 
     tabela.appendChild(linha);
@@ -1346,6 +1346,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
