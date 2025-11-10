@@ -177,30 +177,20 @@
   </section>
 
 <section id="orcamentos" class="secao" style="display:none;">
-  <h2>Orçamentos</h2>
+  <div>
     <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
     <select id="produtoSelectOrcamento"></select>
+     <select id="tipoPrecoSelectOrcamento">
+      <option value="">Selecione tipo de preço</option>
+      <option value="preco">Preço Normal</option>
+      <option value="estampaFrente">Estampa Frente</option>
+      <option value="estampaFrenteVerso">Frente e Verso</option>
+    </select>
+    <input type="text" id="precoInputOrcamento" placeholder="Preço (R$)" readonly />
     <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
     <button id="btnAdicionarProduto">Adicionar Produto</button>
     <button id="btnGerarPDF">Gerar PDF</button>
   </div>
-  
-  <h3>Orçamento Atual</h3>
-  <table id="tabelaOrcamentos">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Cliente</th>
-        <th>Produto</th>
-        <th>Quantidade</th>
-        <th>Preço unitario</th>
-        <th>Preço total</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</section>
 
 <section id="precos" class="secao" style="display:none;">
   <table id="tabelaPrecos">
@@ -289,5 +279,6 @@
 
 </body>
 </html>
+
 
 
