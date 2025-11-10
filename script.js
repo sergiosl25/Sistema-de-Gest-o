@@ -1220,7 +1220,6 @@ async function carregarTabelaPrecos() {
     console.error("❌ Erro ao carregar produtos:", erro);
   }
 }
-carregarTabelaPrecos;
 
 // exportar registros vendas
 async function exportarPDFRegistros() {
@@ -1339,6 +1338,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
