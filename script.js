@@ -1008,7 +1008,7 @@ function atualizarPrecoOrcamento() {
       preco = Number(produto.estampaFrenteVerso || 0);
       break;
     default:
-      preco = Number(produto.preco || produto.valorUnitario || 0);
+      preco = Number(produto.preco || produto.precoUnitario || 0);
       break;
    }
 
@@ -1340,3 +1340,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
