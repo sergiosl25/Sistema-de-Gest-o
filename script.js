@@ -44,7 +44,6 @@ const orcamentosCol = collection(db, 'orcamentos');
 let itensVendaAtual = [];
 let totalVenda = 0;       // Total da venda
 let descontoTotalVenda = 0;
-let itensOrcamentoAtual = [];
 let produtosMap = {}; // será carregado do Firestor
 
 // =====================
@@ -952,6 +951,7 @@ function mostrarConfirm(mensagem) {
 // ==========================
 // 🔹 Orçamentos
 // ==========================
+let itensOrcamentoAtual = [];
 let produtosCache = {}; // Armazena produtos do Firestore
 
 // =======================
@@ -1030,22 +1030,10 @@ window.adicionarProdutoOrcamento = function () {
   atualizarPrecoOrcamento();
   const precoUnitario = Number(precoInput.value || 0);
 
-  if (!clienteNome) {
-    mostrarModal("Informe o nome do cliente!");
-    return;
-  }
-  if (!produtoId) {
-    mostrarModal("Selecione um produto!");
-    return;
-  }
-  if (!tipoPreco) {
-    mostrarModal("Selecione o tipo de preço!");
-    return;
-  }
-  if (precoUnitario <= 0) {
-    mostrarModal("Preço inválido!");
-    return;
-  }
+  if (!clienteNome) return mostrarModal("Informe o nome do cliente!");
+  if (!produtoId) return mostrarModal("Selecione um produto!");
+  if (!tipoPreco) return mostrarModal("Selecione o tipo de preço!");
+  if (precoUnitario <= 0) return mostrarModal("Preço inválido!");
 
   const existe = itensOrcamentoAtual.some(item =>
     item.produtoId === produtoId &&
@@ -1214,7 +1202,6 @@ window.gerarPdfOrcamento = function() {
 
 document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
-document.getElementById("btnAdicionarProduto").addEventListener("click", adicionarProdutoOrcamento);
 document.getElementById("btnGerarPDF").addEventListener("click", gerarPdfOrcamento);
 
 // ==========================
@@ -1393,6 +1380,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
