@@ -1019,22 +1019,16 @@ function atualizarPrecoOrcamento() {
 // ADICIONAR PRODUTO AO ORÇAMENTO
 // =======================
 window.adicionarProdutoOrcamento = function () {
-  const clienteInput = document.getElementById("clienteInputOrcamento");
-  const produtoSelect = document.getElementById("produtoSelectOrcamento");
-  const tipoPrecoSelect = document.getElementById("tipoPrecoSelectOrcamento");
+  const clienteNome = document.getElementById("clienteInputOrcamento").value.trim();
+  const produtoId = document.getElementById("produtoSelectOrcamento").value;
+  const tipoPreco = document.getElementById("tipoPrecoSelectOrcamento").value;
   const precoInput = document.getElementById("precoInputOrcamento");
-  const quantidadeInput = document.getElementById("quantidadeOrcamento");
-  const descontoItemInput = document.getElementById("descontoItemOrcamento");
+  const quantidade = Number(document.getElementById("quantidadeOrcamento").value || 1);
+  const descontoValor = Number(document.getElementById("descontoItemOrcamento").value || 0);
   const tipoDescontoItem = document.getElementById("tipoDescontoItem").value;
 
   atualizarPrecoOrcamento();
-
-  const clienteNome = clienteInput.value.trim();
-  const produtoId = produtoSelect.value;
-  const tipoPreco = tipoPrecoSelect.value;  
   const precoUnitario = Number(precoInput.value || 0);
-  const quantidade = Number(quantidadeInput.value || 1);
-  const descontoValor = Number(descontoItemInput.value || 0);
 
   if (!clienteNome) {
     mostrarModal("Informe o nome do cliente!");
@@ -1052,6 +1046,13 @@ window.adicionarProdutoOrcamento = function () {
     mostrarModal("Preço inválido!");
     return;
   }
+
+  const existe = itensOrcamentoAtual.some(item =>
+    item.produtoId === produtoId &&
+    item.clienteNome === clienteNome &&
+    item.tipoPreco === tipoPreco
+  );
+  if (existe) return mostrarModal("Este produto já foi adicionado para este cliente.");
 
   const produto = produtosCache[produtoId];
   const nomeProduto = produto?.nome || "Produto";
@@ -1075,13 +1076,11 @@ window.adicionarProdutoOrcamento = function () {
 // =======================
 function renderizarOrcamentos() {
   const tabela = document.querySelector("#tabelaOrcamentos tbody");
-  if (!tabela) return;
-
   tabela.innerHTML = "";
 
   itensOrcamentoAtual.forEach((item, index) => {
-    const preco = Number(item.preco) || 0;
-    const qtd = Number(item.quantidade) || 0;
+    const preco = Number(item.preco);
+    const qtd = Number(item.quantidade);
     const desconto = Number(item.descontoValor);
     let total = preco * qtd;
 
@@ -1116,6 +1115,12 @@ window.removerItemOrcamento = (index) => {
 
 // Carrega produtos na inicialização
 carregarProdutosOrcamento();
+
+const btnAdd = document.getElementById("btnAdicionarProduto");
+if (btnAdd && !btnAdd.dataset.listenerAttached) {
+  btnAdd.addEventListener("click", adicionarProdutoOrcamento);
+  btnAdd.dataset.listenerAttached = "true";
+} 
 
 // =======================
 // GERAR PDF DO ORÇAMENTO
@@ -1388,6 +1393,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
