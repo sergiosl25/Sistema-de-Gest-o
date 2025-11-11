@@ -176,7 +176,7 @@
     <button id="btnExportarPDF">Exportar PDF</button>
   </section>
 
-  <section id="orcamentos" class="secao" style="display:none;">
+ <section id="orcamentos" class="secao" style="display:none;">
     <h2>Orçamentos</h2>
     <div>
       <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
@@ -185,11 +185,27 @@
         <option value="">Selecione tipo de preço</option>
         <option value="preco">Preço Normal</option>
         <option value="estampaFrente">Estampa Frente</option>
-        <option value="estampaFrenteVerso">Frente e Verso</option>
+        <option value="estampaFrenteVerso">Estampa Frente e Verso</option>
       </select>
       <input type="text" id="precoInputOrcamento" placeholder="Preço (R$)" readonly />
       <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
+      <div style="margin-top:6px;">
+        <select id="tipoDescontoItem">
+          <option value="percent">%</option>
+          <option value="valor">R$</option>
+        </select>
+        <input type="number" id="descontoItemOrcamento" placeholder="Desconto" min="0" style="width:100px;">
+      </div>
+      <input type="number" id="descontoItemOrcamento" placeholder="Desconto (%) por item" min="0" max="100" />
       <button id="btnAdicionarProduto">Adicionar Produto</button>
+      <hr>
+      <!-- 🔹 Desconto total -->
+      <label>Desconto total:</label>
+      <select id="tipoDescontoTotal">
+        <option value="percent">%</option>
+        <option value="valor">R$</option>
+      </select>
+      <input type="number" id="descontoTotalOrcamento" placeholder="0" min="0" style="width:100px;">
       <button id="btnGerarPDF">Gerar PDF</button>
   
      <h3>Orçamento Atual</h3>
@@ -201,6 +217,7 @@
            <th>Produto</th>
            <th>Quantidade</th>
            <th>Preço unitario</th>
+           <th>Desconto (%)</th>
            <th>Preço total</th>
            <th>Ações</th>
           </tr>
@@ -295,4 +312,5 @@
 
 </body>
 </html>
+
 
