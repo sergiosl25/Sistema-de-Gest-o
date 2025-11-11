@@ -1114,12 +1114,6 @@ window.removerItemOrcamento = (index) => {
   renderizarOrcamentos();
 };
 
-// =======================
-// EVENTOS
-// =======================
-document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
-document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
-
 // Carrega produtos na inicialização
 carregarProdutosOrcamento();
 
@@ -1213,6 +1207,8 @@ window.gerarPdfOrcamento = function() {
   doc.save('orcamento.pdf')
 }
 
+document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
+document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 document.getElementById("btnAdicionarProduto").addEventListener("click", adicionarProdutoOrcamento);
 document.getElementById("btnGerarPDF").addEventListener("click", gerarPdfOrcamento);
 
@@ -1393,4 +1389,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
