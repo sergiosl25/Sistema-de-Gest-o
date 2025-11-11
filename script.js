@@ -126,7 +126,7 @@ function mostrarSecao(secaoId) {
     carregarProdutosVenda();
     break;
   case "orcamentos":
-    renderizarOrcamentos();
+    inicializarEventosOrcamento();
     break;
   case "registrosVendas":
     // ✅ aguarda o DOM atualizar antes de carregar
@@ -1380,6 +1380,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
