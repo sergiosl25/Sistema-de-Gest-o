@@ -1024,6 +1024,8 @@ window.adicionarProdutoOrcamento = function () {
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelectOrcamento");
   const precoInput = document.getElementById("precoInputOrcamento");
   const quantidadeInput = document.getElementById("quantidadeOrcamento");
+  const descontoItemInput = document.getElementById("descontoItemOrcamento");
+  const tipoDescontoItem = document.getElementById("tipoDescontoItem").value;
 
   atualizarPrecoOrcamento();
 
@@ -1032,6 +1034,7 @@ window.adicionarProdutoOrcamento = function () {
   const tipoPreco = tipoPrecoSelect.value;  
   const precoUnitario = Number(precoInput.value || 0);
   const quantidade = Number(quantidadeInput.value || 1);
+  const descontoValor = Number(descontoItemInput.value || 0);
 
   if (!clienteNome) {
     mostrarModal("Informe o nome do cliente!");
@@ -1059,7 +1062,9 @@ window.adicionarProdutoOrcamento = function () {
     preco: precoUnitario,
     quantidade,
     clienteNome,
-    tipoPreco
+    tipoPreco,
+    descontoValor,
+    tipoDescontoItem
   });
 
   renderizarOrcamentos();
@@ -1076,7 +1081,15 @@ function renderizarOrcamentos() {
 
   itensOrcamentoAtual.forEach((item, index) => {
     const preco = Number(item.preco) || 0;
-    const total = preco * (Number(item.quantidade) || 0);
+    const qtd = Number(item.quantidade) || 0;
+    const desconto = Number(item.descontoValor);
+    let total = preco * qtd;
+
+    if (item.tipoDescontoItem === "percent") {
+      total *= (1 - desconto / 100);
+    } else if (item.tipoDescontoItem === "valor") {
+      total -= desconto;
+    }
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -1085,7 +1098,8 @@ function renderizarOrcamentos() {
       <td>${item.produtoNome}</td>
       <td>${item.quantidade}</td>
       <td>${preco.toFixed(2)}</td>
-      <td>${total.toFixed(2)}</td>
+      <td>${item.tipoDescontoItem === "percent" ? desconto + "%" : "R$ " + desconto.toFixed(2)}</td>
+      <td>${total.toFixed(2)}</td>      
       <td><button class="btn-remover" onclick="removerItemOrcamento(${index})">Remover</button></td>
     `;
     tabela.appendChild(tr);
@@ -1129,45 +1143,79 @@ window.gerarPdfOrcamento = function() {
   doc.setFontSize(16);
   doc.text("ORÇAMENTO", 105, 20, { align: "center" });
 
+  const tipoDescontoTotal = document.getElementById("tipoDescontoTotal").value;
+  const descontoTotalValor = Number(document.getElementById("descontoTotalOrcamento").value || 0);
+
   // Protege os valores numéricos
   const rows = itensOrcamentoAtual.map(item => {
     const preco = Number(item.preco) || 0;
     const qtd = Number(item.quantidade) || 0;
-    const total = preco * qtd;
+    const desconto = Number(item.descontoValor);
+    let total = preco * qtd;
+
+    if (item.tipoDescontoItem === "percent") {
+      total *= (1 - desconto / 100);
+    } else if (item.tipoDescontoItem === "valor") {
+      total -= desconto;
+    }
 
     return [
-      item.clienteNome || "-",
-      item.produtoNome || "-",
+      item.clienteNome,
+      item.produtoNome,
       qtd,
       preco.toFixed(2),
+      item.tipoDescontoItem === "percent" ? `${desconto}%` : `R$ ${desconto.toFixed(2)}`,
       total.toFixed(2)
     ];
   });
 
   // Tabela
   doc.autoTable({
-    head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Total']],
+    head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Desconto', 'Total']],
     body: rows,
-    startY: 35
+    startY: 30
   });
 
-  // Total geral
-  const totalGeral = itensOrcamentoAtual.reduce((acc, item) => {
-    const preco = Number(item.preco) || 0;
-    const qtd = Number(item.quantidade) || 0;
-    return acc + preco * qtd;
+  // Subtotal
+  let subtotal = itensOrcamentoAtual.reduce((acc, item) => {
+    const preco = Number(item.preco);
+    const qtd = Number(item.quantidade);
+    const desconto = Number(item.descontoValor);
+    let total = preco * qtd;
+
+    if (item.tipoDescontoItem === "percent") {
+      total *= (1 - desconto / 100);
+    } else if (item.tipoDescontoItem === "valor") {
+      total -= desconto;
+    }
+
+    return acc + total;
   }, 0);
 
-  doc.setFontSize(12);
-  const yFinal = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 40;
-  doc.text(`Total geral: R$ ${totalGeral.toFixed(2)}`, 14, yFinal);
+  // Desconto total
+  let totalFinal = subtotal;
+  if (tipoDescontoTotal === "percent") {
+    totalFinal = subtotal * (1 - descontoTotalValor / 100);
+  } else if (tipoDescontoTotal === "valor") {
+    totalFinal = subtotal - descontoTotalValor;
+  }
 
-  // Salvar PDF
-  doc.save('orcamento.pdf');
-};
+  let y = doc.lastAutoTable.finalY + 10;
+  doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 14, y);
+  y += 8;
+  doc.text(
+    `Desconto total (${tipoDescontoTotal === "percent" ? descontoTotalValor + "%" : "R$ " + descontoTotalValor.toFixed(2)})`,
+    14, y
+  );
+  y += 8;
+  doc.setFontSize(14);
+  doc.text(`TOTAL FINAL: R$ ${totalFinal.toFixed(2)}`, 14, y);
+  doc.save('orcamento.pdf')
+}
 
 document.getElementById("btnAdicionarProduto").addEventListener("click", adicionarProdutoOrcamento);
 document.getElementById("btnGerarPDF").addEventListener("click", gerarPdfOrcamento);
+
 
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
@@ -1345,3 +1393,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
