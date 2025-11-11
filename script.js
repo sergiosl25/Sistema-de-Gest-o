@@ -1025,29 +1025,19 @@ window.adicionarProdutoOrcamento = function () {
   const precoInput = document.getElementById("precoInputOrcamento");
   const quantidadeInput = document.getElementById("quantidadeOrcamento");
 
+  // força atualização do preço antes de ler
+  atualizarPrecoOrcamento();
+
   const clienteNome = clienteInput.value.trim();
   const produtoId = produtoSelect.value;
   const tipoPreco = tipoPrecoSelect.value;
-  atualizarPrecoOrcamento();
   const precoUnitario = Number(precoInput.value || 0);
   const quantidade = Number(quantidadeInput.value || 1);
 
-  if (!clienteNome) {
-    mostrarModal("Informe o nome do cliente!");
-    return;
-  }
-  if (!produtoId) {
-    mostrarModal("Selecione um produto!");
-    return;
-  }
-  if (!tipoPreco) {
-    mostrarModal("Selecione o tipo de preço!");
-    return;
-  }
-  if (precoUnitario <= 0) {
-    mostrarModal("Preço inválido!");
-    return;
-  }
+  if (!clienteNome) return mostrarModal("Informe o nome do cliente!");
+  if (!produtoId) return mostrarModal("Selecione um produto!");
+  if (!tipoPreco) return mostrarModal("Selecione o tipo de preço!");
+  if (precoUnitario <= 0) return mostrarModal("Preço inválido!");
 
   const produto = produtosCache[produtoId];
   const nomeProduto = produto?.nome || "Produto";
@@ -1104,6 +1094,8 @@ window.removerItemOrcamento = (index) => {
 // =======================
 document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
+document.getElementById("btnAdicionarProduto").addEventListener("click", adicionarProdutoOrcamento);
+document.getElementById("btnGerarPDF").addEventListener("click", gerarPdfOrcamento);
 
 // Carrega produtos na inicialização
 carregarProdutosOrcamento();
@@ -1341,5 +1333,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
