@@ -1209,9 +1209,7 @@ window.gerarPdfOrcamento = function() {
 
 document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
-document.getElementById("btnAdicionarProduto").addEventListener("click", adicionarProdutoOrcamento);
 document.getElementById("btnGerarPDF").addEventListener("click", gerarPdfOrcamento);
-
 
 // ==========================
 // 🔹 CARREGAR TABELA DE PREÇOS
@@ -1389,5 +1387,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
