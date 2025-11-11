@@ -1028,6 +1028,7 @@ window.adicionarProdutoOrcamento = function () {
   const clienteNome = clienteInput.value.trim();
   const produtoId = produtoSelect.value;
   const tipoPreco = tipoPrecoSelect.value;
+  atualizarPrecoOrcamento();
   const precoUnitario = Number(precoInput.value || 0);
   const quantidade = Number(quantidadeInput.value || 1);
 
@@ -1340,4 +1341,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
