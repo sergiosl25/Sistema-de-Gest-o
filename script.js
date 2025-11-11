@@ -199,22 +199,6 @@ document.getElementById("btnCadastrarCliente")?.addEventListener("click", async 
 // ==========================
 // 🔹 Estoque / Produtos
 // ==========================
-document.getElementById("btnAdicionarProduto")?.addEventListener("click", () => {
-  const clienteNome = document.getElementById("clienteInputOrcamento").value.trim();
-  const produtoId = document.getElementById("produtoSelectOrcamento").value;
-  const quantidade = parseInt(document.getElementById("quantidadeOrcamento").value);
-  const produto = produtosMap[produtoId];
-  if (!clienteNome || !produto || !quantidade) return mostrarModal("Preencha todos os campos!");
-
-  itensOrcamentoAtual.push({
-    clienteNome,
-    produtoNome: produto.nome,
-    quantidade,
-    preco: produto.preco
-  });
-  renderizarOrcamentos();
-});
-
 async function carregarEstoque() {
     const snapshot = await getDocs(produtosCol);
     tabelaEstoque.innerHTML = '';
@@ -1380,6 +1364,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
