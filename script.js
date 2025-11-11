@@ -997,17 +997,20 @@ function atualizarPrecoOrcamento() {
 
   let preco = 0;
 
-  switch (tipoPreco) {
-    case "estampaFrente":
+  const tipo = tipoPreco.trim().toLowerCase();
+  switch (tipo) {
+    case "frente":
+    case "estampafrente":
       preco = Number(produto.estampaFrente || 0);
       break;
-    case "estampaFrenteVerso":
+    case "frente e verso":
+    case "estampafrenteverso":
       preco = Number(produto.estampaFrenteVerso || 0);
       break;
     default:
       preco = Number(produto.preco || produto.valorUnitario || 0);
       break;
-  }
+   }
 
   precoInput.value = preco > 0 ? preco.toFixed(2) : "";
 }
@@ -1337,27 +1340,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
