@@ -1081,7 +1081,6 @@ function renderizarOrcamentos() {
       <td>${item.quantidade}</td>
       <td>${preco.toFixed(2)}</td>
       <td>${total.toFixed(2)}</td>
-      <td>${item.tipoPreco || '-'}</td>
       <td><button class="btn-remover" onclick="removerItemOrcamento(${index})">Remover</button></td>
     `;
     tabela.appendChild(tr);
@@ -1338,6 +1337,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
