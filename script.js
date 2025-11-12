@@ -1112,7 +1112,7 @@ window.gerarPdfOrcamento = function() {
   }
 
   doc.setFontSize(16);
-  doc.text("ORÇAMENTO", 105, 20, { align: "center" });
+  doc.text("ORÇAMENTO", 105, 8, { align: "center" });
 
   const tipoDescontoTotal = document.getElementById("tipoDescontoTotal").value;
   const descontoTotalValor = Number(document.getElementById("descontoTotalOrcamento").value || 0);
@@ -1144,7 +1144,7 @@ window.gerarPdfOrcamento = function() {
   doc.autoTable({
     head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Desconto', 'Total']],
     body: rows,
-    startY: 30
+    startY: 60
   });
 
   // Subtotal
@@ -1322,7 +1322,7 @@ async function exportarPDFRegistros() {
     doc.autoTable({
       head: cabecalho,
       body: linhas,
-      startY: 25,
+      startY: 60,
       styles: {
         fontSize: 9,
         halign: "center",
@@ -1372,6 +1372,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
