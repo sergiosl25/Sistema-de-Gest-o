@@ -1108,11 +1108,11 @@ window.gerarPdfOrcamento = function() {
      const logoWidth = 40;
      const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
      const xPos = (pdfWidth - logoWidth) / 2;
-     doc.addImage(logo, "PNG", xPos, 30, logoWidth, logoHeight);
+     doc.addImage(logo, "PNG", xPos, 20, logoWidth, logoHeight);
   }
 
   doc.setFontSize(16);
-  doc.text("ORÇAMENTO", 105, 8, { align: "center" });
+  doc.text("ORÇAMENTO", 105, 10, { align: "center" });
 
   const tipoDescontoTotal = document.getElementById("tipoDescontoTotal").value;
   const descontoTotalValor = Number(document.getElementById("descontoTotalOrcamento").value || 0);
@@ -1263,7 +1263,7 @@ async function exportarPDFRegistros() {
        const logoWidth = 40;
        const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
        const xPos = (pdfWidth - logoWidth) / 2;
-       doc.addImage(logo, "PNG", xPos, 30, logoWidth, logoHeight);
+       doc.addImage(logo, "PNG", xPos, 20, logoWidth, logoHeight);
    }   
 
     doc.setFontSize(16);
@@ -1372,6 +1372,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
