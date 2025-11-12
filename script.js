@@ -1108,7 +1108,7 @@ window.gerarPdfOrcamento = function() {
      const logoWidth = 40;
      const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
      const xPos = (pdfWidth - logoWidth) / 2;
-     doc.addImage(logo, "PNG", xPos, 20, logoWidth, logoHeight);
+     doc.addImage(logo, "PNG", xPos, 15, logoWidth, logoHeight);
   }
 
   doc.setFontSize(16);
@@ -1263,7 +1263,7 @@ async function exportarPDFRegistros() {
        const logoWidth = 40;
        const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
        const xPos = (pdfWidth - logoWidth) / 2;
-       doc.addImage(logo, "PNG", xPos, 20, logoWidth, logoHeight);
+       doc.addImage(logo, "PNG", xPos, 15, logoWidth, logoHeight);
    }   
 
     doc.setFontSize(16);
@@ -1372,6 +1372,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
