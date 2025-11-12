@@ -126,7 +126,7 @@ function mostrarSecao(secaoId) {
     carregarProdutosVenda();
     break;
   case "orcamentos":
-    inicializarEventosOrcamento();
+    renderizarOrcamento();
     break;
   case "registrosVendas":
     // ✅ aguarda o DOM atualizar antes de carregar
@@ -1100,6 +1100,7 @@ if (btnAdd && !btnAdd.dataset.listenerAttached) {
 window.gerarPdfOrcamento = function() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  const pdfWidth = doc.internal.pageSize.getWidth();
 
   const logo = document.getElementById("logo");
   if (logo) {
@@ -1254,6 +1255,7 @@ async function exportarPDFRegistros() {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
+    const pdfWidth = doc.internal.pageSize.getWidth();
 
     const logo = document.getElementById("logo");
     if (logo) {
@@ -1262,9 +1264,7 @@ async function exportarPDFRegistros() {
        const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
        const xPos = (pdfWidth - logoWidth) / 2;
        doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
-   }
-
-    const pdfWidth = doc.internal.pageSize.getWidth();
+   }   
 
     doc.setFontSize(16);
     doc.text("REGISTROS DE VENDAS", pdfWidth / 2, 15, { align: "center" });
@@ -1372,6 +1372,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
