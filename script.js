@@ -1101,14 +1101,13 @@ window.gerarPdfOrcamento = function() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
 
-  // Logo (opcional)
-  const img = document.getElementById("logoOrcamento");
-  if (img) {
-    try {
-      doc.addImage(img, 'PNG', 14, 10, 40, 20);
-    } catch (e) {
-      console.warn("Erro ao adicionar imagem no PDF:", e);
-    }
+  const logo = document.getElementById("logo");
+  if (logo) {
+     const imgProps = doc.getImageProperties(logo);
+     const logoWidth = 40;
+     const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+     const xPos = (pdfWidth - logoWidth) / 2;
+     doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
   }
 
   doc.setFontSize(16);
@@ -1256,6 +1255,15 @@ async function exportarPDFRegistros() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
+    const logo = document.getElementById("logo");
+    if (logo) {
+       const imgProps = doc.getImageProperties(logo);
+       const logoWidth = 40;
+       const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+       const xPos = (pdfWidth - logoWidth) / 2;
+       doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
+   }
+
     const pdfWidth = doc.internal.pageSize.getWidth();
 
     doc.setFontSize(16);
@@ -1364,6 +1372,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
