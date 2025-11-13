@@ -1,4 +1,5 @@
 import { app } from "./firebase-config.js";
+import { query, orderBy, getDocs } from "firebase/firestore";
 import { 
   getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
@@ -1369,6 +1370,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
