@@ -146,7 +146,9 @@ document.querySelectorAll("nav button").forEach(btn => {
 // 🔹 Clientes
 // ==========================
 async function carregarClientes() {
-    const snapshot = await getDocs(clientesCol);
+    const q = query(clientesCol, orderBy("nome")); // 🔹 Ordena pelo nome
+    const snapshot = await getDocs(q);
+
     tabelaClientes.innerHTML = '';
     clienteSelect.innerHTML = '<option value="">Selecione o cliente</option>';
 
@@ -200,7 +202,9 @@ document.getElementById("btnCadastrarCliente")?.addEventListener("click", async 
 // 🔹 Estoque / Produtos
 // ==========================
 async function carregarEstoque() {
-    const snapshot = await getDocs(produtosCol);
+    const q = query(produtosCol, orderBy("nome")); // 🔹 Ordena pelo nome
+    const snapshot = await getDocs(q);
+
     tabelaEstoque.innerHTML = '';
     produtoSelect.innerHTML = '<option value="">Selecione o produto</option>';
     produtoSelectOrcamento.innerHTML = '<option value="">Selecione o produto</option>';
@@ -220,6 +224,7 @@ async function carregarEstoque() {
                     <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
                 </td>`;
             tabelaEstoque.appendChild(tr);
+
             produtoSelect.innerHTML += `<option value="${docSnap.id}">${produto.nome || ''}</option>`;
             produtoSelectOrcamento.innerHTML += `<option value="${docSnap.id}">${produto.nome || ''}</option>`;
         });
@@ -1198,18 +1203,13 @@ async function carregarTabelaPrecos() {
   tabela.innerHTML = "";
 
   try {
-    const produtosSnapshot = await getDocs(collection(db, "produtos"));
+    const q = query(collection(db, "produtos"), orderBy("nome")); // 🔹 Ordena pelo nome
+    const produtosSnapshot = await getDocs(q);
     console.log("Qtd de produtos:", produtosSnapshot.size);
 
     produtosSnapshot.forEach(docSnap => {
       const produto = docSnap.data();
-      console.log("Processando:", docSnap.id, produto);
-
-      // evita erro caso o produto esteja vazio
-      if (!produto || !produto.nome) {
-        console.warn("Produto ignorado (sem nome ou dados):", docSnap.id);
-        return;
-      }
+      if (!produto || !produto.nome) return;
 
       const linha = document.createElement("tr");
       linha.innerHTML = `
@@ -1220,9 +1220,7 @@ async function carregarTabelaPrecos() {
       `;
 
       tabela.appendChild(linha);
-      console.log("Linha adicionada:", produto.nome);
 
-      // Escuta mudanças e salva automaticamente
       linha.querySelectorAll("input").forEach((input, index) => {
         input.addEventListener("change", async () => {
           const campos = ["preco", "estampaFrente", "estampaFrenteVerso"];
@@ -1241,7 +1239,6 @@ async function carregarTabelaPrecos() {
     });
 
     console.log("Tabela preenchida com sucesso!");
-
   } catch (erro) {
     console.error("❌ Erro ao carregar produtos:", erro);
   }
@@ -1372,6 +1369,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
