@@ -1291,7 +1291,7 @@ async function exportarPDFRegistros() {
        const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
        const xPos = (pdfWidth - logoWidth) / 2;
        doc.addImage(logo, "PNG", xPos, 15, logoWidth, logoHeight);
-   }   
+    }
 
     doc.setFontSize(16);
     doc.text("REGISTROS DE VENDAS", pdfWidth / 2, 15, { align: "center" });
@@ -1321,12 +1321,13 @@ async function exportarPDFRegistros() {
         linhas.push([
           dataTexto,
           cliente,
-          pagamento,
           item.nome || "-",
           quantidade,
           `R$ ${valorUnitario.toFixed(2)}`,
           `R$ ${desconto.toFixed(2)}`,
-          `R$ ${totalItem.toFixed(2)}`
+          `R$ ${totalItem.toFixed(2)}`,
+          `R$ ${totalItem.toFixed(2)}`,
+          pagamento
         ]);
       });
     });
@@ -1336,12 +1337,13 @@ async function exportarPDFRegistros() {
       [
         "Data",
         "Cliente",
-        "Pagamento",
         "Produto",
         "Qtde",
         "Unitário",
         "Desconto",
-        "Total"
+        "Total antes",
+        "Total após",
+        "Pagamento"
       ]
     ];
 
@@ -1399,6 +1401,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
