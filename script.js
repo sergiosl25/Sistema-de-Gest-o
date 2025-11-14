@@ -777,10 +777,10 @@ async function carregarTabelaRegistrosVendas() {
     rowVenda.innerHTML = `
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
-      <td>${venda.produtoNome || "-"}</td>
-      <td>${venda.quantidade || "-"}</td>
-      <td>${venda.precoUnitario || "-"}</td>
-      <td>${venda.desconto || "-"}</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>${venda.tipoPagamento || "-"}</td>
@@ -803,14 +803,19 @@ async function carregarTabelaRegistrosVendas() {
       const totalItem = item.totalItem || (subtotal - desconto);
 
       const rowItem = document.createElement("tr");
-      rowItem.classList.add("linha-item");
+      rowItem.style.background = "#fafafa";
 
       rowItem.innerHTML = `
-        <td></td>
-        <td colspan="1">${item.nome}</td>
+        <td></td> <!-- Data -->
+        <td></td> <!-- Cliente -->
+        <td>${item.nome}</td> <!-- Produto -->
         <td>${qtd} un</td>
+        <td>R$ ${vUnit.toFixed(2)}</td>
+        <td>R$ ${desconto.toFixed(2)}</td>
+        <td>R$ ${subtotal.toFixed(2)}</td>
         <td>R$ ${totalItem.toFixed(2)}</td>
-        <td></td>
+        <td></td> <!-- Pagamento -->
+        <td></td> <!-- Ações -->
       `;
 
       tabela.appendChild(rowItem);
@@ -1394,6 +1399,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
