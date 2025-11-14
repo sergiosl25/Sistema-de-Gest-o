@@ -777,8 +777,13 @@ async function carregarTabelaRegistrosVendas() {
     rowVenda.innerHTML = `
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
-      <td>${venda.tipoPagamento || "-"}</td>
+      <td>${venda.produtoNome || "-"}</td>
+      <td>${venda.quantidade || "-"}</td>
+      <td>${venda.precoUnitario || "-"}</td>
+      <td>${venda.desconto || "-"}</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
+      <td>R$ ${totalVenda.toFixed(2)}</td>
+      <td>${venda.tipoPagamento || "-"}</td>
       <td>
         <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
         <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
@@ -1389,6 +1394,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
