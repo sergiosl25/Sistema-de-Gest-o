@@ -733,74 +733,88 @@ window.removerItemVenda = removerItemVenda;
 async function carregarTabelaRegistrosVendas() {
   const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
   const totalGeralSpan = document.getElementById("totalGeralRegistros");
-  if (!tabela || !totalGeralSpan) {
-    console.warn("Tabela ou total geral não encontrados!");
-    return;
-  }
+
+  if (!tabela || !totalGeralSpan) return;
 
   tabela.innerHTML = "";
   let totalGeral = 0;
 
   const vendasSnapshot = await getDocs(collection(db, "vendas"));
-  console.log("📦 Total de vendas encontradas:", vendasSnapshot.size);
 
   vendasSnapshot.forEach((docSnap) => {
     const venda = docSnap.data();
     const id = docSnap.id;
 
-    // --- Corrige data ---
+    // --- Tratar data ---
     let dataFormatada = "-";
     if (venda.data) {
-      if (venda.data.seconds) {
-        dataFormatada = new Date(venda.data.seconds * 1000).toLocaleDateString("pt-BR");
-      } else {
-        dataFormatada = new Date(venda.data).toLocaleDateString("pt-BR");
-      }
+      dataFormatada = venda.data.seconds
+        ? new Date(venda.data.seconds * 1000).toLocaleDateString("pt-BR")
+        : new Date(venda.data).toLocaleDateString("pt-BR");
     }
 
-    // --- Agrupar produtos na mesma venda ---
     const itens = venda.itens || [];
-    let produtosHTML = "";
     let totalVenda = 0;
 
     itens.forEach((item) => {
-      const nome = item.nome || "-";
-      const qtt = item.quantidade || 0;
-      const valor = item.valorUnitario || 0;
+      const qtd = item.quantidade || 0;
+      const vUnit = item.valorUnitario || 0;
       const desconto = item.desconto || 0;
-      const subtotal = qtt * valor;
-      const total = item.totalItem || (subtotal - desconto);
 
-      totalVenda += total;
-
-      produtosHTML += `
-        ${nome} (${qtt} un) - R$ ${total.toFixed(2)}<br>
-      `;
+      const subtotal = qtd * vUnit;
+      const totalItem = item.totalItem || (subtotal - desconto);
+      totalVenda += totalItem;
     });
 
     totalGeral += totalVenda;
 
-    const row = document.createElement("tr");
-    row.innerHTML = `
+    // -------------------------------
+    // 1) Linha PRINCIPAL da VENDA
+    // -------------------------------
+    const rowVenda = document.createElement("tr");
+    rowVenda.classList.add("linha-venda");
+
+    rowVenda.innerHTML = `
       <td>${dataFormatada}</td>
-      <td>${venda.clienteNome || "Cliente"}</td>
-      <td>${produtosHTML}</td>
-      <td>R$ ${totalVenda.toFixed(2)}</td>
+      <td>${venda.clienteNome || "-"}</td>
       <td>${venda.tipoPagamento || "-"}</td>
+      <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>
         <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
         <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
       </td>
     `;
-    tabela.appendChild(row);
+
+    tabela.appendChild(rowVenda);
+
+    // -------------------------------
+    // 2) Linhas PRODUTOS da VENDA
+    // -------------------------------
+    itens.forEach((item) => {
+      const qtd = item.quantidade || 0;
+      const vUnit = item.valorUnitario || 0;
+      const desconto = item.desconto || 0;
+      const subtotal = qtd * vUnit;
+      const totalItem = item.totalItem || (subtotal - desconto);
+
+      const rowItem = document.createElement("tr");
+      rowItem.classList.add("linha-item");
+
+      rowItem.innerHTML = `
+        <td></td>
+        <td colspan="1">${item.nome}</td>
+        <td>${qtd} un</td>
+        <td>R$ ${totalItem.toFixed(2)}</td>
+        <td></td>
+      `;
+
+      tabela.appendChild(rowItem);
+    });
+
   });
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  carregarTabelaRegistrosVendas();
-});
 
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
@@ -1375,6 +1389,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
