@@ -1416,6 +1416,8 @@ async function exportarPDFRegistros() {
   }
 }
 
+document.getElementById("btnExportarPDF")?.addEventListener("click", exportarPDFRegistros);
+
 // === Funções “placeholder” para evitar erros ===
 
 // carrega os clientes disponíveis na aba de Vendas
@@ -1431,6 +1433,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
