@@ -747,7 +747,6 @@ async function carregarTabelaRegistrosVendas() {
   vendasSnapshot.forEach((docSnap) => {
     const venda = docSnap.data();
     const id = docSnap.id;
-    console.log("🧾 Venda:", id, venda);
 
     // --- Corrige data ---
     let dataFormatada = "-";
@@ -759,34 +758,41 @@ async function carregarTabelaRegistrosVendas() {
       }
     }
 
-    (venda.itens || []).forEach((item) => {
-      const produtoNome = item.nome || "-";
-      const quantidade = item.quantidade || 0;
-      const valorUnitario = item.valorUnitario || 0;
+    // --- Agrupar produtos na mesma venda ---
+    const itens = venda.itens || [];
+    let produtosHTML = "";
+    let totalVenda = 0;
+
+    itens.forEach((item) => {
+      const nome = item.nome || "-";
+      const qtt = item.quantidade || 0;
+      const valor = item.valorUnitario || 0;
       const desconto = item.desconto || 0;
-      const subtotal = quantidade * valorUnitario;
+      const subtotal = qtt * valor;
       const total = item.totalItem || (subtotal - desconto);
 
-      totalGeral += total;
+      totalVenda += total;
 
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${dataFormatada}</td>
-        <td>${venda.clienteNome || "Cliente"}</td>
-        <td>${produtoNome}</td>
-        <td>${quantidade}</td>
-        <td>R$ ${valorUnitario.toFixed(2)}</td>
-        <td>R$ ${desconto.toFixed(2)}</td>
-        <td>R$ ${subtotal.toFixed(2)}</td>
-        <td>R$ ${total.toFixed(2)}</td>
-        <td>${venda.tipoPagamento || "-"}</td>
-        <td>
-          <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
-          <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
-        </td>
+      produtosHTML += `
+        ${nome} (${qtt} un) - R$ ${total.toFixed(2)}<br>
       `;
-      tabela.appendChild(row);
     });
+
+    totalGeral += totalVenda;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${dataFormatada}</td>
+      <td>${venda.clienteNome || "Cliente"}</td>
+      <td>${produtosHTML}</td>
+      <td>R$ ${totalVenda.toFixed(2)}</td>
+      <td>${venda.tipoPagamento || "-"}</td>
+      <td>
+        <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
+        <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
+      </td>
+    `;
+    tabela.appendChild(row);
   });
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
@@ -1369,6 +1375,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
