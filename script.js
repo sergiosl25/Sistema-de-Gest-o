@@ -776,6 +776,9 @@ function atualizarTabelaItensVenda() {
       <td>R$ ${(descontoItemTotal + descontoProporcional).toFixed(2)}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${totalItem.toFixed(2)}</td>
+      <td>
+         <button onclick="removerItemVenda(${itensVendaAtual.indexOf(item)})">Remover</button>
+      </td>
     `;
     tbody.appendChild(row);
   });
@@ -1498,3 +1501,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
