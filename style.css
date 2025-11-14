@@ -464,3 +464,17 @@ footer {
   padding: 5px 15px;
 }
 
+.linha-venda {
+  background: #f3f8ff;
+  font-weight: bold;
+}
+
+.linha-item {
+  background: #fafafa;
+}
+
+.linha-item td {
+  padding-left: 40px;
+  font-size: 0.9rem;
+}
+
