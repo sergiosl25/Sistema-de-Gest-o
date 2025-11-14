@@ -1284,53 +1284,18 @@ async function exportarPDFRegistros() {
     const doc = new jsPDF();
     const pdfWidth = doc.internal.pageSize.getWidth();
 
+    // Logo
     const logo = document.getElementById("logo");
     if (logo) {
-       const imgProps = doc.getImageProperties(logo);
-       const logoWidth = 40;
-       const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-       const xPos = (pdfWidth - logoWidth) / 2;
-       doc.addImage(logo, "PNG", xPos, 15, logoWidth, logoHeight);
+      const imgProps = doc.getImageProperties(logo);
+      const logoWidth = 40;
+      const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+      const xPos = (pdfWidth - logoWidth) / 2;
+      doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
     }
 
     doc.setFontSize(16);
-    doc.text("REGISTROS DE VENDAS", pdfWidth / 2, 15, { align: "center" });
-
-    let totalGeral = 0;
-    const linhas = [];
-
-    // Monta todas as linhas da tabela
-    vendasSnapshot.forEach((vendaDoc) => {
-      const venda = vendaDoc.data();
-      const data = venda.data?.seconds
-        ? new Date(venda.data.seconds * 1000)
-        : new Date();
-
-      const dataTexto = data.toLocaleDateString("pt-BR");
-      const cliente = venda.clienteNome || "Cliente";
-      const pagamento = venda.tipoPagamento || "-";
-
-      (venda.itens || []).forEach((item) => {
-        const quantidade = item.quantidade || 0;
-        const valorUnitario = item.valorUnitario || 0;
-        const desconto = item.desconto || 0;
-        const totalItem = item.totalItem || (quantidade * valorUnitario - desconto);
-
-        totalGeral += totalItem;
-
-        linhas.push([
-          dataTexto,
-          cliente,
-          item.nome || "-",
-          quantidade,
-          `R$ ${valorUnitario.toFixed(2)}`,
-          `R$ ${desconto.toFixed(2)}`,
-          `R$ ${totalItem.toFixed(2)}`,
-          `R$ ${totalItem.toFixed(2)}`,
-          pagamento
-        ]);
-      });
-    });
+    doc.text("REGISTROS DE VENDAS", pdfWidth / 2, 60, { align: "center" });
 
     // Cabeçalho da tabela
     const cabecalho = [
@@ -1341,24 +1306,91 @@ async function exportarPDFRegistros() {
         "Qtde",
         "Unitário",
         "Desconto",
-        "Total antes",
-        "Total após",
+        "Total Antes",
+        "Total Após",
         "Pagamento"
       ]
     ];
 
-    // Gera tabela formatada
+    const linhas = [];
+    let totalGeral = 0;
+
+    // MONTAR ESTRUTURA IGUAL À TABELA HTML
+    vendasSnapshot.forEach((vendaDoc) => {
+      const venda = vendaDoc.data();
+      const itens = venda.itens || [];
+
+      const data = venda.data?.seconds
+        ? new Date(venda.data.seconds * 1000)
+        : new Date();
+      const dataTexto = data.toLocaleDateString("pt-BR");
+      const cliente = venda.clienteNome || "-";
+      const pagamento = venda.tipoPagamento || "-";
+
+      let totalVenda = 0;
+      itens.forEach((item) => {
+        const qtd = item.quantidade || 0;
+        const unit = item.valorUnitario || 0;
+        const desc = item.desconto || 0;
+        const subtotal = qtd * unit;
+        const totalItem = item.totalItem || (subtotal - desc);
+        totalVenda += totalItem;
+      });
+
+      totalGeral += totalVenda;
+
+      // -------------------------------
+      // 1) LINHA DA VENDA
+      // -------------------------------
+      linhas.push([
+        dataTexto,
+        cliente,
+        "-",
+        "-",
+        "-",
+        "-",
+        `R$ ${totalVenda.toFixed(2)}`,
+        `R$ ${totalVenda.toFixed(2)}`,
+        pagamento
+      ]);
+
+      // -------------------------------
+      // 2) LINHAS DOS PRODUTOS
+      // -------------------------------
+      itens.forEach((item) => {
+        const qtd = item.quantidade || 0;
+        const unit = item.valorUnitario || 0;
+        const desc = item.desconto || 0;
+
+        const subtotal = qtd * unit;
+        const totalItem = item.totalItem || (subtotal - desc);
+
+        linhas.push([
+          "",                  // Data
+          "",                  // Cliente
+          item.nome,           // Produto
+          `${qtd} un`,         // Qtde
+          `R$ ${unit.toFixed(2)}`, // Unitário
+          `R$ ${desc.toFixed(2)}`, // Desconto
+          `R$ ${subtotal.toFixed(2)}`, // Total antes
+          `R$ ${totalItem.toFixed(2)}`, // Total após
+          ""                   // Pagamento
+        ]);
+      });
+    });
+
+    // Tabela formatada
     doc.autoTable({
       head: cabecalho,
       body: linhas,
-      startY: 60,
+      startY: 75,
       styles: {
         fontSize: 9,
         halign: "center",
         valign: "middle",
       },
       headStyles: {
-        fillColor: [41, 128, 185], // azul elegante
+        fillColor: [41, 128, 185],
         textColor: 255,
         fontStyle: "bold",
       },
@@ -1366,7 +1398,7 @@ async function exportarPDFRegistros() {
       theme: "grid",
     });
 
-    // Soma total geral
+    // Total geral no fim
     doc.setFontSize(13);
     doc.setFont(undefined, "bold");
     doc.text(
@@ -1376,15 +1408,13 @@ async function exportarPDFRegistros() {
       { align: "right" }
     );
 
-    // Salva o PDF
     doc.save("registros_vendas.pdf");
+
   } catch (error) {
     console.error("Erro ao exportar PDF:", error);
     mostrarModal("Erro ao gerar PDF de registros.");
   }
 }
-
-document.getElementById("btnExportarPDF")?.addEventListener("click", exportarPDFRegistros);
 
 // === Funções “placeholder” para evitar erros ===
 
@@ -1401,6 +1431,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
