@@ -126,7 +126,7 @@ function mostrarSecao(secaoId) {
     carregarProdutosVenda();
     break;
   case "orcamentos":
-    renderizarOrcamento();
+    renderizarOrcamentos();
     break;
   case "registrosVendas":
     // ✅ aguarda o DOM atualizar antes de carregar
@@ -596,18 +596,49 @@ btnDescontoItem.addEventListener("click", async () => {
   }
 
   const item = itensVendaAtual[indice];
-  const descontoStr = await mostrarPrompt(`Digite o valor do desconto para ${item.nome}:`, "0");
-  const desconto = parseFloat(descontoStr);
 
-  if (isNaN(desconto) || desconto < 0) {
-    mostrarModal("Desconto inválido!");
+  // Escolher tipo de desconto
+  const tipo = await mostrarPrompt(
+    `Aplicar desconto por:\n1 - Valor (R$)\n2 - Percentual (%)`
+  );
+
+  if (tipo !== "1" && tipo !== "2") {
+    mostrarModal("Tipo inválido!");
     return;
   }
 
-  item.desconto = desconto;
+  // Desconto em valor
+  if (tipo === "1") {
+    const descStr = await mostrarPrompt(`Digite o valor do desconto (R$) para ${item.nome}:`, "0");
+    const valor = parseFloat(descStr);
+
+    if (isNaN(valor) || valor < 0) {
+      mostrarModal("Desconto inválido!");
+      return;
+    }
+
+    item.descontoValor = valor;
+    item.descontoPercentual = 0;
+  }
+
+  // Desconto em percentual
+  if (tipo === "2") {
+    const descStr = await mostrarPrompt(`Digite o percentual de desconto (%) para ${item.nome}:`, "0");
+    const perc = parseFloat(descStr);
+
+    if (isNaN(perc) || perc < 0 || perc > 100) {
+      mostrarModal("Desconto inválido!");
+      return;
+    }
+
+    item.descontoPercentual = perc;
+
+    const subtotal = item.quantidade * item.preco;
+    item.descontoValor = (subtotal * perc) / 100;
+  }
+
   atualizarTabelaItensVenda();
 });
-
 
 // --- Função para aplicar desconto total na venda ---
 btnDescontoVenda.addEventListener("click", async () => {
@@ -617,22 +648,50 @@ btnDescontoVenda.addEventListener("click", async () => {
   }
 
   const totalAtual = itensVendaAtual.reduce((soma, item) => {
-    const subtotal = (item.quantidade * item.preco) - (item.desconto || 0);
-    return soma + subtotal;
+    const subtotal = item.quantidade * item.preco;
+    const desconto = item.descontoValor || 0;
+    return soma + (subtotal - desconto);
   }, 0);
 
-  const descontoGeralstr = await mostrarPrompt(`Total atual: R$ ${totalAtual.toFixed(2)}\nDigite o valor do desconto geral:`);
-  const descontoGeral = parseFloat(descontoGeralstr)
+  const tipo = await mostrarPrompt(
+    `Total atual: R$ ${totalAtual.toFixed(2)}\n` +
+    `Aplicar desconto por:\n1 - Valor (R$)\n2 - Percentual (%)`
+  );
 
-  if (isNaN(descontoGeral) || descontoGeral < 0 || descontoGeral > totalAtual) {
-    mostrarModal("Valor de desconto inválido!");
+  if (tipo !== "1" && tipo !== "2") {
+    mostrarModal("Tipo inválido!");
     return;
   }
 
-  // Guarda o desconto geral na venda
-  descontoTotalVenda = descontoGeral;
-  atualizarTabelaItensVenda();
+  // Desconto em valor direto
+  if (tipo === "1") {
+    const descStr = await mostrarPrompt(`Desconto geral (R$):`, "0");
+    const valor = parseFloat(descStr);
 
+    if (isNaN(valor) || valor < 0 || valor > totalAtual) {
+      mostrarModal("Desconto inválido!");
+      return;
+    }
+
+    descontoTotalVenda = valor;
+    descontoPercentualVenda = 0;
+  }
+
+  // Desconto em percentual
+  if (tipo === "2") {
+    const descStr = await mostrarPrompt(`Desconto geral (%):`, "0");
+    const perc = parseFloat(descStr);
+
+    if (isNaN(perc) || perc < 0 || perc > 100) {
+      mostrarModal("Desconto inválido!");
+      return;
+    }
+
+    descontoPercentualVenda = perc;
+    descontoTotalVenda = (totalAtual * perc) / 100;
+  }
+
+  atualizarTabelaItensVenda();
 });
 
 // ===============================
@@ -679,7 +738,7 @@ function atualizarTabelaItensVenda() {
   }
   tbody.innerHTML = "";
 
-  // Calcula o subtotal de todos os itens para distribuir o desconto proporcionalmente
+  // Calcula o subtotal de todos os itens para distribuir o desconto proporcional
   let somaSubtotais = 0;
   itensVendaAtual.forEach(item => {
     somaSubtotais += (item.quantidade || 0) * (item.valorUnitario || 0);
@@ -690,16 +749,22 @@ function atualizarTabelaItensVenda() {
   itensVendaAtual.forEach(item => {
     const quantidade = item.quantidade || 0;
     const valorUnitario = item.valorUnitario || 0;
-    const descontoItem = item.desconto || 0;
 
     const subtotal = quantidade * valorUnitario;
 
-    // Calcula desconto proporcional do desconto total da venda
-    const descontoProporcional = descontoTotalVenda 
-        ? (subtotal / somaSubtotais) * descontoTotalVenda
-        : 0;
+    // --- Desconto do item (valor + percentual)
+    const descontoItemValor = item.descontoValor || 0;
+    const descontoItemPercentual = item.descontoPercentual
+      ? (subtotal * item.descontoPercentual) / 100
+      : 0;
+    const descontoItemTotal = descontoItemValor + descontoItemPercentual;
 
-    const totalItem = subtotal - descontoItem - descontoProporcional;
+    // --- Desconto proporcional do desconto total da venda
+    const descontoProporcional = descontoTotalVenda
+      ? (subtotal / somaSubtotais) * descontoTotalVenda
+      : 0;
+
+    const totalItem = subtotal - descontoItemTotal - descontoProporcional;
 
     totalVenda += totalItem;
 
@@ -708,7 +773,7 @@ function atualizarTabelaItensVenda() {
       <td>${item.nome}</td>
       <td>${quantidade}</td>
       <td>R$ ${valorUnitario.toFixed(2)}</td>
-      <td>R$ ${(descontoItem + descontoProporcional).toFixed(2)}</td>
+      <td>R$ ${(descontoItemTotal + descontoProporcional).toFixed(2)}</td>
       <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${totalItem.toFixed(2)}</td>
     `;
@@ -1433,28 +1498,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
