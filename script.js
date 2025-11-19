@@ -1178,6 +1178,32 @@ function renderizarOrcamentos() {
     `;
     tabela.appendChild(tr);
   });
+
+  // 🔹 ATUALIZA TOTAL GERAL SEMPRE QUE A TABELA É RENDERIZADA
+  atualizarTotalGeral();
+}
+
+// =======================
+// CALCULAR TOTAL GERAL
+// =======================
+function atualizarTotalGeral() {
+  let totalGeral = itensOrcamentoAtual.reduce((acc, item) => {
+    const preco = Number(item.preco);
+    const qtd = Number(item.quantidade);
+    const desconto = Number(item.descontoValor);
+    let total = preco * qtd;
+
+    if (item.tipoDescontoItem === "percent") {
+      total *= (1 - desconto / 100);
+    } else if (item.tipoDescontoItem === "valor") {
+      total -= desconto;
+    }
+
+    return acc + total;
+  }, 0);
+
+  document.getElementById("totalGeralOrcamentos").innerText =
+    "R$ " + totalGeral.toFixed(2);
 }
 
 // =======================
@@ -1501,4 +1527,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
