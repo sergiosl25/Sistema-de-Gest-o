@@ -135,6 +135,9 @@ function mostrarSecao(secaoId) {
   case "precos":
     carregarTabelaPrecos();
     break;
+  case "simulador":
+    carregarSimuladorPrecosUnitarios();
+    break;
   }
 }
 
@@ -777,7 +780,7 @@ function atualizarTabelaItensVenda() {
       <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${totalItem.toFixed(2)}</td>
       <td>
-         <button onclick="removerItemVenda(${itensVendaAtual.indexOf(item)})">Remover</button>
+        <button onclick="removerItemVenda(${itensVendaAtual.indexOf(item)})">Remover</button>
       </td>
     `;
     tbody.appendChild(row);
@@ -1178,32 +1181,6 @@ function renderizarOrcamentos() {
     `;
     tabela.appendChild(tr);
   });
-
-  // 🔹 ATUALIZA TOTAL GERAL SEMPRE QUE A TABELA É RENDERIZADA
-  atualizarTotalGeral();
-}
-
-// =======================
-// CALCULAR TOTAL GERAL
-// =======================
-function atualizarTotalGeral() {
-  let totalGeral = itensOrcamentoAtual.reduce((acc, item) => {
-    const preco = Number(item.preco);
-    const qtd = Number(item.quantidade);
-    const desconto = Number(item.descontoValor);
-    let total = preco * qtd;
-
-    if (item.tipoDescontoItem === "percent") {
-      total *= (1 - desconto / 100);
-    } else if (item.tipoDescontoItem === "valor") {
-      total -= desconto;
-    }
-
-    return acc + total;
-  }, 0);
-
-  document.getElementById("totalGeralOrcamentos").innerText =
-    "R$ " + totalGeral.toFixed(2);
 }
 
 // =======================
@@ -1368,6 +1345,60 @@ async function carregarTabelaPrecos() {
   }
 }
 
+// ======== Funções do Simulador ========
+function parseNumero(valor) {
+  if (!valor) return 0;
+  return parseFloat(valor.replace(',', '.')) || 0;
+}
+
+function atualizarCalculos() {
+  const largura = parseNumero(document.getElementById("largura").value);
+  const altura = parseNumero(document.getElementById("altura").value);
+  const precoFolha = parseNumero(document.getElementById("precoFolha").value);
+  const lucro = parseNumero(document.getElementById("lucro").value);
+
+  const larguraFolha = 20;
+  const alturaFolha = 28.7;
+
+  // Quantidade por folha (subtrai 2 para garantir)
+  let quantidade = Math.floor(larguraFolha / largura) * Math.floor(alturaFolha / altura);
+  if (isNaN(quantidade) || quantidade < 1) quantidade = 1;
+  document.getElementById("quantidade").value = quantidade;
+
+  // Preço de venda
+  const precoVenda = (precoFolha / quantidade) * (1 + lucro / 100);
+  document.getElementById("precoVenda").value = precoVenda.toFixed(2).replace('.', ',');
+
+  salvarDados();
+}
+
+// ======== Salvar e carregar simulador ========
+function salvarDados() {
+  const dados = {
+    largura: document.getElementById("largura").value,
+    altura: document.getElementById("altura").value,
+    precoFolha: document.getElementById("precoFolha").value,
+  };
+  localStorage.setItem("simulador_preco", JSON.stringify(dados));  
+}
+
+function carregarDados() {
+  const dados = JSON.parse(localStorage.getItem("simulador_preco"));
+  if (dados) {
+    document.getElementById("largura").value = dados.largura;
+    document.getElementById("altura").value = dados.altura;
+    document.getElementById("precoFolha").value = dados.precoFolha;
+    atualizarCalculos();
+  }  
+}
+
+// Atualiza sempre que algo for digitado
+document.querySelectorAll("input").forEach(input => {
+  input.addEventListener("input", atualizarCalculos);
+});
+
+window.addEventListener("load", carregarDados);
+
 // exportar registros vendas
 async function exportarPDFRegistros() {
   try {
@@ -1526,61 +1557,4 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
-// ======== Funções do Simulador ========
-function parseNumero(valor) {
-  if (!valor) return 0;
-  return parseFloat(valor.replace(',', '.')) || 0;
-}
-
-function atualizarCalculos() {
-  const largura = parseNumero(document.getElementById("largura").value);
-  const altura = parseNumero(document.getElementById("altura").value);
-  const precoFolha = parseNumero(document.getElementById("precoFolha").value);
-  const lucro = parseNumero(document.getElementById("lucro").value);
-
-  const larguraFolha = 20;
-  const alturaFolha = 28.7;
-
-  // Quantidade por folha (subtrai 2 para garantir)
-  let quantidade = Math.floor(larguraFolha / largura) * Math.floor(alturaFolha / altura);
-  if (isNaN(quantidade) || quantidade < 1) quantidade = 1;
-  document.getElementById("quantidade").value = quantidade;
-
-  // Preço de venda
-  const precoVenda = (precoFolha / quantidade) * (1 + lucro / 100);
-  document.getElementById("precoVenda").value = precoVenda.toFixed(2).replace('.', ',');
-
-  salvarDados();
-}
-
-// ======== Salvar e carregar simulador ========
-function salvarDados() {
-  const dados = {
-    largura: document.getElementById("largura").value,
-    altura: document.getElementById("altura").value,
-    precoFolha: document.getElementById("precoFolha").value,
-  };
-  localStorage.setItem("simulador_preco", JSON.stringify(dados));  
-}
-
-function carregarDados() {
-  const dados = JSON.parse(localStorage.getItem("simulador_preco"));
-  if (dados) {
-    document.getElementById("largura").value = dados.largura;
-    document.getElementById("altura").value = dados.altura;
-    document.getElementById("precoFolha").value = dados.precoFolha;
-    atualizarCalculos();
-  }  
-}
-
-// Atualiza sempre que algo for digitado
-document.querySelectorAll("input").forEach(input => {
-  input.addEventListener("input", atualizarCalculos);
-});
-
-window.addEventListener("load", carregarDados);
-
 window.mostrarSecao = mostrarSecao;
-
-
-
