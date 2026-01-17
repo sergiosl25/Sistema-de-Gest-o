@@ -451,32 +451,6 @@ async function aplicarDescontoVendaPrompt() {
 }
 
 // ==========================
-// 🔹 Renderização da tabela de itens
-// ==========================
-function renderizarItensVenda() {
-  const tbody = document.querySelector("#tabelaItensVenda tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-
-  itensVendaAtual.forEach((item, index) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.nome}</td>
-      <td>${item.quantidade}</td>
-      <td>R$ ${item.valorUnitario.toFixed(2)}</td>
-      <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
-      <td>R$ ${item.total.toFixed(2)}</td>
-      <td>
-        <button onclick="removerItemVenda(${index})">Remover</button>
-        <button onclick="promptDescontoItem(${index})">Desconto</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-
-// ==========================
 // 🔹 Atualizar Tabela e Total
 // ==========================
 function atualizarTabelaItensVenda() {
@@ -486,20 +460,26 @@ function atualizarTabelaItensVenda() {
   tbody.innerHTML = "";
 
   itensVendaAtual.forEach((item, index) => {
+    const subtotal = item.quantidade * item.valorUnitario;
+    const desconto = item.desconto || 0;
+    const total = subtotal - desconto;
+
+  itensVendaAtual.forEach((item, index) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.nome}</td>
       <td>${item.quantidade}</td>
       <td>R$ ${item.valorUnitario.toFixed(2)}</td>
       <td>R$ ${item.desconto.toFixed(2)}</td>
+      <td>R$ ${item.subtotal.toFixed(2)}</td>
       <td>R$ ${item.total.toFixed(2)}</td>
       <td>
         <button onclick="removerItemVenda(${index})">Excluir</button>
-        <button onclick="promptDescontoItem(${index})">Desconto</button>
       </td>
     `;
     tbody.appendChild(tr);
-  });
+    });
+ });
 }
 
 function atualizarTotalVenda() {
@@ -1469,4 +1449,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
