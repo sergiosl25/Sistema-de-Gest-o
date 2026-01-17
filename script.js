@@ -287,29 +287,49 @@ document.getElementById("btnCadastrarProduto")?.addEventListener("click", async 
     carregarEstoque();
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const btnAdicionarItemVenda = document.getElementById("btnAdicionarItemVenda");
+  btnAdicionarItemVenda.addEventListener("click", adicionarItemVenda);
+
+  const btnDescontoItem = document.getElementById("btnDescontoItem");
+  btnDescontoItem?.addEventListener("click", aplicarDescontoItemPrompt);
+
+  const btnDescontoVenda = document.getElementById("btnDescontoVenda");
+  btnDescontoVenda?.addEventListener("click", aplicarDescontoVendaPrompt);
+
+  const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
+  btnFinalizarVenda?.addEventListener("click", finalizarVenda);
+});
+
 // ==========================
-// 🔹 Adicionar item à venda
+// 🔹 Adicionar Item à Venda
 // ==========================
-document.getElementById("btnAdicionarItemVenda").addEventListener("click", () => {
+function adicionarItemVenda() {
   const produtoSelect = document.getElementById("produtoSelect");
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
   const quantidadeInput = document.getElementById("quantidadeVenda");
   const precoInput = document.getElementById("precoSelecionado");
 
+  if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
+    console.error("Algum elemento do formulário não foi encontrado!");
+    return;
+  }
+
   const produtoId = produtoSelect.value;
   const tipoPreco = tipoPrecoSelect.value;
   const quantidade = Number(quantidadeInput.value);
   const preco = Number(precoInput.value);
-  const nome = produtoSelect.options[produtoSelect.selectedIndex].text;
 
   if (!produtoId || quantidade <= 0 || preco <= 0) {
     mostrarModal("Preencha todos os campos corretamente!");
     return;
   }
 
+  const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
+
   itensVendaAtual.push({
     produtoId,
-    nome,
+    nome: produtoNome,
     quantidade,
     valorUnitario: preco,
     tipoPreco,
@@ -317,88 +337,118 @@ document.getElementById("btnAdicionarItemVenda").addEventListener("click", () =>
     total: quantidade * preco
   });
 
-  renderizarItensVenda();
-  atualizarTotalVenda();
-});
-
-// ==========================
-// 🔹 Aplicar desconto em item
-// ==========================
-function aplicarDescontoItem(indexItem, valorDesconto) {
-  const item = itensVendaAtual[indexItem];
-  item.desconto = Number(valorDesconto) || 0;
-  item.total = Math.max(0, (item.quantidade * item.valorUnitario) - item.desconto);
-
-  renderizarItensVenda();
+  atualizarTabelaItensVenda();
   atualizarTotalVenda();
 }
 
+
+// ==========================
+// 🔹 Desconto por Item
+// ==========================
 async function promptDescontoItem(indexItem) {
   const item = itensVendaAtual[indexItem];
   if (!item) return;
 
-  const tipo = await mostrarPrompt(`Aplicar desconto em ${item.nome} por:\n1 - Valor (R$)\n2 - Percentual (%)`, "1");
+  const tipo = await mostrarPrompt(
+    `Escolher tipo de desconto para ${item.nome}:\n1 - Valor (R$)\n2 - Percentual (%)`,
+    "1"
+  );
+
   if (tipo !== "1" && tipo !== "2") {
     mostrarModal("Tipo de desconto inválido!");
     return;
   }
 
   if (tipo === "1") {
-    const valor = parseFloat(await mostrarPrompt(`Digite o valor do desconto (R$) para ${item.nome}:`, "0")) || 0;
-    if (valor < 0 || valor > item.quantidade * item.valorUnitario) return mostrarModal("Desconto inválido!");
-    aplicarDescontoItem(indexItem, valor);
-  } else if (tipo === "2") {
-    const perc = parseFloat(await mostrarPrompt(`Digite o percentual (%) para ${item.nome}:`, "0")) || 0;
-    if (perc < 0 || perc > 100) return mostrarModal("Percentual inválido!");
-    aplicarDescontoItem(indexItem, (item.quantidade * item.valorUnitario) * (perc / 100));
+    const descStr = await mostrarPrompt(`Digite o valor do desconto (R$) para ${item.nome}:`, "0");
+    const valor = parseFloat(descStr);
+    if (isNaN(valor) || valor < 0) {
+      mostrarModal("Desconto inválido!");
+      return;
+    }
+    item.desconto = valor;
   } else {
-    mostrarModal("Tipo de desconto inválido!");
-  }
-}
-
-// ==========================
-// 🔹 Aplicar desconto geral da venda
-// ==========================
-async function aplicarDescontoVenda(valorOuPerc, isPercentual = false) {
-  const totalAtual = itensVendaAtual.reduce((soma, item) => soma + item.total, 0);
-  if (isPercentual) {
-    descontoPercentualVenda = valorOuPerc;
-    descontoTotalVenda = totalAtual * (valorOuPerc / 100);
-  } else {
-    descontoTotalVenda = valorOuPerc;
-    descontoPercentualVenda = (valorOuPerc / totalAtual) * 100;
-  }
-
-  // Distribui proporcionalmente entre os itens
-  const somaSubtotais = itensVendaAtual.reduce((acc, item) => acc + (item.quantidade * item.valorUnitario), 0);
-  itensVendaAtual.forEach(item => {
+    const percStr = await mostrarPrompt(`Digite o percentual de desconto (%) para ${item.nome}:`, "0");
+    const perc = parseFloat(percStr);
+    if (isNaN(perc) || perc < 0 || perc > 100) {
+      mostrarModal("Percentual inválido!");
+      return;
+    }
     const subtotal = item.quantidade * item.valorUnitario;
-    const descontoProporcional = (subtotal / somaSubtotais) * descontoTotalVenda;
-    item.total = Math.max(0, subtotal - (item.desconto + descontoProporcional));
-  });
+    item.desconto = (subtotal * perc) / 100;
+  }
 
-  renderizarItensVenda();
+  item.total = Math.max(0, (item.quantidade * item.valorUnitario) - item.desconto);
+
+  atualizarTabelaItensVenda();
   atualizarTotalVenda();
 }
 
-btnDescontoVenda.addEventListener("click", async () => {
-  if (itensVendaAtual.length === 0) return mostrarModal("Nenhum item na venda.");
+// Botão genérico para aplicar desconto por item
+async function aplicarDescontoItemPrompt() {
+  if (itensVendaAtual.length === 0) {
+    mostrarModal("Nenhum item na venda para aplicar desconto.");
+    return;
+  }
+
+  const listaProdutos = itensVendaAtual
+    .map((item, index) => `${index + 1} - ${item.nome}`)
+    .join("\n");
+
+  const indiceStr = await mostrarPrompt(`Escolha o número do item:\n${listaProdutos}`);
+  const indice = parseInt(indiceStr) - 1;
+
+  if (isNaN(indice) || indice < 0 || indice >= itensVendaAtual.length) {
+    mostrarModal("Item inválido!");
+    return;
+  }
+
+  promptDescontoItem(indice);
+}
+
+// ==========================
+// 🔹 Desconto Total da Venda
+// ==========================
+async function aplicarDescontoVendaPrompt() {
+  if (itensVendaAtual.length === 0) {
+    mostrarModal("Nenhum item na venda para aplicar desconto.");
+    return;
+  }
 
   const totalAtual = itensVendaAtual.reduce((soma, item) => soma + item.total, 0);
-  const tipo = await mostrarPrompt(`Total atual: R$ ${totalAtual.toFixed(2)}\nAplicar desconto por:\n1 - Valor (R$)\n2 - Percentual (%)`, "1");
+
+  const tipo = await mostrarPrompt(
+    `Total atual: R$ ${totalAtual.toFixed(2)}\n1 - Valor (R$)\n2 - Percentual (%)`,
+    "1"
+  );
+
+  if (tipo !== "1" && tipo !== "2") {
+    mostrarModal("Tipo inválido!");
+    return;
+  }
 
   if (tipo === "1") {
-    const valor = parseFloat(await mostrarPrompt("Desconto total (R$):", "0")) || 0;
-    if (valor < 0 || valor > totalAtual) return mostrarModal("Desconto inválido!");
-    aplicarDescontoVenda(valor, false);
-  } else if (tipo === "2") {
-    const perc = parseFloat(await mostrarPrompt("Desconto total (%):", "0")) || 0;
-    if (perc < 0 || perc > 100) return mostrarModal("Percentual inválido!");
-    aplicarDescontoVenda(perc, true);
+    const descStr = await mostrarPrompt(`Desconto geral (R$):`, "0");
+    const valor = parseFloat(descStr);
+    if (isNaN(valor) || valor < 0 || valor > totalAtual) {
+      mostrarModal("Desconto inválido!");
+      return;
+    }
+    descontoTotalVenda = valor;
+    descontoPercentualVenda = 0;
   } else {
-    mostrarModal("Tipo de desconto inválido!");
+    const percStr = await mostrarPrompt(`Desconto geral (%):`, "0");
+    const perc = parseFloat(percStr);
+    if (isNaN(perc) || perc < 0 || perc > 100) {
+      mostrarModal("Percentual inválido!");
+      return;
+    }
+    descontoPercentualVenda = perc;
+    descontoTotalVenda = (totalAtual * perc) / 100;
   }
-});
+
+  atualizarTotalVenda();
+}
 
 // ==========================
 // 🔹 Renderização da tabela de itens
@@ -425,37 +475,71 @@ function renderizarItensVenda() {
   });
 }
 
+
 // ==========================
-// 🔹 Atualiza total da venda
+// 🔹 Atualizar Tabela e Total
 // ==========================
+function atualizarTabelaItensVenda() {
+  const tbody = document.querySelector("#tabelaItensVenda tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  itensVendaAtual.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.nome}</td>
+      <td>${item.quantidade}</td>
+      <td>R$ ${item.valorUnitario.toFixed(2)}</td>
+      <td>R$ ${item.desconto.toFixed(2)}</td>
+      <td>R$ ${item.total.toFixed(2)}</td>
+      <td>
+        <button onclick="removerItemVenda(${index})">Excluir</button>
+        <button onclick="promptDescontoItem(${index})">Desconto</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 function atualizarTotalVenda() {
-  const somaItens = itensVendaAtual.reduce((acc, item) => acc + (item.total || 0), 0);
-  const totalComDesconto = Math.max(0, somaItens - descontoTotalVenda);
+  let somaItens = itensVendaAtual.reduce((acc, item) => acc + item.total, 0);
+  const totalComDesconto = Math.max(0, somaItens - (descontoTotalVenda || 0));
   document.getElementById("totalVenda").textContent = totalComDesconto.toFixed(2);
 }
 
 // ==========================
-// 🔹 Remover item da venda
+// 🔹 Remover Item
 // ==========================
 function removerItemVenda(index) {
   itensVendaAtual.splice(index, 1);
-  renderizarItensVenda();
+  atualizarTabelaItensVenda();
   atualizarTotalVenda();
 }
+
 window.removerItemVenda = removerItemVenda;
 
-// ==========================
-// 🔹 Finalizar venda
-// ==========================
-btnFinalizarVenda.addEventListener("click", async () => {
-  if (btnFinalizarVenda.disabled) return;
-  btnFinalizarVenda.disabled = true;
 
+// ==========================
+// 🔹 Finalizar Venda
+// ==========================
+async function finalizarVenda() {
+  const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
   try {
+    if (btnFinalizarVenda.disabled) return;
+    btnFinalizarVenda.disabled = true;
+
     const tipoPagamentoSelect = document.getElementById("tipoPagamento");
     const clienteSelect = document.getElementById("clienteSelect");
-    if (!tipoPagamentoSelect || !clienteSelect || itensVendaAtual.length === 0) {
-      mostrarModal("Preencha cliente, tipo de pagamento e itens!");
+
+    if (!clienteSelect || !tipoPagamentoSelect) {
+      mostrarModal("Selecione cliente e tipo de pagamento.");
+      btnFinalizarVenda.disabled = false;
+      return;
+    }
+    if (itensVendaAtual.length === 0) {
+      mostrarModal("Nenhum item adicionado à venda.");
+      btnFinalizarVenda.disabled = false;
       return;
     }
 
@@ -463,21 +547,31 @@ btnFinalizarVenda.addEventListener("click", async () => {
     const clienteId = clienteSelect.value;
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-    // Preparar itens para salvar
-    const itensParaSalvar = itensVendaAtual.map(item => ({
-      produtoId: item.produtoId,
-      nome: item.nome,
-      quantidade: item.quantidade,
-      valorUnitario: item.valorUnitario,
-      subtotal: item.quantidade * item.valorUnitario,
-      desconto: item.desconto,
-      totalItem: item.total
-    }));
+    const somaSubtotais = itensVendaAtual.reduce(
+      (acc, item) => acc + (item.quantidade * item.valorUnitario),
+      0
+    );
+
+    const itensParaSalvar = itensVendaAtual.map(item => {
+      const descontoProporcional = descontoTotalVenda
+        ? (item.total / somaSubtotais) * descontoTotalVenda
+        : 0;
+      const totalItem = Math.max(0, item.total - descontoProporcional);
+
+      return {
+        produtoId: item.produtoId,
+        nome: item.nome,
+        quantidade: item.quantidade,
+        valorUnitario: item.valorUnitario,
+        subtotal: item.quantidade * item.valorUnitario,
+        desconto: item.desconto + descontoProporcional,
+        totalItem
+      };
+    });
 
     const totalParaSalvar = itensParaSalvar.reduce((acc, item) => acc + item.totalItem, 0);
 
-    // Salvar venda no Firestore
-    const docRef = await addDoc(collection(db, "vendas"), {
+    const venda = {
       clienteId,
       clienteNome,
       tipoPagamento,
@@ -485,9 +579,11 @@ btnFinalizarVenda.addEventListener("click", async () => {
       total: totalParaSalvar,
       descontoVenda: descontoTotalVenda || 0,
       data: serverTimestamp()
-    });
+    };
 
-    // Atualizar estoque
+    const docRef = await addDoc(collection(db, "vendas"), venda);
+
+    // Atualiza estoque
     for (const item of itensParaSalvar) {
       const produtoRef = doc(db, "produtos", item.produtoId);
       const produtoSnap = await getDoc(produtoRef);
@@ -508,134 +604,81 @@ btnFinalizarVenda.addEventListener("click", async () => {
     });
 
     mostrarModal(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
+    await carregarTabelaRegistrosVendas();
     limparTelaVenda();
 
   } catch (error) {
-    console.error("Erro ao finalizar venda:", error);
-    mostrarModal("Erro ao finalizar venda: " + error.message);
+    console.error("Erro ao registrar venda:", error);
+    mostrarModal("Erro ao registrar venda: " + error.message);
   } finally {
     btnFinalizarVenda.disabled = false;
   }
-});
-
-async function gerarPdfVendaPremium(venda) {
-    try {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const pdfWidth = doc.internal.pageSize.getWidth();
-
-        // ---------------- Logo ----------------
-        const logo = document.getElementById("logo");
-        if (logo) {
-            const imgProps = doc.getImageProperties(logo);
-            const logoWidth = 40;
-            const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-            const xPos = (pdfWidth - logoWidth) / 2;
-            doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
-        }
-
-        // ---------------- Cabeçalho ----------------
-        doc.setFontSize(16);
-        doc.setFont(undefined, "bold");
-        doc.text("RECIBO DE VENDA", pdfWidth / 2, 55, { align: "center" });
-
-        doc.setFontSize(10);
-        doc.setFont(undefined, "normal");
-        doc.text(`Recibo: ${venda.id || "-"}`, pdfWidth - 14, 60, { align: "right" });
-
-        const dataVenda = venda.data instanceof Date ? venda.data : new Date();
-
-        doc.setFontSize(12);
-        doc.text(`Cliente: ${venda.clienteNome}`, 14, 70);
-        doc.text(`Pagamento: ${venda.tipoPagamento}`, 14, 77);
-        doc.text(`Data: ${dataVenda.toLocaleDateString()} ${dataVenda.toLocaleTimeString()}`, pdfWidth - 14, 70, { align: "right" });
-
-        // ---------------- Tabela ----------------
-        const startY = 90;
-        const rowHeight = 8;
-        const colX = [14, 70, 100, 130, 160, 190]; // Produto, Qtde, Unit, Desconto, Subtotal, Total
-
-        doc.setFont(undefined, "bold");
-        ["Produto", "Qtde", "Valor Unit.", "Desconto", "Subtotal", "Total"].forEach((text, i) => {
-            doc.text(text, colX[i], startY);
-        });
-        doc.line(14, startY + 2, pdfWidth - 14, startY + 2);
-
-        let currentY = startY + rowHeight;
-        doc.setFont(undefined, "normal");
-
-        (venda.itens || []).forEach((item, index) => {
-            const nome = item.nome || "-";
-            const qtd = Number(item.quantidade || 0);
-            const valorUnitario = Number(item.valorUnitario || 0);
-            const desconto = Number(item.desconto || 0);
-            const subtotal = qtd * valorUnitario;
-            const totalItem = subtotal - desconto;
-
-            // Linha alternada de fundo
-            if (index % 2 === 0) {
-                doc.setFillColor(245);
-                doc.rect(14, currentY - 6, pdfWidth - 28, rowHeight, "F");
-            }
-
-            doc.text(nome, colX[0], currentY);
-            doc.text(String(qtd), colX[1], currentY);
-            doc.text(`R$ ${valorUnitario.toFixed(2)}`, colX[2], currentY);
-            doc.text(`R$ ${desconto.toFixed(2)}`, colX[3], currentY);
-            doc.text(`R$ ${subtotal.toFixed(2)}`, colX[4], currentY);
-            doc.text(`R$ ${totalItem.toFixed(2)}`, colX[5], currentY);
-
-            currentY += rowHeight;
-        });
-
-        // Linha separadora
-        doc.line(14, currentY, pdfWidth - 14, currentY);
-
-        // ---------------- Total e Desconto ----------------
-        doc.setFont(undefined, "bold");
-        doc.setFontSize(14);
-
-        const descontoVenda = Number(venda.descontoVenda || 0);
-        const totalComDesconto = Number(venda.total || 0);
-
-        if (descontoVenda > 0) {
-            doc.text(`Desconto Total: R$ ${descontoVenda.toFixed(2)}`, 14, currentY + 10);
-            doc.text(`TOTAL: R$ ${totalComDesconto.toFixed(2)}`, 14, currentY + 20);
-        } else {
-            doc.text(`TOTAL: R$ ${totalComDesconto.toFixed(2)}`, 14, currentY + 10);
-        }
-
-        // ---------------- Mensagem final ----------------
-        doc.setFontSize(12);
-        doc.setFont(undefined, "normal");
-        doc.text("Obrigado pela preferência!", pdfWidth / 2, currentY + 35, { align: "center" });
-
-        doc.save(`venda_${venda.clienteNome}.pdf`);
-    } catch (error) {
-        console.error("Erro ao gerar PDF:", error);
-        mostrarModal("Erro ao gerar PDF!");
-    }
 }
 
 // ==========================
-// 🔹 Limpar tela
+// 🔹 Limpar Tela
 // ==========================
 function limparTelaVenda() {
   itensVendaAtual = [];
   descontoTotalVenda = 0;
   descontoPercentualVenda = 0;
 
-  document.getElementById("clienteSelect").value = "";
-  document.getElementById("produtoSelect").value = "";
-  document.getElementById("tipoPrecoSelect").value = "";
-  document.getElementById("precoSelecionado").value = "";
-  document.getElementById("quantidadeVenda").value = "";
-  document.getElementById("tipoPagamento").value = "Dinheiro";
+  const campos = ["clienteSelect", "produtoSelect", "tipoPrecoSelect", "precoSelecionado", "quantidadeVenda", "tipoPagamento"];
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
 
   const tbody = document.querySelector("#tabelaItensVenda tbody");
   if (tbody) tbody.innerHTML = "";
 
   document.getElementById("totalVenda").textContent = "0.00";
+}
+
+// ==========================
+// 🔹 PDF da Venda (Itens com desconto)
+// ==========================
+async function gerarPdfVendaPremium(venda) {
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const pdfWidth = doc.internal.pageSize.getWidth();
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.setFont(undefined, "bold");
+    doc.text("RECIBO DE VENDA", pdfWidth / 2, 20, { align: "center" });
+    doc.setFontSize(12);
+    doc.setFont(undefined, "normal");
+    doc.text(`Cliente: ${venda.clienteNome}`, 14, 35);
+    doc.text(`Pagamento: ${venda.tipoPagamento}`, 14, 42);
+    doc.text(`Total: R$ ${venda.total.toFixed(2)}`, 14, 49);
+
+    // Tabela de Itens
+    const startY = 60;
+    const rowHeight = 8;
+    const colX = [14, 90, 130, 160, 190];
+
+    ["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"].forEach((text, i) => {
+      doc.text(text, colX[i], startY);
+    });
+
+    let currentY = startY + rowHeight;
+    venda.itens.forEach(item => {
+      if (item.totalItem == null) item.totalItem = item.quantidade * item.valorUnitario - (item.desconto || 0);
+      doc.text(item.nome, colX[0], currentY);
+      doc.text(String(item.quantidade), colX[1], currentY);
+      doc.text(`R$ ${item.valorUnitario.toFixed(2)}`, colX[2], currentY);
+      doc.text(`R$ ${item.desconto.toFixed(2)}`, colX[3], currentY);
+      doc.text(`R$ ${item.totalItem.toFixed(2)}`, colX[4], currentY);
+      currentY += rowHeight;
+    });
+
+    doc.save(`venda_${venda.clienteNome}.pdf`);
+  } catch (error) {
+    console.error("Erro ao gerar PDF:", error);
+    mostrarModal("Erro ao gerar PDF!");
+  }
 }
 
 // ===============================
