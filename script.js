@@ -639,25 +639,36 @@ function limparTelaVenda() {
 // 🔹 PDF da Venda (Itens com desconto)
 // ==========================
 async function gerarPdfVendaPremium(venda) {
-  try {
+try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pdfWidth = doc.internal.pageSize.getWidth();
 
+    // ---------------- Logo ----------------
+    const logo = document.getElementById("logo");
+    if (logo) {
+       const imgProps = doc.getImageProperties(logo);
+       const logoWidth = 40;
+       const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+       const xPos = (pdfWidth - logoWidth) / 2;
+       doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
+    }
+
     // Cabeçalho
     doc.setFontSize(16);
     doc.setFont(undefined, "bold");
-    doc.text("RECIBO DE VENDA", pdfWidth / 2, 20, { align: "center" });
-    doc.setFontSize(12);
+    doc.text("Recibo de venda", pdfWidth / 2, 55, { align: "center" });
+
+    doc.setFontSize(10);
     doc.setFont(undefined, "normal");
     doc.text(`Cliente: ${venda.clienteNome}`, 14, 35);
     doc.text(`Pagamento: ${venda.tipoPagamento}`, 14, 42);
     doc.text(`Total: R$ ${venda.total.toFixed(2)}`, 14, 49);
 
     // Tabela de Itens
-    const startY = 60;
+    const startY = 90;
     const rowHeight = 8;
-    const colX = [14, 90, 130, 160, 190];
+    const colX = [14, 90, 130, 160, 170];
 
     ["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"].forEach((text, i) => {
       doc.text(text, colX[i], startY);
@@ -1458,3 +1469,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
