@@ -43,6 +43,7 @@ const orcamentosCol = collection(db, 'orcamentos');
 
 let itensVendaAtual = [];
 let totalVenda = 0;       // Total da venda
+let descontoPercentualVenda = 0; 
 let descontoTotalVenda = 0;
 let produtosMap = {}; // será carregado do Firestor
 
@@ -287,86 +288,174 @@ document.getElementById("btnCadastrarProduto")?.addEventListener("click", async 
 });
 
 // ==========================
-// 🔹 Vendas
+// 🔹 Adicionar item à venda
 // ==========================
-document.addEventListener("DOMContentLoaded", () => {
-  const btnAdicionarItemVenda = document.getElementById("btnAdicionarItemVenda");
-  btnAdicionarItemVenda.addEventListener("click", adicionarItemVenda);
-});
-
-function adicionarItemVenda() {
+document.getElementById("btnAdicionarItemVenda").addEventListener("click", () => {
   const produtoSelect = document.getElementById("produtoSelect");
   const tipoPrecoSelect = document.getElementById("tipoPrecoSelect");
   const quantidadeInput = document.getElementById("quantidadeVenda");
   const precoInput = document.getElementById("precoSelecionado");
- 
-  if (!produtoSelect || !tipoPrecoSelect || !quantidadeInput || !precoInput) {
-    console.error("Algum elemento do formulário não foi encontrado!");
-    return;
-  }
 
   const produtoId = produtoSelect.value;
   const tipoPreco = tipoPrecoSelect.value;
   const quantidade = Number(quantidadeInput.value);
   const preco = Number(precoInput.value);
- 
+  const nome = produtoSelect.options[produtoSelect.selectedIndex].text;
+
   if (!produtoId || quantidade <= 0 || preco <= 0) {
     mostrarModal("Preencha todos os campos corretamente!");
     return;
   }
 
-  const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
-
-  // Adiciona ao array de itens da venda
   itensVendaAtual.push({
-  produtoId,
-  nome: produtoNome,
-  quantidade,
-  valorUnitario: preco,  // usar sempre valorUnitario
-  tipoPreco
+    produtoId,
+    nome,
+    quantidade,
+    valorUnitario: preco,
+    tipoPreco,
+    desconto: 0,
+    total: quantidade * preco
+  });
+
+  renderizarItensVenda();
+  atualizarTotalVenda();
 });
 
-renderizarItensVenda();
-}
-
+// ==========================
+// 🔹 Aplicar desconto em item
+// ==========================
 function aplicarDescontoItem(indexItem, valorDesconto) {
   const item = itensVendaAtual[indexItem];
-  item.desconto = Number(valorDesconto);
-  item.total = (item.quantidade * item.valorUnitario) - item.desconto;
+  item.desconto = Number(valorDesconto) || 0;
+  item.total = Math.max(0, (item.quantidade * item.valorUnitario) - item.desconto);
 
-  atualizarTabelaItensVenda();
+  renderizarItensVenda();
   atualizarTotalVenda();
 }
 
-// Prompt para desconto do item
-function promptDescontoItem(indexItem) {
-  const valor = parseFloat(prompt("Digite o valor do desconto para este item:", "0"));
-  if (!isNaN(valor)) {
+async function promptDescontoItem(indexItem) {
+  const item = itensVendaAtual[indexItem];
+  if (!item) return;
+
+  const tipo = await mostrarPrompt(`Aplicar desconto em ${item.nome} por:\n1 - Valor (R$)\n2 - Percentual (%)`, "1");
+  if (tipo !== "1" && tipo !== "2") {
+    mostrarModal("Tipo de desconto inválido!");
+    return;
+  }
+
+  if (tipo === "1") {
+    const valor = parseFloat(await mostrarPrompt(`Digite o valor do desconto (R$) para ${item.nome}:`, "0")) || 0;
+    if (valor < 0 || valor > item.quantidade * item.valorUnitario) return mostrarModal("Desconto inválido!");
     aplicarDescontoItem(indexItem, valor);
+  } else if (tipo === "2") {
+    const perc = parseFloat(await mostrarPrompt(`Digite o percentual (%) para ${item.nome}:`, "0")) || 0;
+    if (perc < 0 || perc > 100) return mostrarModal("Percentual inválido!");
+    aplicarDescontoItem(indexItem, (item.quantidade * item.valorUnitario) * (perc / 100));
+  } else {
+    mostrarModal("Tipo de desconto inválido!");
   }
 }
 
-function aplicarDescontoVenda(valorDesconto) {
-  descontoTotalVenda = Number(valorDesconto) || 0;
+// ==========================
+// 🔹 Aplicar desconto geral da venda
+// ==========================
+async function aplicarDescontoVenda(valorOuPerc, isPercentual = false) {
+  const totalAtual = itensVendaAtual.reduce((soma, item) => soma + item.total, 0);
+  if (isPercentual) {
+    descontoPercentualVenda = valorOuPerc;
+    descontoTotalVenda = totalAtual * (valorOuPerc / 100);
+  } else {
+    descontoTotalVenda = valorOuPerc;
+    descontoPercentualVenda = (valorOuPerc / totalAtual) * 100;
+  }
+
+  // Distribui proporcionalmente entre os itens
+  const somaSubtotais = itensVendaAtual.reduce((acc, item) => acc + (item.quantidade * item.valorUnitario), 0);
+  itensVendaAtual.forEach(item => {
+    const subtotal = item.quantidade * item.valorUnitario;
+    const descontoProporcional = (subtotal / somaSubtotais) * descontoTotalVenda;
+    item.total = Math.max(0, subtotal - (item.desconto + descontoProporcional));
+  });
+
+  renderizarItensVenda();
   atualizarTotalVenda();
 }
 
-btnFinalizarVenda.addEventListener("click", async () => {
-  try {
-    if (btnFinalizarVenda.disabled) return;
-    btnFinalizarVenda.disabled = true;
+btnDescontoVenda.addEventListener("click", async () => {
+  if (itensVendaAtual.length === 0) return mostrarModal("Nenhum item na venda.");
 
+  const totalAtual = itensVendaAtual.reduce((soma, item) => soma + item.total, 0);
+  const tipo = await mostrarPrompt(`Total atual: R$ ${totalAtual.toFixed(2)}\nAplicar desconto por:\n1 - Valor (R$)\n2 - Percentual (%)`, "1");
+
+  if (tipo === "1") {
+    const valor = parseFloat(await mostrarPrompt("Desconto total (R$):", "0")) || 0;
+    if (valor < 0 || valor > totalAtual) return mostrarModal("Desconto inválido!");
+    aplicarDescontoVenda(valor, false);
+  } else if (tipo === "2") {
+    const perc = parseFloat(await mostrarPrompt("Desconto total (%):", "0")) || 0;
+    if (perc < 0 || perc > 100) return mostrarModal("Percentual inválido!");
+    aplicarDescontoVenda(perc, true);
+  } else {
+    mostrarModal("Tipo de desconto inválido!");
+  }
+});
+
+// ==========================
+// 🔹 Renderização da tabela de itens
+// ==========================
+function renderizarItensVenda() {
+  const tbody = document.querySelector("#tabelaItensVenda tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  itensVendaAtual.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.nome}</td>
+      <td>${item.quantidade}</td>
+      <td>R$ ${item.valorUnitario.toFixed(2)}</td>
+      <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
+      <td>R$ ${item.total.toFixed(2)}</td>
+      <td>
+        <button onclick="removerItemVenda(${index})">Remover</button>
+        <button onclick="promptDescontoItem(${index})">Desconto</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ==========================
+// 🔹 Atualiza total da venda
+// ==========================
+function atualizarTotalVenda() {
+  const somaItens = itensVendaAtual.reduce((acc, item) => acc + (item.total || 0), 0);
+  const totalComDesconto = Math.max(0, somaItens - descontoTotalVenda);
+  document.getElementById("totalVenda").textContent = totalComDesconto.toFixed(2);
+}
+
+// ==========================
+// 🔹 Remover item da venda
+// ==========================
+function removerItemVenda(index) {
+  itensVendaAtual.splice(index, 1);
+  renderizarItensVenda();
+  atualizarTotalVenda();
+}
+window.removerItemVenda = removerItemVenda;
+
+// ==========================
+// 🔹 Finalizar venda
+// ==========================
+btnFinalizarVenda.addEventListener("click", async () => {
+  if (btnFinalizarVenda.disabled) return;
+  btnFinalizarVenda.disabled = true;
+
+  try {
     const tipoPagamentoSelect = document.getElementById("tipoPagamento");
     const clienteSelect = document.getElementById("clienteSelect");
-
-    if (!clienteSelect || !tipoPagamentoSelect) {
-      mostrarModal("Selecione cliente e tipo de pagamento.");
-      btnFinalizarVenda.disabled = false;
-      return;
-    }
-    if (itensVendaAtual.length === 0) {
-      mostrarModal("Nenhum item adicionado à venda.");
-      btnFinalizarVenda.disabled = false;
+    if (!tipoPagamentoSelect || !clienteSelect || itensVendaAtual.length === 0) {
+      mostrarModal("Preencha cliente, tipo de pagamento e itens!");
       return;
     }
 
@@ -374,32 +463,21 @@ btnFinalizarVenda.addEventListener("click", async () => {
     const clienteId = clienteSelect.value;
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-    const somaSubtotais = itensVendaAtual.reduce(
-      (acc, item) => acc + (item.quantidade * item.valorUnitario),
-      0
-    );
-
-    const itensParaSalvar = itensVendaAtual.map(item => {
-      const subtotal = item.quantidade * item.valorUnitario;
-      const descontoProporcional = descontoTotalVenda
-        ? (subtotal / somaSubtotais) * descontoTotalVenda
-        : 0;
-      const totalItem = subtotal - (item.desconto + descontoProporcional);
-
-      return {
-        produtoId: item.produtoId,
-        nome: item.nome,
-        quantidade: item.quantidade,
-        valorUnitario: item.valorUnitario,
-        subtotal,
-        desconto: item.desconto + descontoProporcional,
-        totalItem
-      };
-    });
+    // Preparar itens para salvar
+    const itensParaSalvar = itensVendaAtual.map(item => ({
+      produtoId: item.produtoId,
+      nome: item.nome,
+      quantidade: item.quantidade,
+      valorUnitario: item.valorUnitario,
+      subtotal: item.quantidade * item.valorUnitario,
+      desconto: item.desconto,
+      totalItem: item.total
+    }));
 
     const totalParaSalvar = itensParaSalvar.reduce((acc, item) => acc + item.totalItem, 0);
 
-    const venda = {
+    // Salvar venda no Firestore
+    const docRef = await addDoc(collection(db, "vendas"), {
       clienteId,
       clienteNome,
       tipoPagamento,
@@ -407,11 +485,9 @@ btnFinalizarVenda.addEventListener("click", async () => {
       total: totalParaSalvar,
       descontoVenda: descontoTotalVenda || 0,
       data: serverTimestamp()
-    };
+    });
 
-    const docRef = await addDoc(collection(db, "vendas"), venda);
-
-    // Atualiza estoque
+    // Atualizar estoque
     for (const item of itensParaSalvar) {
       const produtoRef = doc(db, "produtos", item.produtoId);
       const produtoSnap = await getDoc(produtoRef);
@@ -432,13 +508,11 @@ btnFinalizarVenda.addEventListener("click", async () => {
     });
 
     mostrarModal(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
-
-    await carregarTabelaRegistrosVendas();
     limparTelaVenda();
 
   } catch (error) {
-    console.error("Erro ao registrar venda:", error);
-    mostrarModal("Erro ao registrar venda: " + error.message);
+    console.error("Erro ao finalizar venda:", error);
+    mostrarModal("Erro ao finalizar venda: " + error.message);
   } finally {
     btnFinalizarVenda.disabled = false;
   }
@@ -469,9 +543,7 @@ async function gerarPdfVendaPremium(venda) {
         doc.setFont(undefined, "normal");
         doc.text(`Recibo: ${venda.id || "-"}`, pdfWidth - 14, 60, { align: "right" });
 
-        const dataVenda = venda.data instanceof Date
-            ? venda.data
-            : new Date();
+        const dataVenda = venda.data instanceof Date ? venda.data : new Date();
 
         doc.setFontSize(12);
         doc.text(`Cliente: ${venda.clienteNome}`, 14, 70);
@@ -481,10 +553,10 @@ async function gerarPdfVendaPremium(venda) {
         // ---------------- Tabela ----------------
         const startY = 90;
         const rowHeight = 8;
-        const colX = [14, 90, 130, 170];
+        const colX = [14, 70, 100, 130, 160, 190]; // Produto, Qtde, Unit, Desconto, Subtotal, Total
 
         doc.setFont(undefined, "bold");
-        ["Produto", "Qtde", "Valor Unitário", "Subtotal"].forEach((text, i) => {
+        ["Produto", "Qtde", "Valor Unit.", "Desconto", "Subtotal", "Total"].forEach((text, i) => {
             doc.text(text, colX[i], startY);
         });
         doc.line(14, startY + 2, pdfWidth - 14, startY + 2);
@@ -495,8 +567,10 @@ async function gerarPdfVendaPremium(venda) {
         (venda.itens || []).forEach((item, index) => {
             const nome = item.nome || "-";
             const qtd = Number(item.quantidade || 0);
-            const valorUnitario = Number(item.valorUnitario || item.preco || 0);
+            const valorUnitario = Number(item.valorUnitario || 0);
+            const desconto = Number(item.desconto || 0);
             const subtotal = qtd * valorUnitario;
+            const totalItem = subtotal - desconto;
 
             // Linha alternada de fundo
             if (index % 2 === 0) {
@@ -507,7 +581,9 @@ async function gerarPdfVendaPremium(venda) {
             doc.text(nome, colX[0], currentY);
             doc.text(String(qtd), colX[1], currentY);
             doc.text(`R$ ${valorUnitario.toFixed(2)}`, colX[2], currentY);
-            doc.text(`R$ ${subtotal.toFixed(2)}`, colX[3], currentY);
+            doc.text(`R$ ${desconto.toFixed(2)}`, colX[3], currentY);
+            doc.text(`R$ ${subtotal.toFixed(2)}`, colX[4], currentY);
+            doc.text(`R$ ${totalItem.toFixed(2)}`, colX[5], currentY);
 
             currentY += rowHeight;
         });
@@ -515,15 +591,24 @@ async function gerarPdfVendaPremium(venda) {
         // Linha separadora
         doc.line(14, currentY, pdfWidth - 14, currentY);
 
-        // ---------------- Total ----------------
+        // ---------------- Total e Desconto ----------------
         doc.setFont(undefined, "bold");
         doc.setFontSize(14);
-        doc.text(`TOTAL: R$ ${venda.total.toFixed(2)}`, 14, currentY + 10);
+
+        const descontoVenda = Number(venda.descontoVenda || 0);
+        const totalComDesconto = Number(venda.total || 0);
+
+        if (descontoVenda > 0) {
+            doc.text(`Desconto Total: R$ ${descontoVenda.toFixed(2)}`, 14, currentY + 10);
+            doc.text(`TOTAL: R$ ${totalComDesconto.toFixed(2)}`, 14, currentY + 20);
+        } else {
+            doc.text(`TOTAL: R$ ${totalComDesconto.toFixed(2)}`, 14, currentY + 10);
+        }
 
         // ---------------- Mensagem final ----------------
         doc.setFontSize(12);
         doc.setFont(undefined, "normal");
-        doc.text("Obrigado pela preferência!", pdfWidth / 2, currentY + 25, { align: "center" });
+        doc.text("Obrigado pela preferência!", pdfWidth / 2, currentY + 35, { align: "center" });
 
         doc.save(`venda_${venda.clienteNome}.pdf`);
     } catch (error) {
@@ -532,44 +617,14 @@ async function gerarPdfVendaPremium(venda) {
     }
 }
 
-window.gerarPdfVenda = async function (idVenda) {
-  try {
-    const vendaRef = doc(db, "vendas", idVenda);
-    const vendaSnap = await getDoc(vendaRef);
-
-    if (!vendaSnap.exists()) {
-      mostrarModal("Venda não encontrada!");
-      return;
-    }
-
-    const venda = vendaSnap.data();
-
-    // Converte timestamp em Date
-    const dataVenda = venda.data?.seconds
-      ? new Date(venda.data.seconds * 1000)
-      : new Date();
-
-    // Chama o gerador de PDF já existente
-    await gerarPdfVendaPremium({
-      id: idVenda,
-      clienteNome: venda.clienteNome || "Cliente",
-      tipoPagamento: venda.tipoPagamento || "-",
-      itens: venda.itens || [],
-      total: venda.totalComDesconto || venda.total || 0,
-      data: dataVenda
-    });
-
-  } catch (error) {
-    console.error("Erro ao gerar PDF da venda:", error);
-    mostrarModal("Erro ao gerar PDF. Verifique o console.");
-  }
-};
-
+// ==========================
+// 🔹 Limpar tela
+// ==========================
 function limparTelaVenda() {
-  // Limpa a lista de itens da venda atual
   itensVendaAtual = [];
+  descontoTotalVenda = 0;
+  descontoPercentualVenda = 0;
 
-  // Limpa selects e inputs
   document.getElementById("clienteSelect").value = "";
   document.getElementById("produtoSelect").value = "";
   document.getElementById("tipoPrecoSelect").value = "";
@@ -577,204 +632,11 @@ function limparTelaVenda() {
   document.getElementById("quantidadeVenda").value = "";
   document.getElementById("tipoPagamento").value = "Dinheiro";
 
-  // Limpa tabela de itens da venda
   const tbody = document.querySelector("#tabelaItensVenda tbody");
   if (tbody) tbody.innerHTML = "";
 
-  // Limpa total da venda
   document.getElementById("totalVenda").textContent = "0.00";
-
-  // Zera desconto total da venda
-  descontoTotalVenda = 0;
 }
-
-// --- Função para aplicar desconto em um item da venda ---
-btnDescontoItem.addEventListener("click", async () => {
-  if (itensVendaAtual.length === 0) {
-    mostrarModal("Nenhum item na venda para aplicar desconto.");
-    return;
-  }
-
-  const listaProdutos = itensVendaAtual
-    .map((item, index) => `${index + 1} - ${item.nome}`)
-    .join("\n");
-
-  const indiceStr = await mostrarPrompt(`Escolha o número do item para aplicar desconto:\n${listaProdutos}`);
-  const indice = parseInt(indiceStr) - 1;
-
-  if (isNaN(indice) || indice < 0 || indice >= itensVendaAtual.length) {
-    mostrarModal("Item inválido!");
-    return;
-  }
-
-  const item = itensVendaAtual[indice];
-
-  // Escolher tipo de desconto
-  const tipo = await mostrarPrompt(
-    `Aplicar desconto por:\n1 - Valor (R$)\n2 - Percentual (%)`
-  );
-
-  if (tipo !== "1" && tipo !== "2") {
-    mostrarModal("Tipo inválido!");
-    return;
-  }
-
-  // Desconto em valor
-  if (tipo === "1") {
-    const descStr = await mostrarPrompt(`Digite o valor do desconto (R$) para ${item.nome}:`, "0");
-    const valor = parseFloat(descStr);
-
-    if (isNaN(valor) || valor < 0) {
-      mostrarModal("Desconto inválido!");
-      return;
-    }
-
-    item.descontoValor = valor;
-    item.descontoPercentual = 0;
-  }
-
-  // Desconto em percentual
-  if (tipo === "2") {
-    const descStr = await mostrarPrompt(`Digite o percentual de desconto (%) para ${item.nome}:`, "0");
-    const perc = parseFloat(descStr);
-
-    if (isNaN(perc) || perc < 0 || perc > 100) {
-      mostrarModal("Desconto inválido!");
-      return;
-    }
-
-    item.descontoPercentual = perc;
-
-    const subtotal = item.quantidade * item.preco;
-    item.descontoValor = (subtotal * perc) / 100;
-  }
-
-  atualizarTabelaItensVenda();
-});
-
-// --- Função para aplicar desconto total na venda ---
-btnDescontoVenda.addEventListener("click", async () => {
-  if (itensVendaAtual.length === 0) {
-    mostrarModal("Nenhum item na venda para aplicar desconto.");
-    return;
-  }
-
-  const totalAtual = itensVendaAtual.reduce((soma, item) => {
-    const subtotal = item.quantidade * item.preco;
-    const desconto = item.descontoValor || 0;
-    return soma + (subtotal - desconto);
-  }, 0);
-
-  const tipo = await mostrarPrompt(
-    `Total atual: R$ ${totalAtual.toFixed(2)}\n` +
-    `Aplicar desconto por:\n1 - Valor (R$)\n2 - Percentual (%)`
-  );
-
-  if (tipo !== "1" && tipo !== "2") {
-    mostrarModal("Tipo inválido!");
-    return;
-  }
-
-  // Desconto em valor direto
-  if (tipo === "1") {
-    const descStr = await mostrarPrompt(`Desconto geral (R$):`, "0");
-    const valor = parseFloat(descStr);
-
-    if (isNaN(valor) || valor < 0 || valor > totalAtual) {
-      mostrarModal("Desconto inválido!");
-      return;
-    }
-
-    descontoTotalVenda = valor;
-    descontoPercentualVenda = 0;
-  }
-
-  // Desconto em percentual
-  if (tipo === "2") {
-    const descStr = await mostrarPrompt(`Desconto geral (%):`, "0");
-    const perc = parseFloat(descStr);
-
-    if (isNaN(perc) || perc < 0 || perc > 100) {
-      mostrarModal("Desconto inválido!");
-      return;
-    }
-
-    descontoPercentualVenda = perc;
-    descontoTotalVenda = (totalAtual * perc) / 100;
-  }
-
-  atualizarTabelaItensVenda();
-});
-
-// ===============================
-// ATUALIZAR TABELA DE ITENS
-// ===============================
-function renderizarItensVenda() {
-  const tbody = document.querySelector("#tabelaItensVenda tbody");
-  if (!tbody) return;
-
-  tbody.innerHTML = ""; // limpa a tabela antes de renderizar
-  let totalVenda = 0;
-
-  itensVendaAtual.forEach((item, index) => {
-    const subtotal = item.quantidade * item.valorUnitario;
-    const total = subtotal - (item.desconto || 0);
-    totalVenda += total;
-
-    const tr = document.createElement("tr");    
-    tr.innerHTML = `
-      <td>${item.nome}</td>
-      <td>${item.quantidade}</td>
-      <td>R$ ${item.valorUnitario?.toFixed(2) || "0.00"}</td>
-      <td>R$ ${(item.desconto || 0).toFixed(2)}</td>
-      <td>R$ ${subtotal.toFixed(2)}</td>
-      <td>R$ ${total.toFixed(2)}</td>
-      <td>
-       <button onclick="removerItemVenda(${index})">Remover</button>
-      </td>
-    `;
-
-    tbody.appendChild(tr);
-  });
-  
-  if (descontoTotalVenda > 0) totalVenda -= descontoTotalVenda;
-
-  document.getElementById("totalVenda").textContent = totalVenda.toFixed(2);
-}
-
-function atualizarTabelaItensVenda() {
-  const tbody = document.querySelector("#tabelaItensVenda tbody");
-  tbody.innerHTML = "";
-  itensVendaAtual.forEach((item, index) => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.nome}</td>
-      <td>${item.quantidade}</td>
-      <td>${item.valorUnitario.toFixed(2)}</td>
-      <td>${item.desconto.toFixed(2)}</td>
-      <td>${item.total.toFixed(2)}</td>
-      <td>
-        <button onclick="removerItemVenda(${index})">Excluir</button>
-        <button onclick="promptDescontoItem(${index})">Desconto</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
-
-function atualizarTotalVenda() {
-  const somaItens = itensVendaAtual.reduce((acc, item) => acc + item.total, 0);
-  const totalComDesconto = somaItens - (descontoTotalVenda || 0);
-  document.getElementById("totalVenda").textContent = totalComDesconto.toFixed(2);
-}
-
-function removerItemVenda(index) {
-  itensVendaAtual.splice(index, 1);
-  renderizarItensVenda();
-  atualizarTotalVenda();
-}
-
-window.removerItemVenda = removerItemVenda;
 
 // ===============================
 // CARREGAR REGISTROS DE VENDAS
