@@ -342,6 +342,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
       btnFinalizarVenda.disabled = false;
       return;
     }
+
     if (itensVendaAtual.length === 0) {
       mostrarModal("Nenhum item adicionado à venda.");
       btnFinalizarVenda.disabled = false;
@@ -352,21 +353,26 @@ btnFinalizarVenda.addEventListener("click", async () => {
     const clienteId = clienteSelect.value;
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-    // 🔹 Garante que desconto total é número
     const descontoVenda = Number(descontoTotalVenda) || 0;
 
-    // 🔹 Soma subtotal de todos os itens
-    const somaSubtotais = itensVendaAtual.reduce((acc, item) => acc + (item.quantidade * item.valorUnitario), 0);
+    // Soma subtotal de todos os itens para calcular desconto proporcional
+    const somaSubtotais = itensVendaAtual.reduce(
+      (acc, item) => acc + (item.quantidade * item.valorUnitario),
+      0
+    );
 
-    // 🔹 Mapeia itens para salvar no Firebase usando os valores atuais
+    // Mapeia itens para salvar no Firestore
     const itensParaSalvar = itensVendaAtual.map(item => {
       const subtotal = item.quantidade * item.valorUnitario;
 
-      // Desconto proporcional do desconto geral
-      const descontoProporcional = descontoVenda ? (subtotal / somaSubtotais) * descontoVenda : 0;
+      // Desconto proporcional da venda geral
+      const descontoProporcional = descontoVenda
+        ? (subtotal / somaSubtotais) * descontoVenda
+        : 0;
 
-      // Total do item = subtotal - desconto individual - desconto proporcional
-      const totalItem = subtotal - ((Number(item.desconto) || 0) + descontoProporcional);
+      // Total final do item = subtotal - desconto do item - desconto proporcional
+      const totalItem =
+        subtotal - (Number(item.desconto || 0) + descontoProporcional);
 
       return {
         produtoId: item.produtoId,
@@ -374,14 +380,17 @@ btnFinalizarVenda.addEventListener("click", async () => {
         quantidade: item.quantidade,
         valorUnitario: item.valorUnitario,
         subtotal,
-        desconto: (Number(item.desconto) || 0) + descontoProporcional,
+        desconto: Number(item.desconto || 0) + descontoProporcional,
         totalItem
       };
     });
 
-    const totalParaSalvar = itensParaSalvar.reduce((acc, item) => acc + item.totalItem, 0);
+    const totalParaSalvar = itensParaSalvar.reduce(
+      (acc, item) => acc + item.totalItem,
+      0
+    );
 
-    // 🔹 Cria objeto da venda
+    // Objeto da venda
     const venda = {
       clienteId,
       clienteNome,
@@ -392,11 +401,11 @@ btnFinalizarVenda.addEventListener("click", async () => {
       data: serverTimestamp()
     };
 
-    // 🔹 Salva venda no Firestore
+    // Salva venda no Firestore
     const docRef = await addDoc(collection(db, "vendas"), venda);
     console.log("Venda registrada com ID:", docRef.id);
 
-    // 🔹 Atualiza estoque
+    // Atualiza estoque
     for (const item of itensParaSalvar) {
       const produtoRef = doc(db, "produtos", item.produtoId);
       const produtoSnap = await getDoc(produtoRef);
@@ -408,14 +417,14 @@ btnFinalizarVenda.addEventListener("click", async () => {
       }
     }
 
-    // 🔹 Gera PDF da venda
-    gerarPdfVendaPremium({ 
-      id: docRef.id, 
-      clienteNome, 
-      tipoPagamento, 
-      itens: itensParaSalvar, 
-      total: totalParaSalvar, 
-      data: new Date() 
+    // Gera PDF da venda
+    gerarPdfVendaPremium({
+      id: docRef.id,
+      clienteNome,
+      tipoPagamento,
+      itens: itensParaSalvar,
+      total: totalParaSalvar,
+      data: new Date()
     });
 
     mostrarModal(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
@@ -429,28 +438,6 @@ btnFinalizarVenda.addEventListener("click", async () => {
     btnFinalizarVenda.disabled = false;
   }
 });
-
-// Limpar tela de venda após finalizar
-function limparTelaVenda() {
-    // Limpa array e total
-    itensVendaAtual = [];
-    totalVenda = 0;
-
-    // Limpa tabela de itens da venda
-    const corpoTabelaItensVenda = document.querySelector("#tabelaItensVenda tbody");
-    if (corpoTabelaItensVenda) corpoTabelaItensVenda.innerHTML = "";
-
-    // Reseta total exibido
-    const totalSpan = document.getElementById("totalVenda");
-    if (totalSpan) totalSpan.textContent = "0.00";
-
-    // Reseta selects
-    const clienteSelect = document.getElementById("clienteSelect");
-    const tipoPagamentoSelect = document.getElementById("tipoPagamento");
-
-    if (clienteSelect) clienteSelect.selectedIndex = 0;
-    if (tipoPagamentoSelect) tipoPagamentoSelect.selectedIndex = 0;
-}
 
 async function gerarPdfVendaPremium(venda) {
     try {
@@ -1569,5 +1556,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
