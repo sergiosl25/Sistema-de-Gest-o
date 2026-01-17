@@ -341,7 +341,6 @@ function adicionarItemVenda() {
   atualizarTotalVenda();
 }
 
-
 // ==========================
 // 🔹 Desconto por Item
 // ==========================
@@ -464,7 +463,6 @@ function atualizarTabelaItensVenda() {
     const desconto = item.desconto || 0;
     const total = subtotal - desconto;
 
-  itensVendaAtual.forEach((item, index) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.nome}</td>
@@ -478,8 +476,7 @@ function atualizarTabelaItensVenda() {
       </td>
     `;
     tbody.appendChild(tr);
-    });
- });
+  });
 }
 
 function atualizarTotalVenda() {
@@ -1449,5 +1446,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
