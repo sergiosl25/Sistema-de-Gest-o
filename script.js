@@ -329,6 +329,28 @@ function adicionarItemVenda() {
 renderizarItensVenda();
 }
 
+function aplicarDescontoItem(indexItem, valorDesconto) {
+  const item = itensVendaAtual[indexItem];
+  item.desconto = Number(valorDesconto);
+  item.total = (item.quantidade * item.valorUnitario) - item.desconto;
+
+  atualizarTabelaItensVenda();
+  atualizarTotalVenda();
+}
+
+// Prompt para desconto do item
+function promptDescontoItem(indexItem) {
+  const valor = parseFloat(prompt("Digite o valor do desconto para este item:", "0"));
+  if (!isNaN(valor)) {
+    aplicarDescontoItem(indexItem, valor);
+  }
+}
+
+function aplicarDescontoVenda(valorDesconto) {
+  descontoTotalVenda = Number(valorDesconto) || 0;
+  atualizarTotalVenda();
+}
+
 btnFinalizarVenda.addEventListener("click", async () => {
   try {
     if (btnFinalizarVenda.disabled) return;
@@ -342,7 +364,6 @@ btnFinalizarVenda.addEventListener("click", async () => {
       btnFinalizarVenda.disabled = false;
       return;
     }
-
     if (itensVendaAtual.length === 0) {
       mostrarModal("Nenhum item adicionado à venda.");
       btnFinalizarVenda.disabled = false;
@@ -353,26 +374,17 @@ btnFinalizarVenda.addEventListener("click", async () => {
     const clienteId = clienteSelect.value;
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
-    const descontoVenda = Number(descontoTotalVenda) || 0;
-
-    // Soma subtotal de todos os itens para calcular desconto proporcional
     const somaSubtotais = itensVendaAtual.reduce(
       (acc, item) => acc + (item.quantidade * item.valorUnitario),
       0
     );
 
-    // Mapeia itens para salvar no Firestore
     const itensParaSalvar = itensVendaAtual.map(item => {
       const subtotal = item.quantidade * item.valorUnitario;
-
-      // Desconto proporcional da venda geral
-      const descontoProporcional = descontoVenda
-        ? (subtotal / somaSubtotais) * descontoVenda
+      const descontoProporcional = descontoTotalVenda
+        ? (subtotal / somaSubtotais) * descontoTotalVenda
         : 0;
-
-      // Total final do item = subtotal - desconto do item - desconto proporcional
-      const totalItem =
-        subtotal - (Number(item.desconto || 0) + descontoProporcional);
+      const totalItem = subtotal - (item.desconto + descontoProporcional);
 
       return {
         produtoId: item.produtoId,
@@ -380,36 +392,29 @@ btnFinalizarVenda.addEventListener("click", async () => {
         quantidade: item.quantidade,
         valorUnitario: item.valorUnitario,
         subtotal,
-        desconto: Number(item.desconto || 0) + descontoProporcional,
+        desconto: item.desconto + descontoProporcional,
         totalItem
       };
     });
 
-    const totalParaSalvar = itensParaSalvar.reduce(
-      (acc, item) => acc + item.totalItem,
-      0
-    );
+    const totalParaSalvar = itensParaSalvar.reduce((acc, item) => acc + item.totalItem, 0);
 
-    // Objeto da venda
     const venda = {
       clienteId,
       clienteNome,
       tipoPagamento,
       itens: itensParaSalvar,
       total: totalParaSalvar,
-      descontoVenda,
+      descontoVenda: descontoTotalVenda || 0,
       data: serverTimestamp()
     };
 
-    // Salva venda no Firestore
     const docRef = await addDoc(collection(db, "vendas"), venda);
-    console.log("Venda registrada com ID:", docRef.id);
 
     // Atualiza estoque
     for (const item of itensParaSalvar) {
       const produtoRef = doc(db, "produtos", item.produtoId);
       const produtoSnap = await getDoc(produtoRef);
-
       if (produtoSnap.exists()) {
         const produto = produtoSnap.data();
         const novaQtd = (produto.quantidade || 0) - item.quantidade;
@@ -417,7 +422,6 @@ btnFinalizarVenda.addEventListener("click", async () => {
       }
     }
 
-    // Gera PDF da venda
     gerarPdfVendaPremium({
       id: docRef.id,
       clienteNome,
@@ -428,6 +432,7 @@ btnFinalizarVenda.addEventListener("click", async () => {
     });
 
     mostrarModal(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
+
     await carregarTabelaRegistrosVendas();
     limparTelaVenda();
 
@@ -559,6 +564,29 @@ window.gerarPdfVenda = async function (idVenda) {
     mostrarModal("Erro ao gerar PDF. Verifique o console.");
   }
 };
+
+function limparTelaVenda() {
+  // Limpa a lista de itens da venda atual
+  itensVendaAtual = [];
+
+  // Limpa selects e inputs
+  document.getElementById("clienteSelect").value = "";
+  document.getElementById("produtoSelect").value = "";
+  document.getElementById("tipoPrecoSelect").value = "";
+  document.getElementById("precoSelecionado").value = "";
+  document.getElementById("quantidadeVenda").value = "";
+  document.getElementById("tipoPagamento").value = "Dinheiro";
+
+  // Limpa tabela de itens da venda
+  const tbody = document.querySelector("#tabelaItensVenda tbody");
+  if (tbody) tbody.innerHTML = "";
+
+  // Limpa total da venda
+  document.getElementById("totalVenda").textContent = "0.00";
+
+  // Zera desconto total da venda
+  descontoTotalVenda = 0;
+}
 
 // --- Função para aplicar desconto em um item da venda ---
 btnDescontoItem.addEventListener("click", async () => {
@@ -716,65 +744,34 @@ function renderizarItensVenda() {
 
 function atualizarTabelaItensVenda() {
   const tbody = document.querySelector("#tabelaItensVenda tbody");
-  if (!tbody) {
-    console.error("Tabela de itens não encontrada!");
-    return;
-  }
   tbody.innerHTML = "";
-
-  // Calcula o subtotal de todos os itens para distribuir o desconto proporcional
-  let somaSubtotais = 0;
-  itensVendaAtual.forEach(item => {
-    somaSubtotais += (item.quantidade || 0) * (item.valorUnitario || 0);
-  });
-
-  let totalVenda = 0;
-
-  itensVendaAtual.forEach(item => {
-    const quantidade = item.quantidade || 0;
-    const valorUnitario = item.valorUnitario || 0;
-
-    const subtotal = quantidade * valorUnitario;
-
-    // --- Desconto do item (valor + percentual)
-    const descontoItemValor = item.descontoValor || 0;
-    const descontoItemPercentual = item.descontoPercentual
-      ? (subtotal * item.descontoPercentual) / 100
-      : 0;
-    const descontoItemTotal = descontoItemValor + descontoItemPercentual;
-
-    // --- Desconto proporcional do desconto total da venda
-    const descontoProporcional = descontoTotalVenda
-      ? (subtotal / somaSubtotais) * descontoTotalVenda
-      : 0;
-
-    const totalItem = subtotal - descontoItemTotal - descontoProporcional;
-
-    totalVenda += totalItem;
-
-    const row = document.createElement("tr");
-    row.innerHTML = `
+  itensVendaAtual.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
       <td>${item.nome}</td>
-      <td>${quantidade}</td>
-      <td>R$ ${valorUnitario.toFixed(2)}</td>
-      <td>R$ ${(descontoItemTotal + descontoProporcional).toFixed(2)}</td>
-      <td>R$ ${subtotal.toFixed(2)}</td>
-      <td>R$ ${totalItem.toFixed(2)}</td>
+      <td>${item.quantidade}</td>
+      <td>${item.valorUnitario.toFixed(2)}</td>
+      <td>${item.desconto.toFixed(2)}</td>
+      <td>${item.total.toFixed(2)}</td>
       <td>
-        <button onclick="removerItemVenda(${itensVendaAtual.indexOf(item)})">Remover</button>
+        <button onclick="removerItemVenda(${index})">Excluir</button>
+        <button onclick="promptDescontoItem(${index})">Desconto</button>
       </td>
     `;
-    tbody.appendChild(row);
+    tbody.appendChild(tr);
   });
+}
 
-  document.getElementById("totalVenda").textContent = totalVenda.toFixed(2);
-
-  window.totalVenda = totalVenda;
+function atualizarTotalVenda() {
+  const somaItens = itensVendaAtual.reduce((acc, item) => acc + item.total, 0);
+  const totalComDesconto = somaItens - (descontoTotalVenda || 0);
+  document.getElementById("totalVenda").textContent = totalComDesconto.toFixed(2);
 }
 
 function removerItemVenda(index) {
   itensVendaAtual.splice(index, 1);
   renderizarItensVenda();
+  atualizarTotalVenda();
 }
 
 window.removerItemVenda = removerItemVenda;
@@ -1556,6 +1553,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
