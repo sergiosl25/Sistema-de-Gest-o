@@ -328,14 +328,13 @@ function adicionarItemVenda() {
   const produtoNome = produtoSelect.options[produtoSelect.selectedIndex].text;
 
   itensVendaAtual.push({
-    produtoId,
-    nome: produtoNome,
-    quantidade,
-    valorUnitario: preco,
-    tipoPreco,
-    desconto: 0,
-    total: quantidade * preco
-  });
+  produtoId,
+  nome: produtoNome,
+  quantidade,
+  valorUnitario: preco,
+  desconto: 0,          
+  total: quantidade * preco
+});
 
   atualizarTabelaItensVenda();
   atualizarTotalVenda();
@@ -459,20 +458,24 @@ function atualizarTabelaItensVenda() {
   tbody.innerHTML = "";
 
   itensVendaAtual.forEach((item, index) => {
-    const subtotal = item.quantidade * item.valorUnitario;
-    const desconto = item.desconto || 0;
+    const quantidade = Number(item.quantidade) || 0;
+    const valorUnitario = Number(item.valorUnitario) || 0;
+    const desconto = Number(item.desconto) || 0;
+
+    const subtotal = quantidade * valorUnitario;
     const total = subtotal - desconto;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.nome}</td>
-      <td>${item.quantidade}</td>
-      <td>R$ ${item.valorUnitario.toFixed(2)}</td>
-      <td>R$ ${item.desconto.toFixed(2)}</td>
-      <td>R$ ${item.subtotal.toFixed(2)}</td>
-      <td>R$ ${item.total.toFixed(2)}</td>
+      <td>${quantidade}</td>
+      <td>R$ ${valorUnitario.toFixed(2)}</td>
+      <td>R$ ${desconto.toFixed(2)}</td>
+      <td>R$ ${subtotal.toFixed(2)}</td>
+      <td>R$ ${total.toFixed(2)}</td>
       <td>
         <button onclick="removerItemVenda(${index})">Excluir</button>
+        <button onclick="promptDescontoItem(${index})">Desconto</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -1446,6 +1449,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
