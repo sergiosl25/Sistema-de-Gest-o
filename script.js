@@ -1002,12 +1002,29 @@ function mostrarConfirm(mensagem) {
     mensagemEl.textContent = mensagem;
     modal.style.display = "block";
 
-    const fecharModal = () => { modal.style.display = "none"; };
+    const fecharModal = () => {
+      modal.style.display = "none";
+      btnSim.onclick = null;
+      btnNao.onclick = null;
+      window.onclick = null;
+    };
 
-    btnSim.onclick = () => { fecharModal(); resolve(true); };
-    btnNao.onclick = () => { fecharModal(); resolve(false); };
+    btnSim.onclick = () => {
+      fecharModal();
+      resolve(true);
+    };
 
-    window.onclick = (event) => { if (event.target == modal) fecharModal(); resolve(false); };
+    btnNao.onclick = () => {
+      fecharModal();
+      resolve(false);
+    };
+
+    window.onclick = (event) => {
+      if (event.target === modal) {
+        fecharModal();
+        resolve(false);
+      }
+    };
   });
 }
 
@@ -1531,3 +1548,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
