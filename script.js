@@ -475,7 +475,6 @@ function atualizarTabelaItensVenda() {
       <td>R$ ${total.toFixed(2)}</td>
       <td>
         <button onclick="removerItemVenda(${index})">Excluir</button>
-        <button onclick="promptDescontoItem(${index})">Desconto</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -648,7 +647,7 @@ try {
     // Tabela de Itens
     const startY = 90;
     const rowHeight = 8;
-    const colX = [14, 90, 130, 160, 170];
+    const colX = [14, 90, 130, 160, 190];
 
     ["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"].forEach((text, i) => {
       doc.text(text, colX[i], startY);
@@ -1449,3 +1448,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
