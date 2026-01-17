@@ -235,33 +235,6 @@ async function carregarEstoque() {
 }
 
 // ===============================
-// CARREGAR PRODUTOS DO FIREBASE
-// ===============================
-async function carregarProdutos() {
-  try {
-    const produtosSnapshot = await getDocs(collection(db, "produtos"));
-    produtosMap = {}; // reinicia o mapa
-    const produtoSelect = document.getElementById("produtoSelect"); 
-    produtoSelect.innerHTML = '<option value="">Selecione</option>';
-
-    produtosSnapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      produtosMap[docSnap.id] = data;
-
-      const option = document.createElement('option');
-      option.value = docSnap.id;
-      option.textContent = data.nome;
-      produtoSelect.appendChild(option);
-    });
-  } catch (error) {
-    console.error("Erro ao carregar produtos:", error);
-  }
-}
-document.addEventListener("DOMContentLoaded", () => {
-  carregarProdutos();
-});
-
-// ===============================
 // AO SELECIONAR PRODUTO OU TIPO DE PREÇO
 // ===============================
 function atualizarPrecoProduto() {
