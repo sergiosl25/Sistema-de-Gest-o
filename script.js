@@ -649,9 +649,9 @@ try {
     const rowHeight = 8;
     const colX = [8, 60, 90, 130, 160];
 
-    doc.setFont(undefined, "bold");
-    ["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"].forEach((text, i) => {
-      doc.text(text, colX[i], startY);
+    doc.autoTable ({
+        head: [["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"]],
+        body: rows
     });
     
     doc.setFont(undefined, "normal");
@@ -1493,6 +1493,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
