@@ -1114,12 +1114,12 @@ function renderizarOrcamentos() {
   tabela.innerHTML = "";
 
   itensOrcamentoAtual.forEach((item, index) => {
-  const preco = Number(item.preco);
-  const qtd = Number(item.quantidade);
-  const desconto = Number(item.descontoValor);
+    const preco = Number(item.preco);
+    const qtd = Number(item.quantidade);
+    const desconto = Number(item.descontoValor);
 
-  const total = calcularTotalItem(item); 
-});
+    const total = calcularTotalItem(item); 
+  });
 
     if (item.tipoDescontoItem === "percent") {
       total *= (1 - desconto / 100);
@@ -1542,6 +1542,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
