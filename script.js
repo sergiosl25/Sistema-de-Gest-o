@@ -1126,8 +1126,6 @@ function renderizarOrcamentos() {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${new Date().toLocaleDateString()}</td>
-      <td>${item.clienteNome}</td>
       <td>${item.produtoNome}</td>
       <td>${item.quantidade}</td>
       <td>${preco.toFixed(2)}</td>
@@ -1514,6 +1512,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
