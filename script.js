@@ -1196,6 +1196,7 @@ window.gerarPdfOrcamento = function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const pdfWidth = doc.internal.pageSize.getWidth();
+  const pdfHeight = doc.internal.pageSize.getHeight();
 
   const clienteNome = document
     .getElementById("clienteInputOrcamento")
@@ -1492,6 +1493,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
