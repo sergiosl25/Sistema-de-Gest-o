@@ -1198,7 +1198,7 @@ window.gerarPdfOrcamento = function () {
   const pdfWidth = doc.internal.pageSize.getWidth();
 
   const clienteNome = document
-    getElementById("clienteInputOrcamento")
+    .getElementById("clienteInputOrcamento")
     .value
     .trim() || "Não informado";
 
@@ -1546,6 +1546,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
