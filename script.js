@@ -836,6 +836,37 @@ async function abrirModalExcluir(idVenda) {
 
 window.abrirModalExcluir = abrirModalExcluir;
 
+async function gerarPdfVenda(idVenda) {
+  try {
+    const vendaRef = doc(db, "vendas", idVenda);
+    const vendaSnap = await getDoc(vendaRef);
+
+    if (!vendaSnap.exists()) {
+      mostrarModal("Venda não encontrada!");
+      return;
+    }
+
+    const venda = vendaSnap.data();
+
+    gerarPdfVendaPremium({
+      id: idVenda,
+      clienteNome: venda.clienteNome,
+      tipoPagamento: venda.tipoPagamento,
+      itens: venda.itens || [],
+      total: venda.total || 0,
+      data: venda.data?.seconds
+        ? new Date(venda.data.seconds * 1000)
+        : new Date()
+    });
+
+  } catch (error) {
+    console.error("Erro ao gerar PDF:", error);
+    mostrarModal("Erro ao gerar PDF da venda.");
+  }
+}
+
+window.gerarPdfVenda = gerarPdfVenda;
+
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 window.abrirModalDesconto = async function (idVenda) {
   const valorDesconto = parseFloat(await mostrarPrompt("Digite o valor do desconto em R$:"));
@@ -1474,5 +1505,6 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
