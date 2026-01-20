@@ -645,7 +645,7 @@ try {
     doc.text(`Pagamento: ${venda.tipoPagamento}`, 8, 42);
     
     // Tabela de Itens
-    const startY = 60;
+    const startY = 80;
     const rowHeight = 8;
     const colX = [8, 60, 90, 130, 160];
 
@@ -1492,6 +1492,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
