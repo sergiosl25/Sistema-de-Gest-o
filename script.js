@@ -622,6 +622,7 @@ try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pdfWidth = doc.internal.pageSize.getWidth();
+    const pdfHeight = doc.internal.pageSize.getHeight();
 
     // ---------------- Logo ----------------
     const logo = document.getElementById("logo");
@@ -640,29 +641,54 @@ try {
 
     doc.setFontSize(10);
     doc.setFont(undefined, "normal");
-    doc.text(`Cliente: ${venda.clienteNome}`, 14, 35);
-    doc.text(`Pagamento: ${venda.tipoPagamento}`, 14, 42);
-    doc.text(`Total: R$ ${venda.total.toFixed(2)}`, 14, 49);
-
+    doc.text(`Cliente: ${venda.clienteNome}`, 8, 35);
+    doc.text(`Pagamento: ${venda.tipoPagamento}`, 8, 42);
+    
     // Tabela de Itens
-    const startY = 90;
+    const startY = 60;
     const rowHeight = 8;
-    const colX = [14, 90, 130, 160, 190];
+    const colX = [8, 60, 90, 130, 160];
 
+    doc.setFont(undefined, "bold");
     ["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"].forEach((text, i) => {
       doc.text(text, colX[i], startY);
     });
-
+    
+    doc.setFont(undefined, "normal");
     let currentY = startY + rowHeight;
     venda.itens.forEach(item => {
-      if (item.totalItem == null) item.totalItem = item.quantidade * item.valorUnitario - (item.desconto || 0);
+      const totalItem =  
+        item.totalItem ??
+        item.quantidade * item.valorUnitario - (item.desconto || 0);
+
       doc.text(item.nome, colX[0], currentY);
       doc.text(String(item.quantidade), colX[1], currentY);
       doc.text(`R$ ${item.valorUnitario.toFixed(2)}`, colX[2], currentY);
       doc.text(`R$ ${item.desconto.toFixed(2)}`, colX[3], currentY);
-      doc.text(`R$ ${item.totalItem.toFixed(2)}`, colX[4], currentY);
+      doc.text(`R$ ${totalItem.toFixed(2)}`, colX[4], currentY);
       currentY += rowHeight;
     });
+
+     // ---------------- TOTAL GERAL ----------------
+    currentY += 5;
+    doc.setFont(undefined, "bold");
+    doc.setFontSize(12);
+    doc.text(
+      `TOTAL DA VENDA: R$ ${venda.total.toFixed(2)}`,
+      pdfWidth - 8,
+      currentY,
+      { align: "right" }
+    );
+
+    // ---------------- Rodapé ----------------
+    doc.setFontSize(10);
+    doc.setFont(undefined, "italic");
+    doc.text(
+      "Obrigado pela sua compra!",
+      pdfWidth / 2,
+      pdfHeight - 10,
+      { align: "center" }
+    );
 
     doc.save(`venda_${venda.clienteNome}.pdf`);
   } catch (error) {
@@ -1448,4 +1474,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
