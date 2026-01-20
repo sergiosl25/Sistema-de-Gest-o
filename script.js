@@ -701,7 +701,10 @@ try {
 // CARREGAR REGISTROS DE VENDAS
 // ===============================
 async function carregarTabelaRegistrosVendas() {
-  const tabela = document.getElementById("tabelaRegistrosVendas")?.querySelector("tbody");
+  const tabela = document
+    .getElementById("tabelaRegistrosVendas")
+    ?.querySelector("tbody");
+
   const totalGeralSpan = document.getElementById("totalGeralRegistros");
 
   if (!tabela || !totalGeralSpan) return;
@@ -715,7 +718,7 @@ async function carregarTabelaRegistrosVendas() {
     const venda = docSnap.data();
     const id = docSnap.id;
 
-    // --- Tratar data ---
+    // ---------------- DATA ----------------
     let dataFormatada = "-";
     if (venda.data) {
       dataFormatada = venda.data.seconds
@@ -724,77 +727,83 @@ async function carregarTabelaRegistrosVendas() {
     }
 
     const itens = venda.itens || [];
-    let totalVenda = 0;
-
-    itens.forEach((item) => {
-      const qtd = item.quantidade || 0;
-      const vUnit = item.valorUnitario || 0;
-      const desconto = item.desconto || 0;
-
-      const subtotal = qtd * vUnit;
-      const totalItem = item.totalItem || (subtotal - desconto);
-      totalVenda += totalItem;
-    });
-
+    const totalVenda = venda.total || 0;
     totalGeral += totalVenda;
 
-    // -------------------------------
-    // 1) Linha PRINCIPAL da VENDA
-    // -------------------------------
+    // ===============================
+    // 1️⃣ LINHA PRINCIPAL DA VENDA
+    // ===============================
     const rowVenda = document.createElement("tr");
     rowVenda.classList.add("linha-venda");
+    rowVenda.style.cursor = "pointer";
+
+    rowVenda.onclick = () => toggleItensVenda(id);
 
     rowVenda.innerHTML = `
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
-      <td>-</td>
+      <td colspan="4"><strong>Clique para ver itens</strong></td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>${venda.tipoPagamento || "-"}</td>
       <td>
-        <button class="btnExcluir" onclick="abrirModalExcluir('${id}')">🗑️</button>
-        <button class="btnPDF" onclick="gerarPdfVenda('${id}')">📄</button>
+        <button class="btnExcluir"
+          onclick="event.stopPropagation(); abrirModalExcluir('${id}')">🗑️</button>
+        <button class="btnPDF"
+          onclick="event.stopPropagation(); gerarPdfVenda('${id}')">📄</button>
       </td>
     `;
 
     tabela.appendChild(rowVenda);
 
-    // -------------------------------
-    // 2) Linhas PRODUTOS da VENDA
-    // -------------------------------
+    // ===============================
+    // 2️⃣ ITENS DA VENDA (OCULTOS)
+    // ===============================
     itens.forEach((item) => {
       const qtd = item.quantidade || 0;
       const vUnit = item.valorUnitario || 0;
       const desconto = item.desconto || 0;
       const subtotal = qtd * vUnit;
-      const totalItem = item.totalItem || (subtotal - desconto);
+      const totalItem =
+        item.totalItem ?? subtotal - desconto;
 
       const rowItem = document.createElement("tr");
+      rowItem.classList.add(`itens-${id}`);
+      rowItem.style.display = "none";
       rowItem.style.background = "#fafafa";
 
       rowItem.innerHTML = `
-        <td></td> <!-- Data -->
-        <td></td> <!-- Cliente -->
-        <td>${item.nome}</td> <!-- Produto -->
+        <td></td>
+        <td></td>
+        <td>${item.nome}</td>
         <td>${qtd} un</td>
         <td>R$ ${vUnit.toFixed(2)}</td>
         <td>R$ ${desconto.toFixed(2)}</td>
         <td>R$ ${subtotal.toFixed(2)}</td>
         <td>R$ ${totalItem.toFixed(2)}</td>
-        <td></td> <!-- Pagamento -->
-        <td></td> <!-- Ações -->
+        <td></td>
+        <td></td>
       `;
 
       tabela.appendChild(rowItem);
     });
-
   });
 
   totalGeralSpan.textContent = `R$ ${totalGeral.toFixed(2)}`;
 }
+
+function toggleItensVenda(idVenda) {
+  const linhas = document.querySelectorAll(`.itens-${idVenda}`);
+  if (!linhas.length) return;
+
+  const mostrar = linhas[0].style.display === "none";
+
+  linhas.forEach((linha) => {
+    linha.style.display = mostrar ? "table-row" : "none";
+  });
+}
+
+window.toggleItensVenda = toggleItensVenda;
 
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
@@ -1505,6 +1514,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
