@@ -618,65 +618,86 @@ function limparTelaVenda() {
 // 🔹 PDF da Venda (Itens com desconto)
 // ==========================
 async function gerarPdfVendaPremium(venda) {
-try {
+  try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const pdfWidth = doc.internal.pageSize.getWidth();
     const pdfHeight = doc.internal.pageSize.getHeight();
 
+    // ---------------- Função auxiliar: calcula total do item ----------------
+    function calcularTotalItem(item) {
+      const preco = Number(item.valorUnitario || 0);
+      const qtd = Number(item.quantidade || 0);
+      const desconto = Number(item.desconto || 0);
+
+      let total = preco * qtd;
+
+      if (item.tipoDesconto === "percent") {
+        total *= 1 - desconto / 100;
+      } else {
+        total -= desconto;
+      }
+
+      return Math.max(0, total);
+    }
+
     // ---------------- Logo ----------------
     const logo = document.getElementById("logo");
     if (logo) {
-       const imgProps = doc.getImageProperties(logo);
-       const logoWidth = 40;
-       const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-       const xPos = (pdfWidth - logoWidth) / 2;
-       doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
+      const imgProps = doc.getImageProperties(logo);
+      const logoWidth = 40;
+      const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+      const xPos = (pdfWidth - logoWidth) / 2;
+      doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
     }
 
-    // Cabeçalho
+    // ---------------- Cabeçalho ----------------
     doc.setFontSize(16);
     doc.setFont(undefined, "bold");
     doc.text("Recibo de venda", pdfWidth / 2, 55, { align: "center" });
 
     doc.setFontSize(10);
     doc.setFont(undefined, "normal");
-    doc.text(`Cliente: ${venda.clienteNome}`, 8, 35);
-    doc.text(`Pagamento: ${venda.tipoPagamento}`, 8, 42);
-    
-    // Tabela de Itens
-    const startY = 80;
-    const rowHeight = 8;
-    const colX = [8, 60, 90, 130, 160];
+    doc.text(`Cliente: ${venda.clienteNome || "Não informado"}`, 8, 35);
+    doc.text(`Pagamento: ${venda.tipoPagamento || "Não informado"}`, 8, 42);
 
-    doc.autoTable ({
-        head: [["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"]],
-        body: rows
-    });
-    
-    doc.setFont(undefined, "normal");
-    let currentY = startY + rowHeight;
-    venda.itens.forEach(item => {
-      const totalItem =  
-        item.totalItem ??
-        item.quantidade * item.valorUnitario - (item.desconto || 0);
-
-      doc.text(item.nome, colX[0], currentY);
-      doc.text(String(item.quantidade), colX[1], currentY);
-      doc.text(`R$ ${item.valorUnitario.toFixed(2)}`, colX[2], currentY);
-      doc.text(`R$ ${item.desconto.toFixed(2)}`, colX[3], currentY);
-      doc.text(`R$ ${totalItem.toFixed(2)}`, colX[4], currentY);
-      currentY += rowHeight;
+    // ---------------- Criar linhas da tabela ----------------
+    const rows = venda.itens.map(item => {
+      const totalItem = calcularTotalItem(item);
+      return [
+        item.nome,
+        item.quantidade,
+        Number(item.valorUnitario || 0).toFixed(2),
+        item.tipoDesconto === "percent" ? `${item.desconto}%` : Number(item.desconto || 0).toFixed(2),
+        totalItem.toFixed(2)
+      ];
     });
 
-     // ---------------- TOTAL GERAL ----------------
-    currentY += 5;
+    // ---------------- Gerar tabela ----------------
+    doc.autoTable({
+      startY: 70,
+      head: [["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"]],
+      body: rows,
+      styles: { fontSize: 10 },
+      columnStyles: {
+        1: { halign: "center" }, // Qtde centralizada
+        2: { halign: "right" },  // Valor unitário à direita
+        3: { halign: "right" },  // Desconto à direita
+        4: { halign: "right" }   // Total à direita
+      },
+      headStyles: { fillColor: [220, 220, 220] }
+    });
+
+    // ---------------- Total geral ----------------
+    const finalY = doc.lastAutoTable.finalY + 10;
+    const totalVenda = venda.total ?? venda.itens.reduce((acc, item) => acc + calcularTotalItem(item), 0);
+
     doc.setFont(undefined, "bold");
     doc.setFontSize(12);
     doc.text(
-      `TOTAL DA VENDA: R$ ${venda.total.toFixed(2)}`,
+      `TOTAL DA VENDA: R$ ${totalVenda.toFixed(2)}`,
       pdfWidth - 8,
-      currentY,
+      finalY,
       { align: "right" }
     );
 
@@ -690,7 +711,9 @@ try {
       { align: "center" }
     );
 
-    doc.save(`venda_${venda.clienteNome}.pdf`);
+    // ---------------- Salvar PDF ----------------
+    const safeName = (venda.clienteNome || "cliente").replace(/[/\\?%*:|"<>]/g, "_");
+    doc.save(`venda_${safeName}.pdf`);
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);
     mostrarModal("Erro ao gerar PDF!");
@@ -1493,6 +1516,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
