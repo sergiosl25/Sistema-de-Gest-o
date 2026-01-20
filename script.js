@@ -1170,6 +1170,10 @@ window.gerarPdfOrcamento = function () {
   const doc = new jsPDF();
   const pdfWidth = doc.internal.pageSize.getWidth();
 
+  doc.setFontSize(10);
+    doc.setFont(undefined, "normal");
+    doc.text(`Cliente: ${orcamento.clienteNome}`, 8, 35);
+
   // ---------------- LOGO ----------------
   const logo = document.getElementById("logo");
   if (logo) {
@@ -1512,6 +1516,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
