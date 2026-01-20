@@ -1182,9 +1182,6 @@ window.gerarPdfOrcamento = function() {
   doc.setFontSize(16);
   doc.text("ORÇAMENTO", 105, 10, { align: "center" });
 
-  const tipoDescontoTotal = document.getElementById("tipoDescontoTotal").value;
-  const descontoTotalValor = Number(document.getElementById("descontoTotalOrcamento").value || 0);
-
   // Protege os valores numéricos
   const rows = itensOrcamentoAtual.map(item => {
     const preco = Number(item.preco) || 0;
@@ -1231,22 +1228,6 @@ window.gerarPdfOrcamento = function() {
     return acc + total;
   }, 0);
 
-  // Desconto total
-  let totalFinal = subtotal;
-  if (tipoDescontoTotal === "percent") {
-    totalFinal = subtotal * (1 - descontoTotalValor / 100);
-  } else if (tipoDescontoTotal === "valor") {
-    totalFinal = subtotal - descontoTotalValor;
-  }
-
-  let y = doc.lastAutoTable.finalY + 10;
-  doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 14, y);
-  y += 8;
-  doc.text(
-    `Desconto total (${tipoDescontoTotal === "percent" ? descontoTotalValor + "%" : "R$ " + descontoTotalValor.toFixed(2)})`,
-    14, y
-  );
-  y += 8;
   doc.setFontSize(14);
   doc.text(`TOTAL FINAL: R$ ${totalFinal.toFixed(2)}`, 14, y);
   doc.save('orcamento.pdf')
@@ -1520,6 +1501,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
