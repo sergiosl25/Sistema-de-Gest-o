@@ -1118,26 +1118,30 @@ function renderizarOrcamentos() {
     const qtd = Number(item.quantidade);
     const desconto = Number(item.descontoValor);
 
-    const total = calcularTotalItem(item); 
-  });
-
-    if (item.tipoDescontoItem === "percent") {
-      total *= (1 - desconto / 100);
-    } else if (item.tipoDescontoItem === "valor") {
-      total -= desconto;
-    }
+    const total = calcularTotalItem(item); // ✅ cálculo centralizado
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${item.produtoNome}</td>
-      <td>${item.quantidade}</td>
-      <td>${preco.toFixed(2)}</td>
-      <td>${item.tipoDescontoItem === "percent" ? desconto + "%" : "R$ " + desconto.toFixed(2)}</td>
-      <td>${total.toFixed(2)}</td>      
-      <td><button class="btn-remover" onclick="removerItemOrcamento(${index})">Remover</button></td>
+      <td>${qtd}</td>
+      <td>R$ ${preco.toFixed(2)}</td>
+      <td>
+        ${item.tipoDescontoItem === "percent"
+          ? desconto + "%"
+          : "R$ " + desconto.toFixed(2)}
+      </td>
+      <td>R$ ${total.toFixed(2)}</td>
+      <td>
+        <button class="btn-remover" onclick="removerItemOrcamento(${index})">
+          Remover
+        </button>
+      </td>
     `;
+
     tabela.appendChild(tr);
   });
+
+  atualizarTotalGeral(); 
 }
 
 function calcularTotalItem(item) {
@@ -1542,6 +1546,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
