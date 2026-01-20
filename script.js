@@ -1165,28 +1165,30 @@ if (btnAdd && !btnAdd.dataset.listenerAttached) {
 // =======================
 // GERAR PDF DO ORÇAMENTO
 // =======================
-window.gerarPdfOrcamento = function() {
+window.gerarPdfOrcamento = function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const pdfWidth = doc.internal.pageSize.getWidth();
 
+  // ---------------- LOGO ----------------
   const logo = document.getElementById("logo");
   if (logo) {
-     const imgProps = doc.getImageProperties(logo);
-     const logoWidth = 40;
-     const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-     const xPos = (pdfWidth - logoWidth) / 2;
-     doc.addImage(logo, "PNG", xPos, 15, logoWidth, logoHeight);
+    const imgProps = doc.getImageProperties(logo);
+    const logoWidth = 40;
+    const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+    const xPos = (pdfWidth - logoWidth) / 2;
+    doc.addImage(logo, "PNG", xPos, 15, logoWidth, logoHeight);
   }
 
+  // ---------------- TÍTULO ----------------
   doc.setFontSize(16);
-  doc.text("ORÇAMENTO", 105, 10, { align: "center" });
+  doc.text("ORÇAMENTO", pdfWidth / 2, 10, { align: "center" });
 
-  // Protege os valores numéricos
+  // ---------------- LINHAS DA TABELA ----------------
   const rows = itensOrcamentoAtual.map(item => {
     const preco = Number(item.preco) || 0;
     const qtd = Number(item.quantidade) || 0;
-    const desconto = Number(item.descontoValor);
+    const desconto = Number(item.descontoValor) || 0;
     let total = preco * qtd;
 
     if (item.tipoDescontoItem === "percent") {
@@ -1196,27 +1198,28 @@ window.gerarPdfOrcamento = function() {
     }
 
     return [
-      item.clienteNome,
       item.produtoNome,
       qtd,
-      preco.toFixed(2),
-      item.tipoDescontoItem === "percent" ? `${desconto}%` : `R$ ${desconto.toFixed(2)}`,
-      total.toFixed(2)
+      `R$ ${preco.toFixed(2)}`,
+      item.tipoDescontoItem === "percent"
+        ? `${desconto}%`
+        : `R$ ${desconto.toFixed(2)}`,
+      `R$ ${total.toFixed(2)}`
     ];
   });
 
-  // Tabela
+  // ---------------- TABELA ----------------
   doc.autoTable({
-    head: [['Cliente', 'Produto', 'Qtd', 'Preço Unitário', 'Desconto', 'Total']],
+    head: [['Produto', 'Qtd', 'Preço Unitário', 'Desconto', 'Total']],
     body: rows,
     startY: 60
   });
 
-  // Subtotal
-  let subtotal = itensOrcamentoAtual.reduce((acc, item) => {
-    const preco = Number(item.preco);
-    const qtd = Number(item.quantidade);
-    const desconto = Number(item.descontoValor);
+  // ---------------- SUBTOTAL ----------------
+  const subtotal = itensOrcamentoAtual.reduce((acc, item) => {
+    const preco = Number(item.preco) || 0;
+    const qtd = Number(item.quantidade) || 0;
+    const desconto = Number(item.descontoValor) || 0;
     let total = preco * qtd;
 
     if (item.tipoDescontoItem === "percent") {
@@ -1228,10 +1231,18 @@ window.gerarPdfOrcamento = function() {
     return acc + total;
   }, 0);
 
+  // ---------------- TOTAL FINAL ----------------
+  let totalFinal = subtotal;
+
+  totalFinal = Math.max(0, totalFinal);
+
+  const y = doc.lastAutoTable.finalY + 10;
+
   doc.setFontSize(14);
   doc.text(`TOTAL FINAL: R$ ${totalFinal.toFixed(2)}`, 14, y);
-  doc.save('orcamento.pdf')
-}
+
+  doc.save("orcamento.pdf");
+};
 
 document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
@@ -1501,6 +1512,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
