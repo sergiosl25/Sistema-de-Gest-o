@@ -1137,6 +1137,14 @@ function renderizarOrcamentos() {
   });
 }
 
+function atualizarTotalGeral() {
+  let somaItens = itensOrcamentoAtual.reduce((acc, item) => acc + item.total, 0);
+  const totalComDesconto = Math.max(0, somaItens - (desconto || 0));
+  document.getElementById("totaGeral").textContent = totalComDesconto.toFixed(2);
+}
+
+window.atualizarTotalGeral = atualizarTotalGeral
+
 // =======================
 // REMOVER ITEM
 // =======================
@@ -1512,6 +1520,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
