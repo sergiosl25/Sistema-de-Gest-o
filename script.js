@@ -1103,6 +1103,7 @@ window.adicionarProdutoOrcamento = function () {
   });
 
   renderizarOrcamentos();
+  atualizarTotalGeral()
 };
 
 // =======================
@@ -1116,6 +1117,7 @@ function renderizarOrcamentos() {
     const preco = Number(item.preco);
     const qtd = Number(item.quantidade);
     const desconto = Number(item.descontoValor);
+    const total = calcularTotalItem(item);
     let total = preco * qtd;
 
     if (item.tipoDescontoItem === "percent") {
@@ -1137,10 +1139,30 @@ function renderizarOrcamentos() {
   });
 }
 
+function calcularTotalItem(item) {
+  const preco = Number(item.preco) || 0;
+  const qtd = Number(item.quantidade) || 0;
+  const desconto = Number(item.descontoValor) || 0;
+
+  let total = preco * qtd;
+
+  if (item.tipoDescontoItem === "percent") {
+    total *= (1 - desconto / 100);
+  } else if (item.tipoDescontoItem === "valor") {
+    total -= desconto;
+  }
+
+  return Math.max(0, total);
+}
+
 function atualizarTotalGeral() {
-  let somaItens = itensOrcamentoAtual.reduce((acc, item) => acc + item.total, 0);
-  const totalComDesconto = Math.max(0, somaItens - (desconto || 0));
-  document.getElementById("totaGeral").textContent = totalComDesconto.toFixed(2);
+  const totalGeral = itensOrcamentoAtual.reduce(
+    (acc, item) => acc + calcularTotalItem(item),
+    0
+  );
+
+  document.getElementById("totalGeral").textContent =
+    totalGeral.toFixed(2);
 }
 
 window.atualizarTotalGeral = atualizarTotalGeral
@@ -1171,7 +1193,7 @@ window.gerarPdfOrcamento = function () {
   const pdfWidth = doc.internal.pageSize.getWidth();
 
   const clienteNome = document
-    .getElementById("clienteInputOrcamento")
+    getElementById("clienteInputOrcamento")
     .value
     .trim() || "Não informado";
 
@@ -1519,6 +1541,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
