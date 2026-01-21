@@ -14,9 +14,10 @@ body {
 
 /* ===== Logo ===== */
 .logo-container {
-  position: center;
+  position: absolute;
   top: 30px;
   width: 100%;
+  right: 150px;
   text-align: center;
 }
 
@@ -135,4 +136,5 @@ body {
     width: 110px;
   }
 }
+
 
