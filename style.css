@@ -30,7 +30,7 @@ body {
    💠 HEADER E NAVEGAÇÃO
 ========================= */
 header {
-  display: flex;
+  display: none;
   justify-content: space-between;
   align-items: center;
   background: var(--cor-secundaria);
@@ -68,7 +68,7 @@ header nav button:hover {
    💠 LOGIN 3D
 ========================= */
 #tela-login {
-  display: none;
+  display: flex;
   margin: auto;
   background: linear-gradient(145deg, #ffffff, #e9eef3);
   padding: 50px 55px;
@@ -492,5 +492,6 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
 
