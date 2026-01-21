@@ -1505,105 +1505,201 @@ async function exportarPDFRegistros() {
 
 document.getElementById("btnExportarPDF")?.addEventListener("click", exportarPDFRegistros);
 
-// Função para atualizar a tabela do fluxo
-function atualizarTabela() {
-  const tbody = document.querySelector("#tabelaFluxo tbody");
-  tbody.innerHTML = "";
+/* ============================
+   📌 FUNÇÕES PRINCIPAIS
+============================ */
 
-  let saldo = 0;
-  fluxoCaixa.forEach(item => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${item.data}</td>
-      <td>${item.descricao}</td>
-      <td>${item.tipo === "entrada" ? "Entrada" : "Saída"}</td>
-      <td>${item.tipo === "entrada" ? item.valor.toFixed(2) : (-item.valor).toFixed(2)}</td>
-    `;
-    tbody.appendChild(tr);
+// Atualiza tabela e totais
+function atualizarFluxoCaixa() {
+  tbodyCaixa.innerHTML = "";
 
-    saldo += item.tipo === "entrada" ? item.valor : -item.valor;
+  let totalEntradas = 0;
+  let totalSaidas = 0;
+
+  const dataInicio = document.getElementById("dataInicio").value;
+  const dataFim = document.getElementById("dataFim").value;
+
+  fluxoCaixa.forEach((mov, index) => {
+    if (
+      (!dataInicio || mov.data >= dataInicio) &&
+      (!dataFim || mov.data <= dataFim)
+    ) {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${mov.data}</td>
+        <td>${mov.tipo === "entrada" ? "Entrada" : "Saída"}</td>
+        <td>${mov.descricao}</td>
+        <td style="color:${mov.tipo === "entrada" ? "green" : "red"}">
+          R$ ${mov.valor.toFixed(2)}
+        </td>
+        <td>
+          <button class="btnExcluir" onclick="excluirMovimento(${index})">
+            Excluir
+          </button>
+        </td>
+      `;
+
+      tbodyCaixa.appendChild(tr);
+
+      mov.tipo === "entrada"
+        ? (totalEntradas += mov.valor)
+        : (totalSaidas += mov.valor);
+    }
   });
 
-  document.getElementById("saldoTotal").textContent = `R$ ${saldo.toFixed(2)}`;
+  totalEntradasEl.textContent = totalEntradas.toFixed(2);
+  totalSaidasEl.textContent = totalSaidas.toFixed(2);
+  saldoCaixaEl.textContent = (totalEntradas - totalSaidas).toFixed(2);
 }
 
-// Registrar entrada (venda)
-function registrarEntradaVenda(venda) {
-  fluxoCaixa.push({
-    tipo: "entrada",
-    descricao: `Venda: ${venda.descricao}`,
-    valor: venda.valorTotal,
-    data: venda.data
-  });
-  atualizarTabela();
+// Excluir movimento
+function excluirMovimento(index) {
+  if (confirm("Deseja realmente excluir este movimento?")) {
+    fluxoCaixa.splice(index, 1);
+    atualizarFluxoCaixa();
+  }
 }
 
-// Registrar saída (desconto/devolução)
-function registrarSaida(descricao, valor, data = null) {
+/* ============================
+   ➕ MODAL MOVIMENTO
+============================ */
+
+// Abrir modal
+document.getElementById("btnAdicionarMovimento").addEventListener("click", () => {
+  modalMovimento.style.display = "flex";
+  dataMovimentoEl.value = new Date().toISOString().split("T")[0];
+});
+
+// Cancelar
+document.getElementById("btnCancelarMovimento").addEventListener("click", () => {
+  modalMovimento.style.display = "none";
+  limparModal();
+});
+
+// Salvar movimento
+document.getElementById("btnSalvarMovimento").addEventListener("click", () => {
+  const tipo = tipoMovimentoEl.value;
+  const descricao = descricaoMovimentoEl.value.trim();
+  const valor = parseFloat(valorMovimentoEl.value);
+  const data = dataMovimentoEl.value;
+
+  if (!descricao || isNaN(valor) || valor <= 0 || !data) {
+    alert("Preencha todos os campos corretamente.");
+    return;
+  }
+
   fluxoCaixa.push({
-    tipo: "saida",
+    tipo,
     descricao,
     valor,
-    data: data || new Date().toISOString().split("T")[0]
+    data
   });
-  atualizarTabela();
+
+  modalMovimento.style.display = "none";
+  limparModal();
+  atualizarFluxoCaixa();
+});
+
+function limparModal() {
+  descricaoMovimentoEl.value = "";
+  valorMovimentoEl.value = "";
 }
 
-// Exemplo: vincular ao botão finalizar venda
+/* ============================
+   🔍 FILTRO POR DATA
+============================ */
+
+document.getElementById("btnFiltrarCaixa")
+  .addEventListener("click", atualizarFluxoCaixa);
+
+/* ============================
+   💵 INTEGRAÇÃO COM VENDAS
+============================ */
+
+// ENTRADA AUTOMÁTICA AO FINALIZAR VENDA
 const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
+
 if (btnFinalizarVenda) {
   btnFinalizarVenda.addEventListener("click", () => {
-    const cliente = document.getElementById("clienteSelect").value || "Cliente genérico";
-    const total = parseFloat(document.getElementById("totalVenda").textContent.replace(",", ".")) || 0;
+    const totalVenda = parseFloat(
+      document.getElementById("totalVenda").textContent.replace(",", ".")
+    );
 
-    if (total <= 0) return alert("Adicione itens à venda!");
+    if (isNaN(totalVenda) || totalVenda <= 0) return;
 
-    const venda = {
-      descricao: `Venda para ${cliente}`,
-      valorTotal: total,
+    const cliente =
+      document.getElementById("clienteSelect")?.selectedOptions[0]?.text ||
+      "Cliente não identificado";
+
+    fluxoCaixa.push({
+      tipo: "entrada",
+      descricao: `Venda - ${cliente}`,
+      valor: totalVenda,
       data: new Date().toISOString().split("T")[0]
-    };
+    });
 
-    registrarEntradaVenda(venda);
-
-    alert("Venda registrada no fluxo de caixa!");
+    atualizarFluxoCaixa();
   });
 }
 
-// Botão de desconto
+// SAÍDA AUTOMÁTICA POR DESCONTO NA VENDA
 const btnDescontoVenda = document.getElementById("btnDescontoVenda");
+
 if (btnDescontoVenda) {
   btnDescontoVenda.addEventListener("click", () => {
-    const desconto = parseFloat(prompt("Digite o valor do desconto em R$")) || 0;
-    if (desconto <= 0) return;
+    const desconto = parseFloat(prompt("Valor do desconto em R$:"));
 
-    registrarSaida("Desconto aplicado na venda", desconto);
-    alert("Desconto registrado no fluxo de caixa!");
+    if (!desconto || desconto <= 0) return;
+
+    fluxoCaixa.push({
+      tipo: "saida",
+      descricao: "Desconto concedido em venda",
+      valor: desconto,
+      data: new Date().toISOString().split("T")[0]
+    });
+
+    atualizarFluxoCaixa();
   });
 }
 
-// Exportar PDF
-const btnExportarFluxoPDF = document.getElementById("btnExportarFluxoPDF");
-if (btnExportarFluxoPDF) {
-  btnExportarFluxoPDF.addEventListener("click", () => {
+/* ============================
+   📄 EXPORTAR PDF
+============================ */
+
+document.getElementById("btnExportarFluxoPDF")
+  .addEventListener("click", () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    doc.text("Fluxo de Caixa", 14, 20);
+    doc.text("Fluxo de Caixa", 14, 15);
 
-    const rows = fluxoCaixa.map(i => [i.data, i.descricao, i.tipo === "entrada" ? "Entrada" : "Saída", i.valor.toFixed(2)]);
+    const rows = fluxoCaixa.map(m => [
+      m.data,
+      m.tipo === "entrada" ? "Entrada" : "Saída",
+      m.descricao,
+      `R$ ${m.valor.toFixed(2)}`
+    ]);
+
     doc.autoTable({
-      head: [["Data", "Descrição", "Tipo", "Valor (R$)"]],
+      head: [["Data", "Tipo", "Descrição", "Valor"]],
       body: rows,
-      startY: 30
+      startY: 25
     });
 
-    const saldo = fluxoCaixa.reduce((acc, i) => acc + (i.tipo === "entrada" ? i.valor : -i.valor), 0);
-    doc.text(`Saldo Total: R$ ${saldo.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+    const saldo = fluxoCaixa.reduce(
+      (acc, m) => acc + (m.tipo === "entrada" ? m.valor : -m.valor),
+      0
+    );
 
-    doc.save("FluxoDeCaixa.pdf");
+    doc.text(
+      `Saldo Total: R$ ${saldo.toFixed(2)}`,
+      14,
+      doc.lastAutoTable.finalY + 10
+    );
+
+    doc.save("Fluxo_de_Caixa.pdf");
   });
-}
 
 // === Funções “placeholder” para evitar erros ===
 
@@ -1620,4 +1716,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
