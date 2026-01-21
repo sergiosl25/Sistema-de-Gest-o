@@ -46,6 +46,7 @@ let totalVenda = 0;       // Total da venda
 let descontoPercentualVenda = 0; 
 let descontoTotalVenda = 0;
 let produtosMap = {}; // será carregado do Firestor
+let fluxoCaixa = [];
 
 // =====================
 // 🔹 Funções de interface
@@ -1504,6 +1505,106 @@ async function exportarPDFRegistros() {
 
 document.getElementById("btnExportarPDF")?.addEventListener("click", exportarPDFRegistros);
 
+// Função para atualizar a tabela do fluxo
+function atualizarTabela() {
+  const tbody = document.querySelector("#tabelaFluxo tbody");
+  tbody.innerHTML = "";
+
+  let saldo = 0;
+  fluxoCaixa.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${item.data}</td>
+      <td>${item.descricao}</td>
+      <td>${item.tipo === "entrada" ? "Entrada" : "Saída"}</td>
+      <td>${item.tipo === "entrada" ? item.valor.toFixed(2) : (-item.valor).toFixed(2)}</td>
+    `;
+    tbody.appendChild(tr);
+
+    saldo += item.tipo === "entrada" ? item.valor : -item.valor;
+  });
+
+  document.getElementById("saldoTotal").textContent = `R$ ${saldo.toFixed(2)}`;
+}
+
+// Registrar entrada (venda)
+function registrarEntradaVenda(venda) {
+  fluxoCaixa.push({
+    tipo: "entrada",
+    descricao: `Venda: ${venda.descricao}`,
+    valor: venda.valorTotal,
+    data: venda.data
+  });
+  atualizarTabela();
+}
+
+// Registrar saída (desconto/devolução)
+function registrarSaida(descricao, valor, data = null) {
+  fluxoCaixa.push({
+    tipo: "saida",
+    descricao,
+    valor,
+    data: data || new Date().toISOString().split("T")[0]
+  });
+  atualizarTabela();
+}
+
+// Exemplo: vincular ao botão finalizar venda
+const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
+if (btnFinalizarVenda) {
+  btnFinalizarVenda.addEventListener("click", () => {
+    const cliente = document.getElementById("clienteSelect").value || "Cliente genérico";
+    const total = parseFloat(document.getElementById("totalVenda").textContent.replace(",", ".")) || 0;
+
+    if (total <= 0) return alert("Adicione itens à venda!");
+
+    const venda = {
+      descricao: `Venda para ${cliente}`,
+      valorTotal: total,
+      data: new Date().toISOString().split("T")[0]
+    };
+
+    registrarEntradaVenda(venda);
+
+    alert("Venda registrada no fluxo de caixa!");
+  });
+}
+
+// Botão de desconto
+const btnDescontoVenda = document.getElementById("btnDescontoVenda");
+if (btnDescontoVenda) {
+  btnDescontoVenda.addEventListener("click", () => {
+    const desconto = parseFloat(prompt("Digite o valor do desconto em R$")) || 0;
+    if (desconto <= 0) return;
+
+    registrarSaida("Desconto aplicado na venda", desconto);
+    alert("Desconto registrado no fluxo de caixa!");
+  });
+}
+
+// Exportar PDF
+const btnExportarFluxoPDF = document.getElementById("btnExportarFluxoPDF");
+if (btnExportarFluxoPDF) {
+  btnExportarFluxoPDF.addEventListener("click", () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.text("Fluxo de Caixa", 14, 20);
+
+    const rows = fluxoCaixa.map(i => [i.data, i.descricao, i.tipo === "entrada" ? "Entrada" : "Saída", i.valor.toFixed(2)]);
+    doc.autoTable({
+      head: [["Data", "Descrição", "Tipo", "Valor (R$)"]],
+      body: rows,
+      startY: 30
+    });
+
+    const saldo = fluxoCaixa.reduce((acc, i) => acc + (i.tipo === "entrada" ? i.valor : -i.valor), 0);
+    doc.text(`Saldo Total: R$ ${saldo.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+
+    doc.save("FluxoDeCaixa.pdf");
+  });
+}
+
 // === Funções “placeholder” para evitar erros ===
 
 // carrega os clientes disponíveis na aba de Vendas
@@ -1519,3 +1620,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
