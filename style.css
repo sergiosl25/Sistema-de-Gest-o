@@ -64,69 +64,59 @@ header nav button:hover {
               0 8px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* Container do avatar */
 .avatar-container {
   position: relative;
   display: inline-block;
   cursor: pointer;
 }
 
-/* Imagem circular do avatar */
+/* Estilo do avatar (círculo com imagem) */
 .avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   border: 2px solid #fff;
   object-fit: cover;
-  transition: transform 0.2s ease;
 }
 
-.avatar:hover {
-  transform: scale(1.1);
-}
-
-/* Menu dropdown */
+/* Menu oculto inicialmente */
 .user-menu {
-  opacity: 0;
-  visibility: hidden;
+  display: none;
   position: absolute;
+  top: 50px; /* abaixo do avatar */
   right: 0;
-  top: 50px;
   background: #fff;
   color: #333;
   padding: 10px 15px;
   border-radius: 8px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   white-space: nowrap;
-  z-index: 100;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  transform: translateY(-10px);
+  min-width: 160px;
+  z-index: 10;
 }
 
+/* Mostrar menu ao ativar a classe 'show' */
 .user-menu.show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
+  display: block;
 }
 
 .user-menu span {
   display: block;
   margin-bottom: 10px;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .user-menu button {
-  background: #e74c3c;
+  padding: 6px 10px;
+  background-color: #e74c3c;
   border: none;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 5px;
+  border-radius: 4px;
+  color: white;
   cursor: pointer;
-  transition: background 0.2s;
 }
 
 .user-menu button:hover {
-  background: #c0392b;
+  background-color: #c0392b;
 }
 
 /* =========================
@@ -551,6 +541,7 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
 
 
