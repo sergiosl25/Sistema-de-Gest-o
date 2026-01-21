@@ -17,13 +17,13 @@ body {
   position: absolute;
   top: 30px;
   width: 100%;
-  right: 150px;
   text-align: center;
 }
 
 #logoLogin {
   width: 140px;
   max-width: 50vw;
+  display: inline-block;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
 }
 
@@ -136,5 +136,6 @@ body {
     width: 110px;
   }
 }
+
 
 
