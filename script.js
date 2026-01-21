@@ -1,6 +1,6 @@
 import { app } from "./firebase-config.js";
 import { 
-  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy 
+  getFirestore, collection 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { 
   getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, setPersistence, browserLocalPersistence 
@@ -13,8 +13,8 @@ const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence)
   .then(() => console.log("✅ Persistência de login garantida"))
   .catch((err) => console.error("❌ Erro ao definir persistência:", err));
-  
-// Elementos do DOM
+
+// Elementos DOM
 const telaLogin = document.getElementById("tela-login");
 const formLogin = document.getElementById("formLogin");
 const emailLogin = document.getElementById("emailLogin");
@@ -25,82 +25,28 @@ const userMenu = document.getElementById('userMenu');
 const userEmailSpan = document.getElementById('userEmail');
 const btnLogout = document.getElementById("btnLogout");
 
-// Tabelas e selects
-const tabelaClientes = document.querySelector('#tabelaClientes tbody');
-const tabelaEstoque = document.querySelector('#tabelaEstoque tbody');
-const tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
-const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
-const clienteSelect = document.getElementById('clienteSelect');
-const produtoSelect = document.getElementById('produtoSelect');
-const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
-const tipoPrecoSelect = document.getElementById('tipoPrecoSelect'); // Ex: Estampa Frente, Branca, etc
-const precoSelecionado = document.getElementById("precoSelecionado");
-const quantidadeVenda = document.getElementById("quantidadeVenda");
-
-// Coleções
+// Coleções Firestore
 const clientesCol = collection(db, 'clientes');
 const produtosCol = collection(db, 'produtos');
 const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
-let itensVendaAtual = [];
-let totalVenda = 0;       // Total da venda
-let descontoPercentualVenda = 0; 
-let descontoTotalVenda = 0;
-let produtosMap = {}; // será carregado do Firestor
-
-// Alterna menu ao clicar no avatar
-avatar.addEventListener('click', () => {
+// Controle do menu do avatar
+avatar.addEventListener('click', (e) => {
+  e.stopPropagation(); // Evita que o clique feche o menu imediatamente
   userMenu.classList.toggle('show');
 });
 
 // Fecha o menu ao clicar fora
-document.addEventListener('click', (e) => {
-  if (!avatar.contains(e.target)) {
-    userMenu.classList.remove('show');
-  }
+document.addEventListener('click', () => {
+  userMenu.classList.remove('show');
 });
 
-// Firebase onAuthStateChanged para mostrar email no menu
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    userEmailSpan.textContent = user.email;
-  } else {
-    userEmailSpan.textContent = "Não logado";
-  }
-});
-
-// Logout
-btnLogout.addEventListener('click', async () => {
-  await signOut(auth);
-  window.location.href = "login.html";
-});
-
-// =====================
-// 🔹 Funções de interface
-// =====================
-function mostrarPaginaLogada(user) {
-  telaLogin.style.display = "none";
-  header.style.display = "flex";
-  userEmailSpan.textContent = user.email;
-}
-
-function mostrarLogin() {
-  // Esconder todas as seções
-  document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
-
-  telaLogin.style.display = "block";
-  header.style.display = "none";
-}
-
-// =====================
-// 🔹 Autenticação
-// =====================
+// Atualiza o email do usuário no menu e controla visibilidade da tela
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    console.log("✅ Usuário logado:", user.email);
     mostrarPaginaLogada(user);
-
+    // Aqui você pode carregar dados se quiser, ex:
     try {
       await carregarClientes();
       await carregarEstoque();
@@ -109,12 +55,27 @@ onAuthStateChanged(auth, async (user) => {
       console.error("❌ Erro ao carregar dados:", erro);
     }
   } else {
-    console.log("❌ Nenhum usuário logado");
     mostrarLogin();
   }
-})
+});
 
-// Login via formulário
+// Função que mostra a interface após login
+function mostrarPaginaLogada(user) {
+  telaLogin.style.display = "none";
+  header.style.display = "flex";
+  userEmailSpan.textContent = user.email;
+}
+
+// Função que mostra a tela de login
+function mostrarLogin() {
+  // Esconder todas as seções (se existir)
+  document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
+  telaLogin.style.display = "block";
+  header.style.display = "none";
+  userEmailSpan.textContent = "";  // Limpa email no menu
+}
+
+// Evento de submit do formulário login
 formLogin?.addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
@@ -127,11 +88,15 @@ formLogin?.addEventListener("submit", async (e) => {
   }
 });
 
-// Logout
+// Evento logout
 btnLogout?.addEventListener("click", async () => {
-  await signOut(auth);
-  mostrarLogin();
-})
+  try {
+    await signOut(auth);
+    mostrarLogin();
+  } catch (erro) {
+    console.error("Erro ao sair:", erro);
+  }
+});
 
 // =====================
 // 🔹 Controle de seções
@@ -1548,4 +1513,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
