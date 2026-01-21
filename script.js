@@ -47,6 +47,21 @@ let descontoPercentualVenda = 0;
 let descontoTotalVenda = 0;
 let produtosMap = {}; // será carregado do Firestor
 
+const avatar = document.getElementById('userAvatar');
+const userMenu = document.getElementById('userMenu');
+
+// Alterna menu ao clicar no avatar
+avatar.addEventListener('click', () => {
+  userMenu.classList.toggle('show');
+});
+
+// Fecha o menu ao clicar fora
+document.addEventListener('click', (e) => {
+  if (!avatar.contains(e.target)) {
+    userMenu.classList.remove('show');
+  }
+});
+
 // =====================
 // 🔹 Funções de interface
 // =====================
@@ -1516,6 +1531,7 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
 
 
