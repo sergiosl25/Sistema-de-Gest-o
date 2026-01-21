@@ -185,6 +185,36 @@ tr:hover {
   background-color: #f2f5f8;
 }
 
+#tabelaFluxo {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: var(--sombra-suave);
+}
+
+#tabelaFluxo thead {
+  background: linear-gradient(180deg, var(--cor-primaria), #2e86c1);
+  color: #fff;
+  font-weight: bold;
+}
+
+#tabelaFluxo th, #tabelaFluxo td {
+  padding: 14px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+#tabelaFluxo tr:hover {
+  background-color: #f2f5f8;
+}
+
+#saldoTotal {
+  font-weight: bold;
+  color: var(--cor-secundaria);
+}
+
 /* =========================
    💠 BOTÕES 3D
 ========================= */
@@ -492,3 +522,4 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
