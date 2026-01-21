@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
@@ -7,18 +7,22 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <div class="logo-container">
+    <img id="logoLogin" src="logo.png" alt="Logo do Sistema">
+  </div>
+
   <div class="login-container">
     <h2>Login</h2>
+
     <input type="email" id="email" placeholder="E-mail">
     <input type="password" id="password" placeholder="Senha">
+
     <button id="btnLogin">Entrar</button>
-    <p id="msgErro" style="color:red"></p>
+
+    <p id="msgErro"></p>
   </div>
-  <div class="logo-container">
-    <img id="logoLogin" src="logo.png" alt="Logo do Sistema"> 
-  </div>
+
   <script type="module" src="./login.js" defer></script>
 </body>
 </html>
-
-
