@@ -49,7 +49,6 @@ let descontoPercentualVenda = 0;
 let descontoTotalVenda = 0;
 let produtosMap = {}; // será carregado do Firestor
 
-
 // Alterna menu ao clicar no avatar
 avatar.addEventListener('click', () => {
   userMenu.classList.toggle('show');
@@ -62,10 +61,10 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Observa o estado de autenticação
+// Firebase onAuthStateChanged para mostrar email no menu
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    userEmailSpan.textContent = user.email; // mostra o email no menu
+    userEmailSpan.textContent = user.email;
   } else {
     userEmailSpan.textContent = "Não logado";
   }
@@ -73,13 +72,8 @@ onAuthStateChanged(auth, (user) => {
 
 // Logout
 btnLogout.addEventListener('click', async () => {
-  try {
-    await signOut(auth);
-    console.log("Usuário deslogado com sucesso!");
-    window.location.href = "login.html"; // redireciona para a tela de login
-  } catch (error) {
-    console.error("Erro ao sair:", error);
-  }
+  await signOut(auth);
+  window.location.href = "login.html";
 });
 
 // =====================
@@ -1554,3 +1548,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
