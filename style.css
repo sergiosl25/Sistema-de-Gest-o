@@ -69,6 +69,8 @@ header nav button:hover {
 ========================= */
 #tela-login {
   display: flex;
+  flex-direction: column; /* <-- força elementos em coluna */
+  align-items: center;    /* <-- centraliza horizontalmente */
   margin: auto;
   background: linear-gradient(145deg, #ffffff, #e9eef3);
   padding: 50px 55px;
@@ -78,6 +80,13 @@ header nav button:hover {
   width: 340px;
   transform: translateY(0);
   transition: all 0.3s ease;
+}
+
+#logoLogin {
+  width: 140px;
+  max-width: 70%;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.2));
 }
 
 #tela-login:hover {
@@ -477,6 +486,7 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
 
 
