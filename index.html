@@ -37,21 +37,6 @@
       <span>Usuário: <strong id="userEmail"></strong></span>
       <button id="btnLogout">Sair</button>
     </div>
-    <header>
-      <!-- Outros elementos do header -->
-
-      <div id="userArea">
-        <div id="userAvatar" class="avatar">
-          <!-- Ícone ou imagem do bonequinho -->
-          <img src="icone-bonequinho.png" alt="Usuário" />
-        </div>
-
-        <div id="userMenu" class="user-menu">
-          <p>Usuário: <strong id="userEmail"></strong></p>
-           <button id="btnLogout">Sair</button>
-        </div>
-      </div>
-    </header
   </header>
 
   <section id="clientes" class="secao" style="display:none;">
@@ -191,7 +176,7 @@
     <button id="btnExportarPDF">Exportar PDF</button>
   </section>
 
- <section id="orcamentos" class="secao" style="display:none;">
+  <section id="orcamentos" class="secao" style="display:none;">
     <h2>Orçamentos</h2>
     <div>
       <input type="text" id="clienteInputOrcamento" placeholder="Nome do Cliente">
@@ -204,19 +189,18 @@
       </select>
       <input type="text" id="precoInputOrcamento" placeholder="Preço (R$)" readonly />
       <input type="number" id="quantidadeOrcamento" placeholder="Quantidade">
-      
+
       <div style="margin-top:6px;">
         <select id="tipoDescontoItem">
           <option value="percent">%</option>
           <option value="valor">R$</option>
         </select>
         <input type="number" id="descontoItemOrcamento" placeholder="Desconto" min="0" style="width:100px;">
-      </div>      
+      </div>
       <button id="btnAdicionarProduto">Adicionar Produto</button>
       <hr>
        <button id="btnGerarPDF">Gerar PDF</button>
       </hr>
-  
      <h3>Orçamento Atual</h3>
      <table id="tabelaOrcamentos">
         <thead>
@@ -249,7 +233,7 @@
       <tbody></tbody>
     </table>
   </section>
-
+  
   <!-- ===== Modal de Edição ===== -->
   <div id="modalEditar" class="modal">
     <div class="modal-content"></div>
@@ -258,10 +242,11 @@
       <label>Telefone: <input id="modalEditarTelefone" type="text"></label>
       <label>Quantidade: <input id="modalEditarQuantidade" type="number"></label>
       <label>Preço: <input id="modalEditarPreco" type="number" step="0.01"></label>
+    </div>
+    <div style="margin-top:10px;">
       <button id="btnSalvarEdicao">Salvar</button>
       <button id="btnCancelarEdicao">Cancelar</button>
     </div>
-    <div style="margin-top:10px;"></div>
   </div>
 
   <!-- Modal Exclusão -->
@@ -320,22 +305,3 @@
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
