@@ -30,7 +30,7 @@ body {
    💠 HEADER E NAVEGAÇÃO
 ========================= */
 header {
-  display: none;
+  display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--cor-secundaria);
@@ -492,4 +492,5 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
