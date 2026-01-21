@@ -64,6 +64,71 @@ header nav button:hover {
               0 8px 12px rgba(0, 0, 0, 0.25);
 }
 
+/* Container do avatar */
+.avatar-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* Imagem circular do avatar */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.avatar:hover {
+  transform: scale(1.1);
+}
+
+/* Menu dropdown */
+.user-menu {
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+  top: 50px;
+  background: #fff;
+  color: #333;
+  padding: 10px 15px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  white-space: nowrap;
+  z-index: 100;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(-10px);
+}
+
+.user-menu.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-menu span {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.user-menu button {
+  background: #e74c3c;
+  border: none;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.user-menu button:hover {
+  background: #c0392b;
+}
+
 /* =========================
    💠 LOGIN 3D
 ========================= */
@@ -486,6 +551,7 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
 
 
