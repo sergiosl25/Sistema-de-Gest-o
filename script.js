@@ -20,7 +20,9 @@ const formLogin = document.getElementById("formLogin");
 const emailLogin = document.getElementById("emailLogin");
 const senhaLogin = document.getElementById("senhaLogin");
 const header = document.querySelector("header");
-const userEmailSpan = document.getElementById("userEmail");
+const avatar = document.getElementById('userAvatar');
+const userMenu = document.getElementById('userMenu');
+const userEmailSpan = document.getElementById('userEmail');
 const btnLogout = document.getElementById("btnLogout");
 
 // Tabelas e selects
@@ -47,8 +49,6 @@ let descontoPercentualVenda = 0;
 let descontoTotalVenda = 0;
 let produtosMap = {}; // será carregado do Firestor
 
-const avatar = document.getElementById('userAvatar');
-const userMenu = document.getElementById('userMenu');
 
 // Alterna menu ao clicar no avatar
 avatar.addEventListener('click', () => {
@@ -59,6 +59,26 @@ avatar.addEventListener('click', () => {
 document.addEventListener('click', (e) => {
   if (!avatar.contains(e.target)) {
     userMenu.classList.remove('show');
+  }
+});
+
+// Observa o estado de autenticação
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    userEmailSpan.textContent = user.email; // mostra o email no menu
+  } else {
+    userEmailSpan.textContent = "Não logado";
+  }
+});
+
+// Logout
+btnLogout.addEventListener('click', async () => {
+  try {
+    await signOut(auth);
+    console.log("Usuário deslogado com sucesso!");
+    window.location.href = "login.html"; // redireciona para a tela de login
+  } catch (error) {
+    console.error("Erro ao sair:", error);
   }
 });
 
@@ -843,6 +863,7 @@ function toggleItensVenda(idVenda) {
 
 window.toggleItensVenda = toggleItensVenda;
 
+
 // --- Função para excluir venda ---
 async function abrirModalExcluir(idVenda) {
   try {
@@ -913,6 +934,7 @@ async function gerarPdfVenda(idVenda) {
 }
 
 window.gerarPdfVenda = gerarPdfVenda;
+
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 window.abrirModalDesconto = async function (idVenda) {
@@ -1179,7 +1201,7 @@ function renderizarOrcamentos() {
     tabela.appendChild(tr);
   });
 
-  atualizarTotalGeral(); 
+  atualizarTotalGeral();
 }
 
 function calcularTotalItem(item) {
@@ -1316,6 +1338,7 @@ window.gerarPdfOrcamento = function () {
 
   doc.save("orcamento.pdf");
 };
+
 
 document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
@@ -1531,24 +1554,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
