@@ -64,81 +64,11 @@ header nav button:hover {
               0 8px 12px rgba(0, 0, 0, 0.25);
 }
 
-/* Container do avatar e menu */
-#userArea {
-  position: relative;
-  display: inline-block;
-}
-
-/* Avatar redondo */
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid #fff; /* ou sua cor preferida */
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #2e86c1; /* fallback caso imagem não carregue */
-}
-
-.avatar img {
-  width: 24px;  /* tamanho do ícone dentro do círculo */
-  height: 24px;
-  object-fit: contain;
-}
-
-/* Menu dropdown escondido inicialmente */
-.user-menu {
-  position: absolute;
-  top: 50px;  /* logo abaixo do avatar */
-  right: 0;
-  background: #fff;
-  border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  padding: 10px 15px;
-  min-width: 180px;
-  display: none;
-  z-index: 100;
-}
-
-/* Mostra o menu ao adicionar a classe 'show' */
-.user-menu.show {
-  display: block;
-}
-
-.user-menu p {
-  margin: 0 0 10px 0;
-  font-size: 14px;
-  color: #333;
-}
-
-.user-menu button {
-  background-color: #e74c3c;
-  border: none;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: bold;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.user-menu button:hover {
-  background-color: #c0392b;
-}
-
 /* =========================
    💠 LOGIN 3D
 ========================= */
 #tela-login {
   display: flex;
-  flex-direction: column; /* <-- força elementos em coluna */
-  align-items: center;    /* <-- centraliza horizontalmente */
   margin: auto;
   background: linear-gradient(145deg, #ffffff, #e9eef3);
   padding: 50px 55px;
@@ -148,13 +78,6 @@ header nav button:hover {
   width: 340px;
   transform: translateY(0);
   transition: all 0.3s ease;
-}
-
-#logoLogin {
-  width: 140px;
-  max-width: 70%;
-  margin-bottom: 20px;
-  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.2));
 }
 
 #tela-login:hover {
@@ -193,6 +116,21 @@ header nav button:hover {
   transform: translateY(-3px);
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.4),
               0 8px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* ===== Logo ===== */
+.logo-container {
+  position: absolute;
+  top: 30px;
+  width: 100%;
+  text-align: center;
+}
+
+#logoLogin {
+  width: 140px;
+  max-width: 50vw;
+  display: inline-block;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
 }
 
 /* =========================
@@ -554,11 +492,3 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
-
-
-
-
-
-
-
-
