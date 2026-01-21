@@ -64,55 +64,68 @@ header nav button:hover {
               0 8px 12px rgba(0, 0, 0, 0.25);
 }
 
-.avatar-container {
+/* Container do avatar e menu */
+#userArea {
   position: relative;
   display: inline-block;
-  cursor: pointer;
 }
 
-/* Estilo do avatar (círculo com imagem) */
+/* Avatar redondo */
 .avatar {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #fff;
-  object-fit: cover;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid #fff; /* ou sua cor preferida */
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #2e86c1; /* fallback caso imagem não carregue */
 }
 
-/* Menu oculto inicialmente */
+.avatar img {
+  width: 24px;  /* tamanho do ícone dentro do círculo */
+  height: 24px;
+  object-fit: contain;
+}
+
+/* Menu dropdown escondido inicialmente */
 .user-menu {
-  display: none;
   position: absolute;
-  top: 50px; /* abaixo do avatar */
+  top: 50px;  /* logo abaixo do avatar */
   right: 0;
   background: #fff;
-  color: #333;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   padding: 10px 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  white-space: nowrap;
-  min-width: 160px;
-  z-index: 10;
+  min-width: 180px;
+  display: none;
+  z-index: 100;
 }
 
-/* Mostrar menu ao ativar a classe 'show' */
+/* Mostra o menu ao adicionar a classe 'show' */
 .user-menu.show {
   display: block;
 }
 
-.user-menu span {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 600;
+.user-menu p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #333;
 }
 
 .user-menu button {
-  padding: 6px 10px;
   background-color: #e74c3c;
   border: none;
-  border-radius: 4px;
   color: white;
+  padding: 6px 12px;
+  border-radius: 4px;
   cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .user-menu button:hover {
@@ -541,6 +554,7 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
 
 
