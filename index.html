@@ -233,30 +233,83 @@
       <tbody></tbody>
     </table>
   </section>
-
+ 
   <section id="fluxoCaixa" class="secao" style="display:none;">
-  <h2>Fluxo de Caixa</h2>
-  <div style="margin-bottom: 15px;">
-    <button id="btnExportarFluxoPDF" class="btnPDF">Exportar PDF</button>
-  </div>
-  <table id="tabelaFluxo">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Descrição</th>
-        <th>Tipo</th>
-        <th>Valor (R$)</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
+    <h2>Fluxo de Caixa</h2>
+
+    <!-- Filtros -->
+    <div style="margin-bottom: 15px;">
+      <label>Data Início:</label>
+      <input type="date" id="dataInicio">
+
+      <label>Data Fim:</label>
+      <input type="date" id="dataFim">
+
+      <button id="btnFiltrarCaixa">Filtrar</button>
+      <button id="btnExportarFluxoPDF" class="btnPDF">Exportar PDF</button>
+    </div>
+
+    <!-- Tabela -->
+    <table id="tabelaFluxoCaixa">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Tipo</th>
+          <th>Descrição</th>
+          <th>Valor (R$)</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
       <tfoot>
         <tr>
-         <th colspan="3" style="text-align:right">Saldo Total:</th>
-         <th id="saldoTotal">R$ 0,00</th>
-       </tr>
+          <th colspan="3" style="text-align:right">Total Entradas:</th>
+          <th id="totalEntradas">R$ 0,00</th>
+          <th></th>
+        </tr>
+        <tr>
+          <th colspan="3" style="text-align:right">Total Saídas:</th>
+          <th id="totalSaidas">R$ 0,00</th>
+          <th></th>
+        </tr>
+        <tr>
+         <th colspan="3" style="text-align:right">Saldo:</th>
+         <th id="saldoCaixa">R$ 0,00</th>
+         <th></th>
+        </tr>
       </tfoot>
     </table>
-  </section>
+
+    <br>
+    <button id="btnAdicionarMovimento">Adicionar Movimento</button>
+
+    <!-- Modal -->
+    <div id="modalMovimento" class="modal">
+      <div class="modal-content">
+        <h3>Novo Movimento</h3>
+
+        <label>Tipo:</label>
+        <select id="tipoMovimento">
+         <option value="entrada">Entrada</option>
+         <option value="saida">Saída</option>
+        </select>
+
+        <label>Descrição:</label>
+        <input type="text" id="descricaoMovimento">
+
+        <label>Valor:</label>
+        <input type="number" id="valorMovimento" step="0.01">
+
+        <label>Data:</label>
+        <input type="date" id="dataMovimento">
+
+        <div class="modal-buttons">
+         <button id="btnSalvarMovimento" class="btn-ok">Salvar</button>
+         <button id="btnCancelarMovimento" class="btn-cancel">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </section>  
   
   <!-- ===== Modal de Edição ===== -->
   <div id="modalEditar" class="modal">
@@ -324,6 +377,7 @@
 
 </body>
 </html>
+
 
 
 
