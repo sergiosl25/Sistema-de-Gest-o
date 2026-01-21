@@ -118,6 +118,21 @@ header nav button:hover {
               0 8px 12px rgba(0, 0, 0, 0.25);
 }
 
+/* ===== Logo ===== */
+.logo-container {
+  position: absolute;
+  top: 30px;
+  width: 100%;
+  text-align: center;
+}
+
+#logoLogin {
+  width: 140px;
+  max-width: 50vw;
+  display: inline-block;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
+}
+
 /* =========================
    💠 SEÇÕES / CONTEÚDOS
 ========================= */
@@ -477,3 +492,4 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
