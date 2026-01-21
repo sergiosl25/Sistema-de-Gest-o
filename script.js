@@ -1,6 +1,6 @@
 import { app } from "./firebase-config.js";
 import { 
-  getFirestore, collection 
+  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { 
   getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, setPersistence, browserLocalPersistence 
@@ -13,40 +13,65 @@ const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence)
   .then(() => console.log("✅ Persistência de login garantida"))
   .catch((err) => console.error("❌ Erro ao definir persistência:", err));
-
-// Elementos DOM
+  
+// Elementos do DOM
 const telaLogin = document.getElementById("tela-login");
 const formLogin = document.getElementById("formLogin");
 const emailLogin = document.getElementById("emailLogin");
 const senhaLogin = document.getElementById("senhaLogin");
 const header = document.querySelector("header");
-const avatar = document.getElementById('userAvatar');
-const userMenu = document.getElementById('userMenu');
-const userEmailSpan = document.getElementById('userEmail');
+const userEmailSpan = document.getElementById("userEmail");
 const btnLogout = document.getElementById("btnLogout");
 
-// Coleções Firestore
+// Tabelas e selects
+const tabelaClientes = document.querySelector('#tabelaClientes tbody');
+const tabelaEstoque = document.querySelector('#tabelaEstoque tbody');
+const tabelaItensVenda = document.querySelector('#tabelaItensVenda tbody');
+const tabelaOrcamentos = document.querySelector('#tabelaOrcamentos tbody');
+const clienteSelect = document.getElementById('clienteSelect');
+const produtoSelect = document.getElementById('produtoSelect');
+const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento');
+const tipoPrecoSelect = document.getElementById('tipoPrecoSelect'); // Ex: Estampa Frente, Branca, etc
+const precoSelecionado = document.getElementById("precoSelecionado");
+const quantidadeVenda = document.getElementById("quantidadeVenda");
+
+// Coleções
 const clientesCol = collection(db, 'clientes');
 const produtosCol = collection(db, 'produtos');
 const vendasCol = collection(db, 'vendas');
 const orcamentosCol = collection(db, 'orcamentos');
 
-// Controle do menu do avatar
-avatar.addEventListener('click', (e) => {
-  e.stopPropagation(); // Evita que o clique feche o menu imediatamente
-  userMenu.classList.toggle('show');
-});
+let itensVendaAtual = [];
+let totalVenda = 0;       // Total da venda
+let descontoPercentualVenda = 0; 
+let descontoTotalVenda = 0;
+let produtosMap = {}; // será carregado do Firestor
 
-// Fecha o menu ao clicar fora
-document.addEventListener('click', () => {
-  userMenu.classList.remove('show');
-});
+// =====================
+// 🔹 Funções de interface
+// =====================
+function mostrarPaginaLogada(user) {
+  telaLogin.style.display = "none";
+  header.style.display = "flex";
+  userEmailSpan.textContent = user.email;
+}
 
-// Atualiza o email do usuário no menu e controla visibilidade da tela
+function mostrarLogin() {
+  // Esconder todas as seções
+  document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
+
+  telaLogin.style.display = "block";
+  header.style.display = "none";
+}
+
+// =====================
+// 🔹 Autenticação
+// =====================
 onAuthStateChanged(auth, async (user) => {
   if (user) {
+    console.log("✅ Usuário logado:", user.email);
     mostrarPaginaLogada(user);
-    // Aqui você pode carregar dados se quiser, ex:
+
     try {
       await carregarClientes();
       await carregarEstoque();
@@ -55,27 +80,12 @@ onAuthStateChanged(auth, async (user) => {
       console.error("❌ Erro ao carregar dados:", erro);
     }
   } else {
+    console.log("❌ Nenhum usuário logado");
     mostrarLogin();
   }
-});
+})
 
-// Função que mostra a interface após login
-function mostrarPaginaLogada(user) {
-  telaLogin.style.display = "none";
-  header.style.display = "flex";
-  userEmailSpan.textContent = user.email;
-}
-
-// Função que mostra a tela de login
-function mostrarLogin() {
-  // Esconder todas as seções (se existir)
-  document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
-  telaLogin.style.display = "block";
-  header.style.display = "none";
-  userEmailSpan.textContent = "";  // Limpa email no menu
-}
-
-// Evento de submit do formulário login
+// Login via formulário
 formLogin?.addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
@@ -88,15 +98,11 @@ formLogin?.addEventListener("submit", async (e) => {
   }
 });
 
-// Evento logout
+// Logout
 btnLogout?.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-    mostrarLogin();
-  } catch (erro) {
-    console.error("Erro ao sair:", erro);
-  }
-});
+  await signOut(auth);
+  mostrarLogin();
+})
 
 // =====================
 // 🔹 Controle de seções
@@ -1513,5 +1519,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
