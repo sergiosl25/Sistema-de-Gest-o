@@ -1562,7 +1562,7 @@ document.getElementById("btnExportarFluxoPDF")?.addEventListener("click", async 
     Array.from(tr.querySelectorAll("td")).slice(0, 4).map(td => td.textContent)
   );
 
-  doc.autoTable({ head: [["Data", "Tipo", "Descrição", "Valor"]], body: rows, startY: 40 });
+  doc.autoTable({ head: [["Data", "Tipo", "Descrição", "Valor"]], body: rows, startY: 75 });
 
   const saldo = parseFloat(saldoCaixaEl.textContent.replace("R$ ", "").replace(",", "."));
   doc.text(`Saldo Total: R$ ${saldo.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
@@ -1590,4 +1590,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
