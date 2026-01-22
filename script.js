@@ -34,6 +34,16 @@ const produtoSelectOrcamento = document.getElementById('produtoSelectOrcamento')
 const tipoPrecoSelect = document.getElementById('tipoPrecoSelect'); // Ex: Estampa Frente, Branca, etc
 const precoSelecionado = document.getElementById("precoSelecionado");
 const quantidadeVenda = document.getElementById("quantidadeVenda");
+const tbodyCaixa = document.querySelector("#tabelaFluxoCaixa tbody");
+const totalEntradasEl = document.getElementById("totalEntradas");
+const totalSaidasEl = document.getElementById("totalSaidas");
+const saldoCaixaEl = document.getElementById("saldoCaixa");
+
+const modalMovimento = document.getElementById("modalMovimento");
+const tipoMovimentoEl = document.getElementById("tipoMovimento");
+const descricaoMovimentoEl = document.getElementById("descricaoMovimento");
+const valorMovimentoEl = document.getElementById("valorMovimento");
+const dataMovimentoEl = document.getElementById("dataMovimento");
 
 // Coleções
 const clientesCol = collection(db, 'clientes');
@@ -46,7 +56,7 @@ let totalVenda = 0;       // Total da venda
 let descontoPercentualVenda = 0; 
 let descontoTotalVenda = 0;
 let produtosMap = {}; // será carregado do Firestor
-let fluxoCaixa = [];
+let fluxoCaixa = JSON.parse(localStorage.getItem("fluxoCaixa")) || [];
 
 // =====================
 // 🔹 Funções de interface
@@ -1508,6 +1518,9 @@ document.getElementById("btnExportarPDF")?.addEventListener("click", exportarPDF
 /* ============================
    📌 FUNÇÕES PRINCIPAIS
 ============================ */
+function salvarFluxoCaixa() {
+  localStorage.setItem("fluxoCaixa", JSON.stringify(fluxoCaixa));
+}
 
 // Atualiza tabela e totais
 function atualizarFluxoCaixa() {
@@ -1534,23 +1547,23 @@ function atualizarFluxoCaixa() {
           R$ ${mov.valor.toFixed(2)}
         </td>
         <td>
-          <button class="btnExcluir" onclick="excluirMovimento(${index})">
-            Excluir
-          </button>
+          <button onclick="excluirMovimento(${index})">Excluir</button>
         </td>
       `;
 
       tbodyCaixa.appendChild(tr);
 
       mov.tipo === "entrada"
-        ? (totalEntradas += mov.valor)
-        : (totalSaidas += mov.valor);
+        ? totalEntradas += mov.valor
+        : totalSaidas += mov.valor;
     }
   });
 
-  totalEntradasEl.textContent = totalEntradas.toFixed(2);
-  totalSaidasEl.textContent = totalSaidas.toFixed(2);
-  saldoCaixaEl.textContent = (totalEntradas - totalSaidas).toFixed(2);
+  totalEntradasEl.textContent = `R$ ${totalEntradas.toFixed(2)}`;
+  totalSaidasEl.textContent = `R$ ${totalSaidas.toFixed(2)}`;
+  saldoCaixaEl.textContent = `R$ ${(totalEntradas - totalSaidas).toFixed(2)}`;
+
+  salvarFluxoCaixa(); // 🔥 automático
 }
 
 // Excluir movimento
@@ -1560,6 +1573,8 @@ function excluirMovimento(index) {
     atualizarFluxoCaixa();
   }
 }
+
+window.excluirMovimento = excluirMovimento;
 
 /* ============================
    ➕ MODAL MOVIMENTO
@@ -1663,6 +1678,32 @@ if (btnDescontoVenda) {
   });
 }
 
+let vendaRegistrada = false;
+
+btnFinalizarVenda?.addEventListener("click", () => {
+  if (vendaRegistrada) return;
+
+  const totalVenda = parseFloat(
+    document.getElementById("totalVenda").textContent.replace(",", ".")
+  );
+
+  if (!totalVenda || totalVenda <= 0) return;
+
+  const cliente =
+    document.getElementById("clienteSelect")?.selectedOptions[0]?.text ||
+    "Cliente";
+
+  fluxoCaixa.push({
+    tipo: "entrada",
+    descricao: `Venda - ${cliente}`,
+    valor: totalVenda,
+    data: new Date().toISOString().split("T")[0]
+  });
+
+  vendaRegistrada = true;
+  atualizarFluxoCaixa();
+});
+
 /* ============================
    📄 EXPORTAR PDF
 ============================ */
@@ -1715,6 +1756,5 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
+document.addEventListener("DOMContentLoaded", atualizarFluxoCaixa);
 window.mostrarSecao = mostrarSecao;
-
-
