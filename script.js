@@ -1526,18 +1526,6 @@ function salvarFluxoCaixa() {
   localStorage.setItem("fluxoCaixa", JSON.stringify(fluxoCaixa));
 }
 
-function removerVendaDoFluxoCaixa(idVenda) {
-  const index = fluxoCaixa.findIndex(
-    mov => mov.idVenda === idVenda
-  );
-
-  if (index !== -1) {
-    fluxoCaixa.splice(index, 1);
-    salvarFluxoCaixa();
-    atualizarFluxoCaixa();
-  }
-}
-
 async function salvarMovimentoFluxoCaixa(movimento) {
   await addDoc(collection(db, "fluxoCaixa"), {
     ...movimento,
@@ -1799,3 +1787,4 @@ function carregarProdutosVenda() {
 
 document.addEventListener("DOMContentLoaded", carregarFluxoCaixa);
 window.mostrarSecao = mostrarSecao;
+
