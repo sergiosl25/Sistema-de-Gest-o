@@ -157,6 +157,27 @@ document.querySelectorAll("nav button").forEach(btn => {
   btn.addEventListener("click", () => mostrarSecao(btn.dataset.target));
 });
 
+async function adicionarLogo(doc, pdfWidth, y = 10, logoWidth = 40) {
+  return new Promise((resolve, reject) => {
+    const logo = document.getElementById("logo");
+    if (!logo || !logo.src) return resolve(); // Não adiciona se não houver logo
+
+    const img = new Image();
+    img.crossOrigin = "anonymous"; // Evita problemas CORS se a imagem for externa
+    img.src = logo.src;
+
+    img.onload = () => {
+      const imgProps = doc.getImageProperties(img);
+      const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+      const xPos = (pdfWidth - logoWidth) / 2;
+      doc.addImage(img, "PNG", xPos, y, logoWidth, logoHeight);
+      resolve();
+    };
+
+    img.onerror = () => resolve(); // Se falhar, apenas ignora
+  });
+}
+
 // ==========================
 // 🔹 Clientes
 // ==========================
@@ -673,14 +694,7 @@ async function gerarPdfVendaPremium(venda) {
     }
 
     // ---------------- Logo ----------------
-    const logo = document.getElementById("logo");
-    if (logo) {
-      const imgProps = doc.getImageProperties(logo);
-      const logoWidth = 40;
-      const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-      const xPos = (pdfWidth - logoWidth) / 2;
-      doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
-    }
+    await adicionarLogo(doc, pdfWidth, 10, 40);
 
     // ---------------- Cabeçalho ----------------
     doc.setFontSize(16);
@@ -1252,11 +1266,10 @@ if (btnAdd && !btnAdd.dataset.listenerAttached) {
 // =======================
 // GERAR PDF DO ORÇAMENTO
 // =======================
-window.gerarPdfOrcamento = function () {
+window.gerarPdfOrcamento = async function () {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
   const pdfWidth = doc.internal.pageSize.getWidth();
-  const pdfHeight = doc.internal.pageSize.getHeight();
 
   const clienteNome = document
     .getElementById("clienteInputOrcamento")
@@ -1265,16 +1278,8 @@ window.gerarPdfOrcamento = function () {
 
   doc.text(`Cliente: ${clienteNome}`, 8, 35);
 
-  // ---------------- LOGO ----------------
-  const logo = document.getElementById("logo");
-  if (logo) {
-    const imgProps = doc.getImageProperties(logo);
-    const logoWidth = 40;
-    const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-    const xPos = (pdfWidth - logoWidth) / 2;
-    doc.addImage(logo, "PNG", xPos, 15, logoWidth, logoHeight);
-  }
-
+  await adicionarLogo(doc, pdfWidth, 15, 40); // Logo acima do título
+  
   // ---------------- TÍTULO ----------------
   doc.setFontSize(16);
   doc.text("ORÇAMENTO", pdfWidth / 2, 10, { align: "center" });
@@ -1405,15 +1410,7 @@ async function exportarPDFRegistros() {
     const doc = new jsPDF();
     const pdfWidth = doc.internal.pageSize.getWidth();
 
-    // Logo
-    const logo = document.getElementById("logo");
-    if (logo) {
-      const imgProps = doc.getImageProperties(logo);
-      const logoWidth = 40;
-      const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
-      const xPos = (pdfWidth - logoWidth) / 2;
-      doc.addImage(logo, "PNG", xPos, 10, logoWidth, logoHeight);
-    }
+    await adicionarLogo(doc, pdfWidth, 10, 40); // Logo no topo
 
     doc.setFontSize(16);
     doc.text("REGISTROS DE VENDAS", pdfWidth / 2, 60, { align: "center" });
@@ -1740,5 +1737,3 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
-
-
