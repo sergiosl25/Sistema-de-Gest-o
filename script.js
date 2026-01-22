@@ -1520,12 +1520,8 @@ async function exportarPDFRegistros() {
 document.getElementById("btnExportarPDF")?.addEventListener("click", exportarPDFRegistros);
 
 /* ============================
-   📌 FUNÇÕES PRINCIPAIS
+   💾 FIRESTORE - FUNÇÕES
 ============================ */
-function salvarFluxoCaixa() {
-  localStorage.setItem("fluxoCaixa", JSON.stringify(fluxoCaixa));
-}
-
 async function salvarMovimentoFluxoCaixa(movimento) {
   await addDoc(collection(db, "fluxoCaixa"), {
     ...movimento,
@@ -1534,20 +1530,25 @@ async function salvarMovimentoFluxoCaixa(movimento) {
   });
 }
 
-window.salvarMovimentoFluxoCaixa = salvarMovimentoFluxoCaixa;
-
 async function carregarFluxoCaixa() {
   tbodyCaixa.innerHTML = "";
 
   let totalEntradas = 0;
   let totalSaidas = 0;
 
-  const q = query(
-    collection(db, "fluxoCaixa"),
-    orderBy("data", "asc")
-  );
+  const dataInicio = document.getElementById("dataInicio")?.value;
+  const dataFim = document.getElementById("dataFim")?.value;
 
-  const snapshot = await getDocs(q);
+  let qRef = collection(db, "fluxoCaixa");
+  if (dataInicio || dataFim) {
+    // Filtra datas se informado
+    qRef = query(
+      collection(db, "fluxoCaixa"),
+      orderBy("data", "asc")
+    );
+  }
+
+  const snapshot = await getDocs(qRef);
 
   snapshot.forEach((docSnap) => {
     const mov = docSnap.data();
@@ -1556,6 +1557,12 @@ async function carregarFluxoCaixa() {
     const data = mov.data?.seconds
       ? new Date(mov.data.seconds * 1000).toISOString().split("T")[0]
       : "-";
+
+    // Filtrar manualmente se datas estão definidas
+    if (
+      (dataInicio && data < dataInicio) ||
+      (dataFim && data > dataFim)
+    ) return;
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -1585,13 +1592,11 @@ async function carregarFluxoCaixa() {
 // Excluir movimento
 async function excluirMovimentoFluxo(idMov) {
   if (!confirm("Excluir este movimento?")) return;
-
   await deleteDoc(doc(db, "fluxoCaixa", idMov));
   carregarFluxoCaixa();
 }
 
-window.excluirMovimentoFluxo = excluirMovimentoFluxo;
-
+// Remover automaticamente do fluxo de caixa ao excluir venda
 async function removerVendaDoFluxoCaixa(idVenda) {
   const q = query(
     collection(db, "fluxoCaixa"),
@@ -1600,29 +1605,27 @@ async function removerVendaDoFluxoCaixa(idVenda) {
 
   const snapshot = await getDocs(q);
 
-  snapshot.forEach(async (docSnap) => {
+  for (const docSnap of snapshot.docs) {
     await deleteDoc(doc(db, "fluxoCaixa", docSnap.id));
-  });
+  }
+
+  carregarFluxoCaixa();
 }
 
 /* ============================
    ➕ MODAL MOVIMENTO
 ============================ */
-
-// Abrir modal
 document.getElementById("btnAdicionarMovimento").addEventListener("click", () => {
   modalMovimento.style.display = "flex";
   dataMovimentoEl.value = new Date().toISOString().split("T")[0];
 });
 
-// Cancelar
 document.getElementById("btnCancelarMovimento").addEventListener("click", () => {
   modalMovimento.style.display = "none";
   limparModal();
 });
 
-// Salvar movimento
-document.getElementById("btnSalvarMovimento").addEventListener("click", () => {
+document.getElementById("btnSalvarMovimento").addEventListener("click", async () => {
   const tipo = tipoMovimentoEl.value;
   const descricao = descricaoMovimentoEl.value.trim();
   const valor = parseFloat(valorMovimentoEl.value);
@@ -1633,16 +1636,10 @@ document.getElementById("btnSalvarMovimento").addEventListener("click", () => {
     return;
   }
 
-  fluxoCaixa.push({
-    tipo,
-    descricao,
-    valor,
-    data
-  });
-
+  await salvarMovimentoFluxoCaixa({ tipo, descricao, valor, data });
   modalMovimento.style.display = "none";
   limparModal();
-  atualizarFluxoCaixa();
+  carregarFluxoCaixa();
 });
 
 function limparModal() {
@@ -1653,123 +1650,99 @@ function limparModal() {
 /* ============================
    🔍 FILTRO POR DATA
 ============================ */
-
 document.getElementById("btnFiltrarCaixa")
-  .addEventListener("click", atualizarFluxoCaixa);
+  .addEventListener("click", carregarFluxoCaixa);
 
 /* ============================
    💵 INTEGRAÇÃO COM VENDAS
 ============================ */
-
-// ENTRADA AUTOMÁTICA AO FINALIZAR VENDA
-const btnFinalizarVenda = document.getElementById("btnFinalizarVenda");
-
-if (btnFinalizarVenda) {
-  btnFinalizarVenda.addEventListener("click", () => {
-    const totalVenda = parseFloat(
-      document.getElementById("totalVenda").textContent.replace(",", ".")
-    );
-
-    if (isNaN(totalVenda) || totalVenda <= 0) return;
-
-    const cliente =
-      document.getElementById("clienteSelect")?.selectedOptions[0]?.text ||
-      "Cliente não identificado";
-
-    fluxoCaixa.push({
-      tipo: "entrada",
-      descricao: `Venda - ${cliente}`,
-      valor: totalVenda,
-      data: new Date().toISOString().split("T")[0]
-    });
-
-    atualizarFluxoCaixa();
-  });
-}
-
-// SAÍDA AUTOMÁTICA POR DESCONTO NA VENDA
-const btnDescontoVenda = document.getElementById("btnDescontoVenda");
-
-if (btnDescontoVenda) {
-  btnDescontoVenda.addEventListener("click", () => {
-    const desconto = parseFloat(prompt("Valor do desconto em R$:"));
-
-    if (!desconto || desconto <= 0) return;
-
-    fluxoCaixa.push({
-      tipo: "saida",
-      descricao: "Desconto concedido em venda",
-      valor: desconto,
-      data: new Date().toISOString().split("T")[0]
-    });
-
-    atualizarFluxoCaixa();
-  });
-}
-
-let vendaRegistrada = false;
-
-btnFinalizarVenda?.addEventListener("click", () => {
-  if (vendaRegistrada) return;
-
+btnFinalizarVenda?.addEventListener("click", async () => {
   const totalVenda = parseFloat(
     document.getElementById("totalVenda").textContent.replace(",", ".")
   );
-
   if (!totalVenda || totalVenda <= 0) return;
 
   const cliente =
     document.getElementById("clienteSelect")?.selectedOptions[0]?.text ||
-    "Cliente";
+    "Cliente não identificado";
 
-  fluxoCaixa.push({
-    tipo: "entrada",
-    descricao: `Venda - ${cliente}`,
-    valor: totalVenda,
-    data: new Date().toISOString().split("T")[0]
+  try {
+    // Salva venda no Firestore
+    const vendaRef = await addDoc(collection(db, "vendas"), {
+      clienteNome: cliente,
+      total: totalVenda,
+      data: new Date(),
+      tipoPagamento: "Dinheiro",
+      itens: [] // opcional
+    });
+
+    const idVenda = vendaRef.id;
+
+    // Adiciona entrada automática no fluxo de caixa
+    await salvarMovimentoFluxoCaixa({
+      tipo: "entrada",
+      descricao: `Venda - ${cliente}`,
+      valor: totalVenda,
+      data: new Date().toISOString().split("T")[0],
+      idVenda
+    });
+
+    carregarFluxoCaixa();
+    mostrarModal("Venda registrada e fluxo de caixa atualizado!");
+  } catch (error) {
+    console.error(error);
+    mostrarModal("Erro ao registrar venda. Verifique o console.");
+  }
+});
+
+// Registrar desconto
+btnDescontoVenda?.addEventListener("click", async () => {
+  const desconto = parseFloat(prompt("Valor do desconto em R$:"));
+  if (!desconto || desconto <= 0) return;
+
+  const cliente =
+    document.getElementById("clienteSelect")?.selectedOptions[0]?.text ||
+    "Cliente não identificado";
+
+  await salvarMovimentoFluxoCaixa({
+    tipo: "saida",
+    descricao: `Desconto concedido - ${cliente}`,
+    valor: desconto,
+    data: new Date().toISOString().split("T")[0],
+    idVenda: null
   });
 
-  vendaRegistrada = true;
-  atualizarFluxoCaixa();
+  carregarFluxoCaixa();
 });
 
 /* ============================
    📄 EXPORTAR PDF
 ============================ */
+document.getElementById("btnExportarFluxoPDF")?.addEventListener("click", () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
 
-document.getElementById("btnExportarFluxoPDF")
-  .addEventListener("click", () => {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+  doc.text("Fluxo de Caixa", 14, 15);
 
-    doc.text("Fluxo de Caixa", 14, 15);
+  const rows = Array.from(tbodyCaixa.querySelectorAll("tr")).map(tr =>
+    Array.from(tr.querySelectorAll("td")).slice(0, 4).map(td => td.textContent)
+  );
 
-    const rows = fluxoCaixa.map(m => [
-      m.data,
-      m.tipo === "entrada" ? "Entrada" : "Saída",
-      m.descricao,
-      `R$ ${m.valor.toFixed(2)}`
-    ]);
-
-    doc.autoTable({
-      head: [["Data", "Tipo", "Descrição", "Valor"]],
-      body: rows,
-      startY: 25
-    });
-
-    const saldo = fluxoCaixa.reduce(
-      (acc, m) => acc + (m.tipo === "entrada" ? m.valor : -m.valor),
-      0
-    );
-
-    doc.text(
-      `Saldo Total: R$ ${saldo.toFixed(2)}`,
-      14,
-      doc.lastAutoTable.finalY + 10
-    );
-
-    doc.save("Fluxo_de_Caixa.pdf");
+  doc.autoTable({
+    head: [["Data", "Tipo", "Descrição", "Valor"]],
+    body: rows,
+    startY: 25
   });
+
+  const saldo = parseFloat(saldoCaixaEl.textContent.replace("R$ ", "").replace(",", "."));
+  doc.text(`Saldo Total: R$ ${saldo.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+  doc.save("Fluxo_de_Caixa.pdf");
+});
+
+/* ============================
+   🔄 CARREGAR AO ABRIR PÁGINA
+============================ */
+document.addEventListener("DOMContentLoaded", carregarFluxoCaixa);
 
 // === Funções “placeholder” para evitar erros ===
 
@@ -1785,6 +1758,4 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
-document.addEventListener("DOMContentLoaded", carregarFluxoCaixa);
 window.mostrarSecao = mostrarSecao;
-
