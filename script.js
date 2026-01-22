@@ -1676,45 +1676,6 @@ document.getElementById("btnFiltrarCaixa")
 /* ============================
    💵 INTEGRAÇÃO COM VENDAS
 ============================ */
-btnFinalizarVenda?.addEventListener("click", async () => {
-  const totalVenda = parseFloat(
-    document.getElementById("totalVenda").textContent.replace(",", ".")
-  );
-  if (!totalVenda || totalVenda <= 0) return;
-
-  const cliente =
-    document.getElementById("clienteSelect")?.selectedOptions[0]?.text ||
-    "Cliente não identificado";
-
-  try {
-    // Salva venda no Firestore
-    const vendaRef = await addDoc(collection(db, "vendas"), {
-      clienteNome: cliente,
-      total: totalVenda,
-      data: new Date(),
-      tipoPagamento: "Dinheiro",
-      itens: [] // opcional
-    });
-
-    const idVenda = vendaRef.id;
-
-    // Adiciona entrada automática no fluxo de caixa
-    await salvarMovimentoFluxoCaixa({
-      tipo: "entrada",
-      descricao: `Venda - ${cliente}`,
-      valor: totalVenda,
-      data: new Date().toISOString().split("T")[0],
-      idVenda
-    });
-
-    carregarFluxoCaixa();
-    mostrarModal("Venda registrada e fluxo de caixa atualizado!");
-  } catch (error) {
-    console.error(error);
-    mostrarModal("Erro ao registrar venda. Verifique o console.");
-  }
-});
-
 // Registrar desconto
 btnDescontoVenda?.addEventListener("click", async () => {
   const desconto = parseFloat(prompt("Valor do desconto em R$:"));
@@ -1779,4 +1740,5 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
 
