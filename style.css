@@ -215,6 +215,89 @@ tr:hover {
   color: var(--cor-secundaria);
 }
 
+/* ===== CONTAINER DA TABELA ===== */
+#tabelaPrecos {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ===== CABEÇALHO ===== */
+#tabelaPrecos thead {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #ffffff;
+}
+
+#tabelaPrecos th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+
+/* ===== LINHAS ===== */
+#tabelaPrecos tbody tr {
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+#tabelaPrecos tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+#tabelaPrecos tbody tr:hover {
+  background: #eef2ff;
+}
+
+/* ===== CÉLULAS ===== */
+#tabelaPrecos td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 14px;
+  color: #111827;
+}
+
+/* ===== INPUTS ===== */
+#tabelaPrecos input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: #ffffff;
+}
+
+#tabelaPrecos input[type="number"]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* ===== NOME DO PRODUTO ===== */
+#tabelaPrecos td:first-child {
+  font-weight: 600;
+  color: #1f2933;
+}
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 768px) {
+  #tabelaPrecos th,
+  #tabelaPrecos td {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  #tabelaPrecos input[type="number"] {
+    font-size: 13px;
+  }
+}
+
 /* =========================
    💠 BOTÕES 3D
 ========================= */
@@ -522,5 +605,6 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
 
