@@ -185,7 +185,7 @@ tr:hover {
   background-color: #f2f5f8;
 }
 
-#tabelaFluxo {
+#tabelaFluxoCaixa {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
@@ -194,19 +194,19 @@ tr:hover {
   box-shadow: var(--sombra-suave);
 }
 
-#tabelaFluxo thead {
+#tabelaFluxoCaixa thead {
   background: linear-gradient(180deg, var(--cor-primaria), #2e86c1);
   color: #fff;
   font-weight: bold;
 }
 
-#tabelaFluxo th, #tabelaFluxo td {
+#tabelaFluxoCaixa th, #tabelaFluxo td {
   padding: 14px;
   text-align: center;
   border-bottom: 1px solid #eee;
 }
 
-#tabelaFluxo tr:hover {
+#tabelaFluxoCaixa tr:hover {
   background-color: #f2f5f8;
 }
 
@@ -522,4 +522,5 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
