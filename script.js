@@ -527,6 +527,7 @@ async function finalizarVenda() {
       btnFinalizarVenda.disabled = false;
       return;
     }
+
     if (itensVendaAtual.length === 0) {
       mostrarModal("Nenhum item adicionado à venda.");
       btnFinalizarVenda.disabled = false;
@@ -537,15 +538,18 @@ async function finalizarVenda() {
     const clienteId = clienteSelect.value;
     const clienteNome = clienteSelect.options[clienteSelect.selectedIndex].text;
 
+    // Soma dos subtotais (sem desconto)
     const somaSubtotais = itensVendaAtual.reduce(
       (acc, item) => acc + (item.quantidade * item.valorUnitario),
       0
     );
 
+    // Prepara itens para salvar, aplicando desconto proporcional
     const itensParaSalvar = itensVendaAtual.map(item => {
       const descontoProporcional = descontoTotalVenda
         ? (item.total / somaSubtotais) * descontoTotalVenda
         : 0;
+
       const totalItem = Math.max(0, item.total - descontoProporcional);
 
       return {
@@ -561,6 +565,7 @@ async function finalizarVenda() {
 
     const totalParaSalvar = itensParaSalvar.reduce((acc, item) => acc + item.totalItem, 0);
 
+    // --------------------- SALVA VENDA ---------------------
     const venda = {
       clienteId,
       clienteNome,
@@ -573,7 +578,7 @@ async function finalizarVenda() {
 
     const docRef = await addDoc(collection(db, "vendas"), venda);
 
-    // Atualiza estoque
+    // --------------------- ATUALIZA ESTOQUE ---------------------
     for (const item of itensParaSalvar) {
       const produtoRef = doc(db, "produtos", item.produtoId);
       const produtoSnap = await getDoc(produtoRef);
@@ -584,6 +589,18 @@ async function finalizarVenda() {
       }
     }
 
+    // --------------------- REGISTRA NO FLUXO DE CAIXA ---------------------
+    await salvarMovimentoFluxoCaixa({
+      tipo: "entrada",
+      descricao: `Venda - ${clienteNome} (${tipoPagamento})`,
+      valor: totalParaSalvar,
+      data: new Date().toISOString().split("T")[0],
+      idVenda: docRef.id
+    });
+
+    carregarFluxoCaixa();
+
+    // --------------------- GERAR PDF ---------------------
     gerarPdfVendaPremium({
       id: docRef.id,
       clienteNome,
@@ -594,7 +611,10 @@ async function finalizarVenda() {
     });
 
     mostrarModal(`✅ Venda registrada! Total: R$ ${totalParaSalvar.toFixed(2)}`);
+
     await carregarTabelaRegistrosVendas();
+
+    // --------------------- LIMPA TELA ---------------------
     limparTelaVenda();
 
   } catch (error) {
@@ -1759,3 +1779,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
