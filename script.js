@@ -158,12 +158,12 @@ document.querySelectorAll("nav button").forEach(btn => {
 });
 
 async function adicionarLogo(doc, pdfWidth, y = 10, logoWidth = 40) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const logo = document.getElementById("logo");
-    if (!logo || !logo.src) return resolve(); // Não adiciona se não houver logo
+    if (!logo || !logo.src) return resolve();
 
     const img = new Image();
-    img.crossOrigin = "anonymous"; // Evita problemas CORS se a imagem for externa
+    img.crossOrigin = "anonymous"; // evita problemas de CORS
     img.src = logo.src;
 
     img.onload = () => {
@@ -174,7 +174,7 @@ async function adicionarLogo(doc, pdfWidth, y = 10, logoWidth = 40) {
       resolve();
     };
 
-    img.onerror = () => resolve(); // Se falhar, apenas ignora
+    img.onerror = () => resolve(); // ignora se falhar
   });
 }
 
@@ -676,27 +676,9 @@ async function gerarPdfVendaPremium(venda) {
     const pdfWidth = doc.internal.pageSize.getWidth();
     const pdfHeight = doc.internal.pageSize.getHeight();
 
-    // ---------------- Função auxiliar: calcula total do item ----------------
-    function calcularTotalItem(item) {
-      const preco = Number(item.valorUnitario || 0);
-      const qtd = Number(item.quantidade || 0);
-      const desconto = Number(item.desconto || 0);
-
-      let total = preco * qtd;
-
-      if (item.tipoDesconto === "percent") {
-        total *= 1 - desconto / 100;
-      } else {
-        total -= desconto;
-      }
-
-      return Math.max(0, total);
-    }
-
-    // ---------------- Logo ----------------
     await adicionarLogo(doc, pdfWidth, 10, 40);
 
-    // ---------------- Cabeçalho ----------------
+    // Cabeçalho
     doc.setFontSize(16);
     doc.setFont(undefined, "bold");
     doc.text("Recibo de venda", pdfWidth / 2, 55, { align: "center" });
@@ -706,7 +688,20 @@ async function gerarPdfVendaPremium(venda) {
     doc.text(`Cliente: ${venda.clienteNome || "Não informado"}`, 8, 35);
     doc.text(`Pagamento: ${venda.tipoPagamento || "Não informado"}`, 8, 42);
 
-    // ---------------- Criar linhas da tabela ----------------
+    // Função auxiliar para calcular total do item
+    function calcularTotalItem(item) {
+      const preco = Number(item.valorUnitario || 0);
+      const qtd = Number(item.quantidade || 0);
+      const desconto = Number(item.desconto || 0);
+
+      let total = preco * qtd;
+      if (item.tipoDesconto === "percent") total *= 1 - desconto / 100;
+      else total -= desconto;
+
+      return Math.max(0, total);
+    }
+
+    // Linhas da tabela
     const rows = venda.itens.map(item => {
       const totalItem = calcularTotalItem(item);
       return [
@@ -718,45 +713,28 @@ async function gerarPdfVendaPremium(venda) {
       ];
     });
 
-    // ---------------- Gerar tabela ----------------
     doc.autoTable({
       startY: 70,
       head: [["Produto", "Qtde", "Valor Unitário", "Desconto", "Total"]],
       body: rows,
       styles: { fontSize: 10 },
-      columnStyles: {
-        1: { halign: "center" }, // Qtde centralizada
-        2: { halign: "right" },  // Valor unitário à direita
-        3: { halign: "right" },  // Desconto à direita
-        4: { halign: "right" }   // Total à direita
-      },
+      columnStyles: { 1: { halign: "center" }, 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" } },
       headStyles: { fillColor: [220, 220, 220] }
     });
 
-    // ---------------- Total geral ----------------
+    // Total geral
     const finalY = doc.lastAutoTable.finalY + 10;
     const totalVenda = venda.total ?? venda.itens.reduce((acc, item) => acc + calcularTotalItem(item), 0);
-
     doc.setFont(undefined, "bold");
     doc.setFontSize(12);
-    doc.text(
-      `TOTAL DA VENDA: R$ ${totalVenda.toFixed(2)}`,
-      pdfWidth - 8,
-      finalY,
-      { align: "right" }
-    );
+    doc.text(`TOTAL DA VENDA: R$ ${totalVenda.toFixed(2)}`, pdfWidth - 8, finalY, { align: "right" });
 
-    // ---------------- Rodapé ----------------
+    // Rodapé
     doc.setFontSize(10);
     doc.setFont(undefined, "italic");
-    doc.text(
-      "Obrigado pela sua compra!",
-      pdfWidth / 2,
-      pdfHeight - 10,
-      { align: "center" }
-    );
+    doc.text("Obrigado pela sua compra!", pdfWidth / 2, pdfHeight - 10, { align: "center" });
 
-    // ---------------- Salvar PDF ----------------
+    // Salvar PDF
     const safeName = (venda.clienteNome || "cliente").replace(/[/\\?%*:|"<>]/g, "_");
     doc.save(`venda_${safeName}.pdf`);
   } catch (error) {
@@ -923,32 +901,23 @@ async function gerarPdfVenda(idVenda) {
     const vendaRef = doc(db, "vendas", idVenda);
     const vendaSnap = await getDoc(vendaRef);
 
-    if (!vendaSnap.exists()) {
-      mostrarModal("Venda não encontrada!");
-      return;
-    }
+    if (!vendaSnap.exists()) return mostrarModal("Venda não encontrada!");
 
     const venda = vendaSnap.data();
-
-    gerarPdfVendaPremium({
+    await gerarPdfVendaPremium({
       id: idVenda,
       clienteNome: venda.clienteNome,
       tipoPagamento: venda.tipoPagamento,
       itens: venda.itens || [],
       total: venda.total || 0,
-      data: venda.data?.seconds
-        ? new Date(venda.data.seconds * 1000)
-        : new Date()
+      data: venda.data?.seconds ? new Date(venda.data.seconds * 1000) : new Date()
     });
-
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);
     mostrarModal("Erro ao gerar PDF da venda.");
   }
 }
-
 window.gerarPdfVenda = gerarPdfVenda;
-
 
 // --- Função para abrir modal ou aplicar desconto (versão funcional) ---
 window.abrirModalDesconto = async function (idVenda) {
@@ -1271,79 +1240,33 @@ window.gerarPdfOrcamento = async function () {
   const doc = new jsPDF();
   const pdfWidth = doc.internal.pageSize.getWidth();
 
-  const clienteNome = document
-    .getElementById("clienteInputOrcamento")
-    .value
-    .trim() || "Não informado";
+  await adicionarLogo(doc, pdfWidth, 15, 40);
 
+  const clienteNome = document.getElementById("clienteInputOrcamento").value.trim() || "Não informado";
   doc.text(`Cliente: ${clienteNome}`, 8, 35);
-
-  await adicionarLogo(doc, pdfWidth, 15, 40); // Logo acima do título
-  
-  // ---------------- TÍTULO ----------------
   doc.setFontSize(16);
   doc.text("ORÇAMENTO", pdfWidth / 2, 10, { align: "center" });
 
-  // ---------------- LINHAS DA TABELA ----------------
+  // Linhas da tabela
   const rows = itensOrcamentoAtual.map(item => {
     const preco = Number(item.preco) || 0;
     const qtd = Number(item.quantidade) || 0;
     const desconto = Number(item.descontoValor) || 0;
     let total = preco * qtd;
-
-    if (item.tipoDescontoItem === "percent") {
-      total *= (1 - desconto / 100);
-    } else if (item.tipoDescontoItem === "valor") {
-      total -= desconto;
-    }
-
-    return [
-      item.produtoNome,
-      qtd,
-      `R$ ${preco.toFixed(2)}`,
-      item.tipoDescontoItem === "percent"
-        ? `${desconto}%`
-        : `R$ ${desconto.toFixed(2)}`,
-      `R$ ${total.toFixed(2)}`
-    ];
+    if (item.tipoDescontoItem === "percent") total *= (1 - desconto / 100);
+    else if (item.tipoDescontoItem === "valor") total -= desconto;
+    return [item.produtoNome, qtd, `R$ ${preco.toFixed(2)}`, item.tipoDescontoItem === "percent" ? `${desconto}%` : `R$ ${desconto.toFixed(2)}`, `R$ ${total.toFixed(2)}`];
   });
 
-  // ---------------- TABELA ----------------
-  doc.autoTable({
-    head: [['Produto', 'Qtd', 'Preço Unitário', 'Desconto', 'Total']],
-    body: rows,
-    startY: 60
-  });
+  doc.autoTable({ head: [['Produto', 'Qtd', 'Preço Unitário', 'Desconto', 'Total']], body: rows, startY: 60 });
 
-  // ---------------- SUBTOTAL ----------------
-  const subtotal = itensOrcamentoAtual.reduce((acc, item) => {
-    const preco = Number(item.preco) || 0;
-    const qtd = Number(item.quantidade) || 0;
-    const desconto = Number(item.descontoValor) || 0;
-    let total = preco * qtd;
-
-    if (item.tipoDescontoItem === "percent") {
-      total *= (1 - desconto / 100);
-    } else if (item.tipoDescontoItem === "valor") {
-      total -= desconto;
-    }
-
-    return acc + total;
-  }, 0);
-
-  // ---------------- TOTAL FINAL ----------------
-  let totalFinal = subtotal;
-
-  totalFinal = Math.max(0, totalFinal);
-
+  const subtotal = rows.reduce((acc, row) => acc + parseFloat(row[4].replace("R$ ", "")), 0);
   const y = doc.lastAutoTable.finalY + 10;
-
   doc.setFontSize(14);
-  doc.text(`TOTAL FINAL: R$ ${totalFinal.toFixed(2)}`, 14, y);
+  doc.text(`TOTAL FINAL: R$ ${Math.max(0, subtotal).toFixed(2)}`, 14, y);
 
   doc.save("orcamento.pdf");
-};
-
+}
 
 document.getElementById("produtoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
 document.getElementById("tipoPrecoSelectOrcamento").addEventListener("change", atualizarPrecoOrcamento);
@@ -1410,124 +1333,62 @@ async function exportarPDFRegistros() {
     const doc = new jsPDF();
     const pdfWidth = doc.internal.pageSize.getWidth();
 
-    await adicionarLogo(doc, pdfWidth, 10, 40); // Logo no topo
+    await adicionarLogo(doc, pdfWidth, 10, 40);
 
     doc.setFontSize(16);
     doc.text("REGISTROS DE VENDAS", pdfWidth / 2, 60, { align: "center" });
 
-    // Cabeçalho da tabela
-    const cabecalho = [
-      [
-        "Data",
-        "Cliente",
-        "Produto",
-        "Qtde",
-        "Unitário",
-        "Desconto",
-        "Total Antes",
-        "Total Após",
-        "Pagamento"
-      ]
-    ];
-
+    const cabecalho = [["Data", "Cliente", "Produto", "Qtde", "Unitário", "Desconto", "Total Antes", "Total Após", "Pagamento"]];
     const linhas = [];
     let totalGeral = 0;
 
-    // MONTAR ESTRUTURA IGUAL À TABELA HTML
-    vendasSnapshot.forEach((vendaDoc) => {
+    vendasSnapshot.forEach(vendaDoc => {
       const venda = vendaDoc.data();
       const itens = venda.itens || [];
-
-      const data = venda.data?.seconds
-        ? new Date(venda.data.seconds * 1000)
-        : new Date();
+      const data = venda.data?.seconds ? new Date(venda.data.seconds * 1000) : new Date();
       const dataTexto = data.toLocaleDateString("pt-BR");
       const cliente = venda.clienteNome || "-";
       const pagamento = venda.tipoPagamento || "-";
 
       let totalVenda = 0;
-      itens.forEach((item) => {
+      itens.forEach(item => {
         const qtd = item.quantidade || 0;
         const unit = item.valorUnitario || 0;
         const desc = item.desconto || 0;
         const subtotal = qtd * unit;
-        const totalItem = item.totalItem || (subtotal - desc);
+        const totalItem = item.totalItem ?? (subtotal - desc);
         totalVenda += totalItem;
       });
-
       totalGeral += totalVenda;
 
-      // -------------------------------
-      // 1) LINHA DA VENDA
-      // -------------------------------
-      linhas.push([
-        dataTexto,
-        cliente,
-        "-",
-        "-",
-        "-",
-        "-",
-        `R$ ${totalVenda.toFixed(2)}`,
-        `R$ ${totalVenda.toFixed(2)}`,
-        pagamento
-      ]);
-
-      // -------------------------------
-      // 2) LINHAS DOS PRODUTOS
-      // -------------------------------
-      itens.forEach((item) => {
+      // Linha da venda
+      linhas.push([dataTexto, cliente, "-", "-", "-", "-", `R$ ${totalVenda.toFixed(2)}`, `R$ ${totalVenda.toFixed(2)}`, pagamento]);
+      // Linhas dos produtos
+      itens.forEach(item => {
         const qtd = item.quantidade || 0;
         const unit = item.valorUnitario || 0;
         const desc = item.desconto || 0;
-
         const subtotal = qtd * unit;
-        const totalItem = item.totalItem || (subtotal - desc);
-
-        linhas.push([
-          "",                  // Data
-          "",                  // Cliente
-          item.nome,           // Produto
-          `${qtd} un`,         // Qtde
-          `R$ ${unit.toFixed(2)}`, // Unitário
-          `R$ ${desc.toFixed(2)}`, // Desconto
-          `R$ ${subtotal.toFixed(2)}`, // Total antes
-          `R$ ${totalItem.toFixed(2)}`, // Total após
-          ""                   // Pagamento
-        ]);
+        const totalItem = item.totalItem ?? (subtotal - desc);
+        linhas.push(["", "", item.nome, `${qtd} un`, `R$ ${unit.toFixed(2)}`, `R$ ${desc.toFixed(2)}`, `R$ ${subtotal.toFixed(2)}`, `R$ ${totalItem.toFixed(2)}`, ""]);
       });
     });
 
-    // Tabela formatada
     doc.autoTable({
       head: cabecalho,
       body: linhas,
       startY: 75,
-      styles: {
-        fontSize: 9,
-        halign: "center",
-        valign: "middle",
-      },
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontStyle: "bold",
-      },
+      styles: { fontSize: 9, halign: "center", valign: "middle" },
+      headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: "bold" },
       alternateRowStyles: { fillColor: [245, 245, 245] },
       theme: "grid",
     });
 
-    // Total geral no fim
     doc.setFontSize(13);
     doc.setFont(undefined, "bold");
-    doc.text(
-      `TOTAL GERAL: R$ ${totalGeral.toFixed(2)}`,
-      pdfWidth - 20,
-      doc.lastAutoTable.finalY + 10,
-      { align: "right" }
-    );
+    doc.text(`TOTAL GERAL: R$ ${totalGeral.toFixed(2)}`, pdfWidth - 20, doc.lastAutoTable.finalY + 10, { align: "right" });
 
     doc.save("registros_vendas.pdf");
-
   } catch (error) {
     console.error("Erro ao exportar PDF:", error);
     mostrarModal("Erro ao gerar PDF de registros.");
@@ -1696,9 +1557,12 @@ btnDescontoVenda?.addEventListener("click", async () => {
 /* ============================
    📄 EXPORTAR PDF
 ============================ */
-document.getElementById("btnExportarFluxoPDF")?.addEventListener("click", () => {
+document.getElementById("btnExportarFluxoPDF")?.addEventListener("click", async () => {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF();
+  const pdfWidth = doc.internal.pageSize.getWidth();
+
+  await adicionarLogo(doc, pdfWidth, 10, 40);
 
   doc.text("Fluxo de Caixa", 14, 15);
 
@@ -1706,14 +1570,11 @@ document.getElementById("btnExportarFluxoPDF")?.addEventListener("click", () => 
     Array.from(tr.querySelectorAll("td")).slice(0, 4).map(td => td.textContent)
   );
 
-  doc.autoTable({
-    head: [["Data", "Tipo", "Descrição", "Valor"]],
-    body: rows,
-    startY: 25
-  });
+  doc.autoTable({ head: [["Data", "Tipo", "Descrição", "Valor"]], body: rows, startY: 25 });
 
   const saldo = parseFloat(saldoCaixaEl.textContent.replace("R$ ", "").replace(",", "."));
   doc.text(`Saldo Total: R$ ${saldo.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
+
   doc.save("Fluxo_de_Caixa.pdf");
 });
 
