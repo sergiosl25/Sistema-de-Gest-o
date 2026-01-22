@@ -1,6 +1,6 @@
 import { app } from "./firebase-config.js";
 import { 
-  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, orderBy 
+  getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, serverTimestamp, query, where, orderBy,  Timestamp 
 } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 import { 
   getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, setPersistence, browserLocalPersistence 
@@ -854,13 +854,14 @@ async function abrirModalExcluir(idVenda) {
 
       // 🔹 Devolve itens ao estoque
       for (const item of venda.itens || []) {
-        if (!item.produtoId) continue; // ignora se não houver id
+        if (!item.produtoId) continue;
+
         const produtoRef = doc(db, "produtos", item.produtoId);
         const produtoSnap = await getDoc(produtoRef);
 
         if (produtoSnap.exists()) {
           const produto = produtoSnap.data();
-          const novaQtd = (produto.quantidade || 0) + item.quantidade;
+          const novaQtd = (produto.quantidade || 0) + (item.quantidade || 0);
           await updateDoc(produtoRef, { quantidade: novaQtd });
         }
       }
@@ -868,6 +869,9 @@ async function abrirModalExcluir(idVenda) {
 
     // 🔹 Exclui a venda
     await deleteDoc(vendaRef);
+
+    // 🔥 REMOVE A VENDA DO FLUXO DE CAIXA
+    removerVendaDoFluxoCaixa(idVenda);
 
     mostrarModal("Venda excluída e estoque atualizado!");
     carregarTabelaRegistrosVendas();
@@ -1522,59 +1526,96 @@ function salvarFluxoCaixa() {
   localStorage.setItem("fluxoCaixa", JSON.stringify(fluxoCaixa));
 }
 
-// Atualiza tabela e totais
-function atualizarFluxoCaixa() {
+function removerVendaDoFluxoCaixa(idVenda) {
+  const index = fluxoCaixa.findIndex(
+    mov => mov.idVenda === idVenda
+  );
+
+  if (index !== -1) {
+    fluxoCaixa.splice(index, 1);
+    salvarFluxoCaixa();
+    atualizarFluxoCaixa();
+  }
+}
+
+async function salvarMovimentoFluxoCaixa(movimento) {
+  await addDoc(collection(db, "fluxoCaixa"), {
+    ...movimento,
+    data: Timestamp.fromDate(new Date(movimento.data)),
+    criadoEm: serverTimestamp()
+  });
+}
+
+window.salvarMovimentoFluxoCaixa = salvarMovimentoFluxoCaixa;
+
+async function carregarFluxoCaixa() {
   tbodyCaixa.innerHTML = "";
 
   let totalEntradas = 0;
   let totalSaidas = 0;
 
-  const dataInicio = document.getElementById("dataInicio").value;
-  const dataFim = document.getElementById("dataFim").value;
+  const q = query(
+    collection(db, "fluxoCaixa"),
+    orderBy("data", "asc")
+  );
 
-  fluxoCaixa.forEach((mov, index) => {
-    if (
-      (!dataInicio || mov.data >= dataInicio) &&
-      (!dataFim || mov.data <= dataFim)
-    ) {
-      const tr = document.createElement("tr");
+  const snapshot = await getDocs(q);
 
-      tr.innerHTML = `
-        <td>${mov.data}</td>
-        <td>${mov.tipo === "entrada" ? "Entrada" : "Saída"}</td>
-        <td>${mov.descricao}</td>
-        <td style="color:${mov.tipo === "entrada" ? "green" : "red"}">
-          R$ ${mov.valor.toFixed(2)}
-        </td>
-        <td>
-          <button onclick="excluirMovimento(${index})">Excluir</button>
-        </td>
-      `;
+  snapshot.forEach((docSnap) => {
+    const mov = docSnap.data();
+    const idMov = docSnap.id;
 
-      tbodyCaixa.appendChild(tr);
+    const data = mov.data?.seconds
+      ? new Date(mov.data.seconds * 1000).toISOString().split("T")[0]
+      : "-";
 
-      mov.tipo === "entrada"
-        ? totalEntradas += mov.valor
-        : totalSaidas += mov.valor;
-    }
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${data}</td>
+      <td>${mov.tipo === "entrada" ? "Entrada" : "Saída"}</td>
+      <td>${mov.descricao}</td>
+      <td style="color:${mov.tipo === "entrada" ? "green" : "red"}">
+        R$ ${mov.valor.toFixed(2)}
+      </td>
+      <td>
+        <button onclick="excluirMovimentoFluxo('${idMov}')">Excluir</button>
+      </td>
+    `;
+
+    tbodyCaixa.appendChild(tr);
+
+    mov.tipo === "entrada"
+      ? totalEntradas += mov.valor
+      : totalSaidas += mov.valor;
   });
 
   totalEntradasEl.textContent = `R$ ${totalEntradas.toFixed(2)}`;
   totalSaidasEl.textContent = `R$ ${totalSaidas.toFixed(2)}`;
   saldoCaixaEl.textContent = `R$ ${(totalEntradas - totalSaidas).toFixed(2)}`;
-
-  salvarFluxoCaixa(); // 🔥 automático
 }
 
 // Excluir movimento
-function excluirMovimento(index) {
-  if (confirm("Deseja realmente excluir este movimento?")) {
-    fluxoCaixa.splice(index, 1);
-    atualizarFluxoCaixa();
-  }
+async function excluirMovimentoFluxo(idMov) {
+  if (!confirm("Excluir este movimento?")) return;
+
+  await deleteDoc(doc(db, "fluxoCaixa", idMov));
+  carregarFluxoCaixa();
 }
 
-window.excluirMovimento = excluirMovimento;
+window.excluirMovimentoFluxo = excluirMovimentoFluxo;
+
+async function removerVendaDoFluxoCaixa(idVenda) {
+  const q = query(
+    collection(db, "fluxoCaixa"),
+    where("idVenda", "==", idVenda)
+  );
+
+  const snapshot = await getDocs(q);
+
+  snapshot.forEach(async (docSnap) => {
+    await deleteDoc(doc(db, "fluxoCaixa", docSnap.id));
+  });
+}
 
 /* ============================
    ➕ MODAL MOVIMENTO
@@ -1756,5 +1797,5 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
-document.addEventListener("DOMContentLoaded", atualizarFluxoCaixa);
+document.addEventListener("DOMContentLoaded", carregarFluxoCaixa);
 window.mostrarSecao = mostrarSecao;
