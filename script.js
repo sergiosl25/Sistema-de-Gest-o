@@ -1425,7 +1425,7 @@ async function carregarFluxoCaixa() {
     const idMov = docSnap.id;
 
     const data = mov.data?.seconds
-      ? new Date(mov.data.seconds * 1000).toISOString().split("T")[0]
+      ? new Date(mov.data.seconds * 1000).toLocaleDateString("pt-BR")
       : "-";
 
     // Filtrar manualmente se datas estão definidas
@@ -1487,7 +1487,7 @@ async function removerVendaDoFluxoCaixa(idVenda) {
 ============================ */
 document.getElementById("btnAdicionarMovimento").addEventListener("click", () => {
   modalMovimento.style.display = "flex";
-  dataMovimentoEl.value = new Date().toISOString().split("T")[0];
+  dataMovimentoEl.value = new Date();
 });
 
 document.getElementById("btnCancelarMovimento").addEventListener("click", () => {
@@ -1539,7 +1539,7 @@ btnDescontoVenda?.addEventListener("click", async () => {
     tipo: "saida",
     descricao: `Desconto concedido - ${cliente}`,
     valor: desconto,
-    data: new Date().toISOString().split("T")[0],
+    data: new Date(),
     idVenda: null
   });
 
@@ -1562,7 +1562,7 @@ document.getElementById("btnExportarFluxoPDF")?.addEventListener("click", async 
     Array.from(tr.querySelectorAll("td")).slice(0, 4).map(td => td.textContent)
   );
 
-  doc.autoTable({ head: [["Data", "Tipo", "Descrição", "Valor"]], body: rows, startY: 25 });
+  doc.autoTable({ head: [["Data", "Tipo", "Descrição", "Valor"]], body: rows, startY: 40 });
 
   const saldo = parseFloat(saldoCaixaEl.textContent.replace("R$ ", "").replace(",", "."));
   doc.text(`Saldo Total: R$ ${saldo.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
@@ -1590,3 +1590,4 @@ function carregarProdutosVenda() {
 }
 
 window.mostrarSecao = mostrarSecao;
+
