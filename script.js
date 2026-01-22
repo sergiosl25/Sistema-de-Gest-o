@@ -1589,6 +1589,8 @@ function carregarProdutosVenda() {
   // com os produtos do Firestore
 }
 
+document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
