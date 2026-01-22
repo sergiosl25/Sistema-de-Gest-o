@@ -70,7 +70,7 @@ header nav button:hover {
 
 #userInfo {
   position: relative;
-  top: 20px;   
+  top: 30px;   
 }
 
 /* =========================
@@ -614,6 +614,7 @@ footer {
   padding-left: 40px;
   font-size: 0.9rem;
 }
+
 
 
 
