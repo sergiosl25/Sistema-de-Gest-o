@@ -107,18 +107,14 @@ onAuthStateChanged(auth, async (user) => {
 // Login via formulário
 formLogin?.addEventListener("submit", async (e) => {
   e.preventDefault();
+  console.log("Tentando logar com", emailLogin.value);
 
   try {
-    await signInWithEmailAndPassword(
-      auth,
-      emailLogin.value,
-      senhaLogin.value
-    );
-
-    // ❌ NÃO chama mostrarPaginaLogada aqui
+    const userCredential = await signInWithEmailAndPassword(auth, emailLogin.value, senhaLogin.value);
+    console.log("Login sucesso:", userCredential.user.email);
     formLogin.reset();
   } catch (erro) {
-    mostrarModal("Login ou senha inválidos!");
+    alert("Erro no login: " + erro.message);
     console.error(erro);
   }
 });
@@ -1626,3 +1622,4 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
