@@ -39,6 +39,7 @@ const totalEntradasEl = document.getElementById("totalEntradas");
 const totalSaidasEl = document.getElementById("totalSaidas");
 const saldoCaixaEl = document.getElementById("saldoCaixa");
 
+const categoriaMovimentoEl = document.getElementById("categoriaMovimento");
 const modalMovimento = document.getElementById("modalMovimento");
 const tipoMovimentoEl = document.getElementById("tipoMovimento");
 const descricaoMovimentoEl = document.getElementById("descricaoMovimento");
@@ -1438,6 +1439,7 @@ async function carregarFluxoCaixa() {
     tr.innerHTML = `
       <td>${data}</td>
       <td>${mov.tipo === "entrada" ? "Entrada" : "Saída"}</td>
+      <td>${mov.categoria ?? "-"}</td>
       <td>${mov.descricao}</td>
       <td style="color:${mov.tipo === "entrada" ? "green" : "red"}">
         R$ ${mov.valor.toFixed(2)}
@@ -1446,6 +1448,12 @@ async function carregarFluxoCaixa() {
         <button onclick="excluirMovimentoFluxo('${idMov}')">Excluir</button>
       </td>
     `;
+    let totaisPorCategoria = {};
+
+    if (mov.tipo === "saida") {
+      totaisPorCategoria[mov.categoria] =
+       (totaisPorCategoria[mov.categoria] || 0) + mov.valor;
+    }      
 
     tbodyCaixa.appendChild(tr);
 
@@ -1543,6 +1551,21 @@ btnDescontoVenda?.addEventListener("click", async () => {
     idVenda: null
   });
 
+  const categoria = categoriaMovimentoEl.value;
+
+  if (tipo === "saida" && !categoria) {
+  alert("Selecione a categoria da saída.");
+  return;
+  }
+
+  await salvarMovimentoFluxoCaixa({
+  tipo,
+  categoria: tipo === "saida" ? categoria : null,
+  descricao,
+  valor,
+  data
+  });
+
   carregarFluxoCaixa();
 });
 
@@ -1562,7 +1585,7 @@ document.getElementById("btnExportarFluxoPDF")?.addEventListener("click", async 
     Array.from(tr.querySelectorAll("td")).slice(0, 4).map(td => td.textContent)
   );
 
-  doc.autoTable({ head: [["Data", "Tipo", "Descrição", "Valor"]], body: rows, startY: 75 });
+  doc.autoTable({ head: [["Data", "Tipo", "Descrição", "Valor"]], body: rows, startY: 40 });
 
   const saldo = parseFloat(saldoCaixaEl.textContent.replace("R$ ", "").replace(",", "."));
   doc.text(`Saldo Total: R$ ${saldo.toFixed(2)}`, 14, doc.lastAutoTable.finalY + 10);
@@ -1591,6 +1614,3 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
-
-
-
