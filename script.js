@@ -64,9 +64,14 @@ let fluxoCaixa = JSON.parse(localStorage.getItem("fluxoCaixa")) || [];
 // 🔹 Funções de interface
 // =====================
 function mostrarPaginaLogada(user) {
-  telaLogin.style.display = "none";
-  header.style.display = "flex";
-  userEmailSpan.textContent = user.email;
+  const userNameEl = document.getElementById("userName");
+
+  if (!userNameEl) {
+    console.warn("Elemento #userName ainda não existe no DOM");
+    return;
+  }
+
+  userNameEl.textContent = user.email;
 }
 
 function mostrarLogin() {
@@ -83,6 +88,7 @@ function mostrarLogin() {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.log("✅ Usuário logado:", user.email);
+
     mostrarPaginaLogada(user);
 
     try {
@@ -96,14 +102,20 @@ onAuthStateChanged(auth, async (user) => {
     console.log("❌ Nenhum usuário logado");
     mostrarLogin();
   }
-})
+});
 
 // Login via formulário
 formLogin?.addEventListener("submit", async (e) => {
   e.preventDefault();
+
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, emailLogin.value, senhaLogin.value);
-    mostrarPaginaLogada(userCredential.user);
+    await signInWithEmailAndPassword(
+      auth,
+      emailLogin.value,
+      senhaLogin.value
+    );
+
+    // ❌ NÃO chama mostrarPaginaLogada aqui
     formLogin.reset();
   } catch (erro) {
     mostrarModal("Login ou senha inválidos!");
