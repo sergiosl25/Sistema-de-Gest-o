@@ -16,10 +16,11 @@ setPersistence(auth, browserLocalPersistence)
   
 // Elementos do DOM
 const telaLogin = document.getElementById("tela-login");
-const appContainer = document.getElementById("app");
+const app = document.getElementById("app");
 const header = document.getElementById("header");
 const secoes = document.querySelectorAll(".secao");
 const formLogin = document.getElementById("formLogin");
+const userName = document.getElementById("userName");
 const emailLogin = document.getElementById("emailLogin");
 const senhaLogin = document.getElementById("senhaLogin");
 const userEmailSpan = document.getElementById("userEmail");
@@ -85,41 +86,54 @@ function mostrarLogin() {
 // =====================
 // 🔹 Autenticação
 // =====================
-onAuthStateChanged(auth, async (user) => {
+// ===== LOGIN =====
+formLogin.addEventListener('submit', async (e) => {
+  e.preventDefault(); // Evita reload da página
+  const email = document.getElementById('emailLogin').value.trim();
+  const senha = document.getElementById('senhaLogin').value.trim();
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+    const user = userCredential.user;
+    userName.textContent = user.displayName || user.email;
+    telaLogin.style.display = 'none';
+    app.style.display = 'block';
+
+    // Carregar dados das seções
+    carregarClientesVenda();
+    carregarProdutosVenda();
+    carregarProdutosOrcamento();
+    carregarFluxoCaixa();
+    carregarTabelaPrecos();
+  } catch (error) {
+    alert('Email ou senha incorretos!');
+    console.error(error);
+  }
+});
+
+// ===== LOGOUT =====
+btnLogout.addEventListener('click', async () => {
+  await signOut(auth);
+  app.style.display = 'none';
+  telaLogin.style.display = 'block';
+});
+
+// ===== Verifica sessão =====
+onAuthStateChanged(auth, (user) => {
   if (user) {
-    console.log("✅ Usuário logado:", user.email);
-    mostrarPaginaLogada(user);
-
-    await carregarClientes();
-    await carregarEstoque();
-    await carregarTabelaPrecos();
+    userName.textContent = user.displayName || user.email;
+    telaLogin.style.display = 'none';
+    app.style.display = 'block';
+    
+    // Carregar dados
+    carregarClientesVenda();
+    carregarProdutosVenda();
+    carregarProdutosOrcamento();
+    carregarFluxoCaixa();
+    carregarTabelaPrecos();
   } else {
-    console.log("❌ Usuário deslogado");
-    mostrarLogin();
-  }
-});
-
-// Login via formulário
-formLogin?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  console.log("Tentando logar com", emailLogin.value);
-
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, emailLogin.value, senhaLogin.value);
-    console.log("Login sucesso:", userCredential.user.email);
-    formLogin.reset();
-  } catch (erro) {
-    alert("Erro no login: " + erro.message);
-    console.error(erro);
-  }
-});
-
-btnLogout.addEventListener("click", async () => {
-  try {
-    await signOut(auth);
-    console.log("✅ Logout realizado");
-  } catch (e) {
-    console.error("❌ Erro no logout:", e);
+    telaLogin.style.display = 'block';
+    app.style.display = 'none';
   }
 });
 
@@ -1620,6 +1634,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
