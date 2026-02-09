@@ -18,6 +18,7 @@ setPersistence(auth, browserLocalPersistence)
 const telaLogin = document.getElementById("tela-login");
 const appContainer = document.getElementById("app");
 const header = document.getElementById("header");
+const secoes = document.querySelectorAll(".secao");
 const formLogin = document.getElementById("formLogin");
 const emailLogin = document.getElementById("emailLogin");
 const senhaLogin = document.getElementById("senhaLogin");
@@ -1619,5 +1620,6 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
