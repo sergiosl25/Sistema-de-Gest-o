@@ -66,13 +66,9 @@ let fluxoCaixa = JSON.parse(localStorage.getItem("fluxoCaixa")) || [];
 function mostrarPaginaLogada(user) {
   const userNameEl = document.getElementById("userName");
 
-  // Esconde login
   telaLogin.style.display = "none";
+  app.style.display = "block";
 
-  // Mostra header
-  header.style.display = "block";
-
-  // Mostra uma seção inicial (ex: clientes)
   mostrarSecao("clientes");
 
   if (userNameEl) {
@@ -81,13 +77,8 @@ function mostrarPaginaLogada(user) {
 }
 
 function mostrarLogin() {
-  // Mostra tela de login
   telaLogin.style.display = "block";
-
-  // Esconde header / app
-  header.style.display = "none";
-
-  // (opcional) limpa campos
+  app.style.display = "none"; // 🔥 ISSO estava faltando
   formLogin?.reset();
 }
 
@@ -1629,6 +1620,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
