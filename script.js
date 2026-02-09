@@ -16,10 +16,11 @@ setPersistence(auth, browserLocalPersistence)
   
 // Elementos do DOM
 const telaLogin = document.getElementById("tela-login");
+const app = document.getElementById("app");
+const header = document.getElementById("header");
 const formLogin = document.getElementById("formLogin");
 const emailLogin = document.getElementById("emailLogin");
 const senhaLogin = document.getElementById("senhaLogin");
-const header = document.querySelector("header");
 const userEmailSpan = document.getElementById("userEmail");
 const btnLogout = document.getElementById("btnLogout");
 
@@ -64,21 +65,17 @@ let fluxoCaixa = JSON.parse(localStorage.getItem("fluxoCaixa")) || [];
 // 🔹 Funções de interface
 // =====================
 function mostrarPaginaLogada(user) {
-  const userNameEl = document.getElementById("userName");
-
   telaLogin.style.display = "none";
   app.style.display = "block";
 
   mostrarSecao("clientes");
 
-  if (userNameEl) {
-    userNameEl.textContent = user.email;
-  }
+  document.getElementById("userName").textContent = user.email;
 }
 
 function mostrarLogin() {
   telaLogin.style.display = "block";
-  app.style.display = "none"; // 🔥 ISSO estava faltando
+  app.style.display = "none";
   formLogin?.reset();
 }
 
@@ -1620,8 +1617,3 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
