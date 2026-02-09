@@ -65,12 +65,14 @@ let fluxoCaixa = JSON.parse(localStorage.getItem("fluxoCaixa")) || [];
 // 🔹 Funções de interface
 // =====================
 function mostrarPaginaLogada(user) {
+  if (!telaLogin || !appContainer || !header) {
+    console.error("Elemento DOM não encontrado");
+    return;
+  }
+
   telaLogin.style.display = "none";
-  app.style.display = "block";
-
-  mostrarSecao("clientes");
-
-  document.getElementById("userName").textContent = user.email;
+  appContainer.style.display = "block";
+  header.style.display = "flex";
 }
 
 function mostrarLogin() {
@@ -1617,4 +1619,5 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
