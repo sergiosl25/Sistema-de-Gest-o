@@ -80,6 +80,17 @@ function mostrarPaginaLogada(user) {
   }
 }
 
+function mostrarLogin() {
+  // Mostra tela de login
+  telaLogin.style.display = "block";
+
+  // Esconde header / app
+  header.style.display = "none";
+
+  // (opcional) limpa campos
+  formLogin?.reset();
+}
+
 // =====================
 // 🔹 Autenticação
 // =====================
@@ -1618,6 +1629,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
