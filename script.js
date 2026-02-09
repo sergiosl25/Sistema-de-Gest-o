@@ -86,18 +86,13 @@ function mostrarPaginaLogada(user) {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.log("✅ Usuário logado:", user.email);
-
     mostrarPaginaLogada(user);
 
-    try {
-      await carregarClientes();
-      await carregarEstoque();
-      await carregarTabelaPrecos();
-    } catch (erro) {
-      console.error("❌ Erro ao carregar dados:", erro);
-    }
+    await carregarClientes();
+    await carregarEstoque();
+    await carregarTabelaPrecos();
   } else {
-    console.log("❌ Nenhum usuário logado");
+    console.log("❌ Usuário deslogado");
     mostrarLogin();
   }
 });
@@ -117,11 +112,14 @@ formLogin?.addEventListener("submit", async (e) => {
   }
 });
 
-// Logout
-btnLogout?.addEventListener("click", async () => {
-  await signOut(auth);
-  mostrarLogin();
-})
+btnLogout.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    console.log("✅ Logout realizado");
+  } catch (e) {
+    console.error("❌ Erro no logout:", e);
+  }
+});
 
 // =====================
 // 🔹 Controle de seções
@@ -1620,5 +1618,6 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
