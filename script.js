@@ -66,20 +66,18 @@ let fluxoCaixa = JSON.parse(localStorage.getItem("fluxoCaixa")) || [];
 function mostrarPaginaLogada(user) {
   const userNameEl = document.getElementById("userName");
 
-  if (!userNameEl) {
-    console.warn("Elemento #userName ainda não existe no DOM");
-    return;
+  // Esconde login
+  telaLogin.style.display = "none";
+
+  // Mostra header
+  header.style.display = "block";
+
+  // Mostra uma seção inicial (ex: clientes)
+  mostrarSecao("clientes");
+
+  if (userNameEl) {
+    userNameEl.textContent = user.email;
   }
-
-  userNameEl.textContent = user.email;
-}
-
-function mostrarLogin() {
-  // Esconder todas as seções
-  document.querySelectorAll(".secao").forEach(secao => secao.style.display = "none");
-
-  telaLogin.style.display = "block";
-  header.style.display = "none";
 }
 
 // =====================
@@ -1622,4 +1620,5 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
