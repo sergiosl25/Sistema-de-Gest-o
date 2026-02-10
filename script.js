@@ -24,7 +24,6 @@ const userName = document.getElementById("userName");
 const emailLogin = document.getElementById("emailLogin");
 const senhaLogin = document.getElementById("senhaLogin");
 const btnLogout = document.getElementById("btnLogout");
-const btnLogout = document.getElementById("btnLogout");
 
 // Tabelas e selects
 const tabelaClientes = document.querySelector('#tabelaClientes tbody');
@@ -1629,6 +1628,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
