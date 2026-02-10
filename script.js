@@ -78,7 +78,8 @@ function mostrarPaginaLogada(user) {
 
 function mostrarLogin() {
   telaLogin.style.display = "block";
-  app.style.display = "none";
+  appContainer.style.display = "none";
+  header.style.display = "none";
   formLogin?.reset();
 }
 
@@ -113,8 +114,9 @@ formLogin.addEventListener('submit', async (e) => {
 // ===== LOGOUT =====
 btnLogout.addEventListener('click', async () => {
   await signOut(auth);
-  app.style.display = 'none';
-  telaLogin.style.display = 'block';
+  appContainer.style.display = "none";
+  header.style.display = "none";
+  telaLogin.style.display = "block";
 });
 
 // ===== Verifica sessão =====
@@ -123,11 +125,13 @@ onAuthStateChanged(auth, (user) => {
     // Usuário logado
     telaLogin.style.display = "none";
     appContainer.style.display = "block"; 
+    header.style.display = "none";
     userName.textContent = user.email;    
   } else {
     // Usuário não logado
     telaLogin.style.display = "block";
-    appContainer.style.display = "none"; // esconde a aplicação
+    appContainer.style.display = "none"; 
+    header.style.display = "none";
   }
 });
 
@@ -1628,6 +1632,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
