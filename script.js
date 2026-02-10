@@ -66,14 +66,12 @@ let fluxoCaixa = JSON.parse(localStorage.getItem("fluxoCaixa")) || [];
 // 🔹 Funções de interface
 // =====================
 function mostrarPaginaLogada(user) {
-  if (!telaLogin || !appContainer || !header) {
-    console.error("Elemento DOM não encontrado");
-    return;
-  }
-
   telaLogin.style.display = "none";
   appContainer.style.display = "block";
   header.style.display = "flex";
+  userName.textContent = user.email;
+
+  mostrarSecao("vendas"); // seção inicial
 }
 
 function mostrarLogin() {
@@ -88,23 +86,13 @@ function mostrarLogin() {
 // =====================
 // ===== LOGIN =====
 formLogin.addEventListener('submit', async (e) => {
-  e.preventDefault(); // Evita reload da página
-  const email = document.getElementById('emailLogin').value.trim();
-  const senha = document.getElementById('senhaLogin').value.trim();
+  e.preventDefault();
+
+  const email = emailLogin.value.trim();
+  const senha = senhaLogin.value.trim();
 
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, senha);
-    const user = userCredential.user;
-    userName.textContent = user.displayName || user.email;
-    telaLogin.style.display = 'none';
-    app.style.display = 'block';
-
-    // Carregar dados das seções
-    carregarClientesVenda();
-    carregarProdutosVenda();
-    carregarProdutosOrcamento();
-    carregarFluxoCaixa();
-    carregarTabelaPrecos();
+    await signInWithEmailAndPassword(auth, email, senha);
   } catch (error) {
     alert('Email ou senha incorretos!');
     console.error(error);
@@ -114,24 +102,14 @@ formLogin.addEventListener('submit', async (e) => {
 // ===== LOGOUT =====
 btnLogout.addEventListener('click', async () => {
   await signOut(auth);
-  appContainer.style.display = "none";
-  header.style.display = "none";
-  telaLogin.style.display = "block";
 });
 
 // ===== Verifica sessão =====
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    // Usuário logado
-    telaLogin.style.display = "none";
-    appContainer.style.display = "block"; 
-    header.style.display = "none";
-    userName.textContent = user.email;    
+    mostrarPaginaLogada(user);
   } else {
-    // Usuário não logado
-    telaLogin.style.display = "block";
-    appContainer.style.display = "none"; 
-    header.style.display = "none";
+    mostrarLogin();
   }
 });
 
@@ -1632,6 +1610,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
