@@ -16,7 +16,7 @@ setPersistence(auth, browserLocalPersistence)
   
 // Elementos do DOM
 const telaLogin = document.getElementById("tela-login");
-const app = document.getElementById("app");
+const appContainer = document.getElementById("app");
 const header = document.getElementById("header");
 const secoes = document.querySelectorAll(".secao");
 const formLogin = document.getElementById("formLogin");
@@ -1634,6 +1634,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
