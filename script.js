@@ -16,14 +16,14 @@ setPersistence(auth, browserLocalPersistence)
   
 // Elementos do DOM
 const telaLogin = document.getElementById("tela-login");
-const appContainer = document.getElementById("app");
-const header = document.getElementById("header");
+const appContainer = document.getElementById("app"); 
+const header = document.querySelector("#app header"); 
 const secoes = document.querySelectorAll(".secao");
 const formLogin = document.getElementById("formLogin");
 const userName = document.getElementById("userName");
 const emailLogin = document.getElementById("emailLogin");
 const senhaLogin = document.getElementById("senhaLogin");
-const userEmailSpan = document.getElementById("userEmail");
+const btnLogout = document.getElementById("btnLogout");
 const btnLogout = document.getElementById("btnLogout");
 
 // Tabelas e selects
@@ -121,19 +121,14 @@ btnLogout.addEventListener('click', async () => {
 // ===== Verifica sessão =====
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    userName.textContent = user.displayName || user.email;
-    telaLogin.style.display = 'none';
-    app.style.display = 'block';
-    
-    // Carregar dados
-    carregarClientesVenda();
-    carregarProdutosVenda();
-    carregarProdutosOrcamento();
-    carregarFluxoCaixa();
-    carregarTabelaPrecos();
+    // Usuário logado
+    telaLogin.style.display = "none";
+    appContainer.style.display = "block"; 
+    userName.textContent = user.email;    
   } else {
-    telaLogin.style.display = 'block';
-    app.style.display = 'none';
+    // Usuário não logado
+    telaLogin.style.display = "block";
+    appContainer.style.display = "none"; // esconde a aplicação
   }
 });
 
@@ -1634,6 +1629,7 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
+
 
 
 
