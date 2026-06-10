@@ -1435,7 +1435,6 @@ async function carregarFluxoCaixa() {
     tr.innerHTML = `
       <td>${data}</td>
       <td>${mov.tipo === "entrada" ? "Entrada" : "Saída"}</td>
-      <td>${mov.categoria ?? "-"}</td>
       <td>${mov.descricao}</td>
       <td style="color:${mov.tipo === "entrada" ? "green" : "red"}">
         R$ ${mov.valor.toFixed(2)}
