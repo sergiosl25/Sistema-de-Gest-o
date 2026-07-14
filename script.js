@@ -145,10 +145,7 @@ function mostrarSecao(secaoId) {
   case "precos":
     carregarTabelaPrecos();
     break;
-  case "simulador":
-    carregarSimuladorPrecosUnitarios();
-    break;
-  }
+ }
 }
 
 document.querySelectorAll("nav button").forEach(btn => {
@@ -1463,11 +1460,12 @@ async function carregarFluxoCaixa() {
 }
 
 // Excluir movimento
-async function excluirMovimentoFluxo(idMov) {
+window.excluirMovimentoFluxo = async function(idMov) {
   if (!confirm("Excluir este movimento?")) return;
+
   await deleteDoc(doc(db, "fluxoCaixa", idMov));
   carregarFluxoCaixa();
-}
+};
 
 // Remover automaticamente do fluxo de caixa ao excluir venda
 async function removerVendaDoFluxoCaixa(idVenda) {
