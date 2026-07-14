@@ -775,7 +775,8 @@ async function carregarTabelaRegistrosVendas() {
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
       <td colspan="4"><strong>Clique para ver itens</strong></td>
-      <td>R$ ${totalVenda.toFixed(2)}</td>
+      <td>R$ ${desconto.toFixed(2)}</td>
+      <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>${venda.tipoPagamento || "-"}</td>
       <td>
@@ -1279,6 +1280,7 @@ async function carregarTabelaPrecos() {
       const linha = document.createElement("tr");
       linha.innerHTML = `
         <td>${produto.nome || ""}</td>
+        <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
         <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
         <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
         <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
