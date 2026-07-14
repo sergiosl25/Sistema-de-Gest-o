@@ -242,7 +242,7 @@ async function carregarEstoque() {
                 <td>${produto.nome || ''}</td>
                 <td>${produto.quantidade || 0}</td>
                 <td>
-                    <button onclick="editarProduto('${docSnap.id}', '${produto.nome || ''}', ${produto.quantidade || 0}, ${produto.preco || 0})">Editar</button>
+                    <button onclick="editarProduto('${docSnap.id}', '${produto.nome || ''}', ${produto.quantidade || 0})">Editar</button>
                     <button onclick="excluirProduto('${docSnap.id}')">Excluir</button>
                 </td>`;
             tabelaEstoque.appendChild(tr);
@@ -267,7 +267,8 @@ function atualizarPrecoProduto() {
   }
 
   const precos = {
-    preco: produto.preco || 0,
+    preco1: produto.preco1 || 0,
+    preco2: produto.preco2 || 0,
     estampaFrente: produto.estampaFrente || 0,
     estampaFrenteVerso: produto.estampaFrenteVerso || 0,
   };
@@ -775,8 +776,6 @@ async function carregarTabelaRegistrosVendas() {
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
       <td colspan="4"><strong>Clique para ver itens</strong></td>
-      <td>R$ ${desconto.toFixed(2)}</td>
-      <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>${venda.tipoPagamento || "-"}</td>
       <td>
