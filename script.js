@@ -775,8 +775,8 @@ async function carregarTabelaRegistrosVendas() {
     rowVenda.innerHTML = `
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
-      <td colspan="4"><strong>Clique para ver itens</strong></td>
-      <td>R$ ${subtotal.toFixed(2)}</td>
+      <td colspan="3"><strong>Clique para ver itens</strong></td>
+      <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>${venda.tipoPagamento || "-"}</td>
       <td>
@@ -1617,12 +1617,3 @@ function carregarProdutosVenda() {
 
 document.getElementById("userName").textContent = "Sergio";
 window.mostrarSecao = mostrarSecao;
-
-
-
-
-
-
-
-
-
