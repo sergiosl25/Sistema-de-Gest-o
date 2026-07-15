@@ -229,17 +229,17 @@ tr:hover {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #ffffff;
+  background: #fff;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--sombra-suave);
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
 }
 
 /* ===== CABEÇALHO ===== */
 #tabelaPrecos thead {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  color: #ffffff;
+  background: linear-gradient(180deg, var(--cor-primaria), #2e86c1;
+  color: #fff;
 }
 
 #tabelaPrecos th {
