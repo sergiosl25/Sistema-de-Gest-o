@@ -238,7 +238,7 @@ tr:hover {
 
 /* ===== CABEÇALHO ===== */
 #tabelaPrecos thead {
-  background: linear-gradient(180deg, var(--cor-primaria), #2e86c1;
+  background: linear-gradient(180deg, var(--cor-primaria), #2e86c1);
   color: #fff;
 }
 
