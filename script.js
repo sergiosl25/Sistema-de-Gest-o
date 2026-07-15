@@ -776,6 +776,7 @@ async function carregarTabelaRegistrosVendas() {
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
       <td colspan="4"><strong>Clique para ver itens</strong></td>
+      <td>R$ ${subtotal.toFixed(2)}</td>
       <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>${venda.tipoPagamento || "-"}</td>
       <td>
@@ -1074,6 +1075,14 @@ function atualizarPrecoOrcamento() {
 
   const tipo = tipoPreco.trim().toLowerCase();
   switch (tipo) {
+    case "preço 1":
+    case "preco1":
+      preco = Number(produto.preco1 || 0);
+      break;
+    case "preço 2":
+    case "preco2":
+      preco = Number(produto.preco2 || 0);
+      break;
     case "frente":
     case "estampafrente":
       preco = Number(produto.estampaFrente || 0);
@@ -1279,8 +1288,8 @@ async function carregarTabelaPrecos() {
       const linha = document.createElement("tr");
       linha.innerHTML = `
         <td>${produto.nome || ""}</td>
-        <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
-        <td><input type="number" value="${produto.preco || 0}" step="0.01"></td>
+        <td><input type="number" value="${produto.preco1 || 0}" step="0.01"></td>
+        <td><input type="number" value="${produto.preco2 || 0}" step="0.01"></td>
         <td><input type="number" value="${produto.estampaFrente || 0}" step="0.01"></td>
         <td><input type="number" value="${produto.estampaFrenteVerso || 0}" step="0.01"></td>
       `;
@@ -1289,7 +1298,7 @@ async function carregarTabelaPrecos() {
 
       linha.querySelectorAll("input").forEach((input, index) => {
         input.addEventListener("change", async () => {
-          const campos = ["preco", "estampaFrente", "estampaFrenteVerso"];
+          const campos = ["preco1", "preco2", "estampaFrente", "estampaFrenteVerso"];
           const campo = campos[index];
           const novoValor = parseFloat(input.value) || 0;
 
