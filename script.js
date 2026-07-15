@@ -775,9 +775,8 @@ async function carregarTabelaRegistrosVendas() {
     rowVenda.innerHTML = `
       <td>${dataFormatada}</td>
       <td>${venda.clienteNome || "-"}</td>
-      <td colspan="4"><strong>Clique para ver itens</strong></td>
-      <td>R$ ${subtotal.toFixed(2)}</td>
-      <td>R$ ${totalItem.toFixed(2)}</td>
+      <td colspan="5"><strong>Clique para ver itens</strong></td>
+      <td>R$ ${totalVenda.toFixed(2)}</td>
       <td>${venda.tipoPagamento || "-"}</td>
       <td>
         <button class="btnExcluir"
