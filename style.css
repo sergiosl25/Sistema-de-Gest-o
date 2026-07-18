@@ -75,7 +75,10 @@ header {
 
 /* Menu */
 .header-center nav button {
-    width: 100%;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 40%;
     background: linear-gradient(180deg, #5dade2, #2e86c1);
     border: none;
     color: white;
