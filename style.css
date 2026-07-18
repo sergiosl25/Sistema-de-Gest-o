@@ -75,7 +75,8 @@ header {
 
 /* Menu */
 .header-left nav button {
-    top: 60px;
+    position: fixed;
+    top: 120px;
     left: 0;
     width: 40%;
     background: linear-gradient(180deg, #5dade2, #2e86c1);
