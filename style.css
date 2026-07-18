@@ -74,7 +74,7 @@ header {
 }
 
 /* Menu */
-.header-center nav button {
+.header-left nav button {
     top: 60px;
     left: 0;
     width: 40%;
