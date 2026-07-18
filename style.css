@@ -23,6 +23,12 @@ body {
 /* =========================
    💠 HEADER E NAVEGAÇÃO
 ========================= */
+main,
+section,
+.container {
+    margin-left: 260px;
+}
+
 header {
     display: grid;
     grid-template-columns: 180px auto 180px;
