@@ -74,24 +74,6 @@ header {
 }
 
 /* Menu */
-
-.header-center nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 200px;
-    height: 180vh;
-
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
-    padding: 120px 15px 20px;
-
-    box-shadow: 4px 0 10px rgba(0,0,0,.25);
-    z-index: 1000;
-}
-
 .header-center nav button {
     width: 100%;
     background: linear-gradient(180deg, #5dade2, #2e86c1);
