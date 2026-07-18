@@ -75,7 +75,6 @@ header {
 
 /* Menu */
 .header-center nav button {
-    position: fixed;
     top: 60px;
     left: 0;
     width: 40%;
