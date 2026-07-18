@@ -23,12 +23,6 @@ body {
 /* =========================
    💠 HEADER E NAVEGAÇÃO
 ========================= */
-main,
-section,
-.container {
-    margin-left: 260px;
-}
-
 header {
     display: grid;
     grid-template-columns: 180px auto 180px;
@@ -112,11 +106,16 @@ header {
 
 .header-center nav button:hover {
     transform: translateX(5px);
-}
 
-    box-shadow:
+ box-shadow:
         inset 0 3px 0 rgba(255,255,255,.4),
         0 8px 12px rgba(0,0,0,.25);
+}
+
+main,
+section,
+.container {
+    margin-left: 260px;
 }
 
 /* ===== Usuário ===== */
