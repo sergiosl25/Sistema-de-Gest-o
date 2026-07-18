@@ -77,12 +77,19 @@ header {
 
 .header-center nav {
     position: fixed;
-    top: 120px;      /* abaixo do cabeçalho */
-    left: 20px;      /* lateral esquerda */
+    top: 0;
+    left: 0;
+    width: 230px;
+    height: 100vh;
+
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    width: 220px;
+    gap: 12px;
+
+    padding: 120px 15px 20px;
+
+    background: var(--cor-secundaria);
+    box-shadow: 4px 0 10px rgba(0,0,0,.25);
     z-index: 1000;
 }
 
@@ -112,10 +119,9 @@ header {
         0 8px 12px rgba(0,0,0,.25);
 }
 
-main,
-section,
-.container {
-    margin-left: 260px;
+.secao {
+   margin-left: 260px;
+   pading: 20px;
 }
 
 /* ===== Usuário ===== */
