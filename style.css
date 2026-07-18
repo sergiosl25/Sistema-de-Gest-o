@@ -76,20 +76,26 @@ header {
 /* Menu */
 
 .header-center nav {
+    position: fixed;
+    top: 120px;      /* abaixo do cabeçalho */
+    left: 20px;      /* lateral esquerda */
     display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 18px;
+    flex-direction: column;
+    gap: 10px;
+    width: 220px;
+    z-index: 1000;
 }
 
 .header-center nav button {
+    width: 100%;
     background: linear-gradient(180deg, #5dade2, #2e86c1);
     border: none;
     color: white;
-    padding: 10px 18px;
+    padding: 12px;
     border-radius: var(--borda-radius);
     cursor: pointer;
+    text-align: left;
+    font-size: 15px;
 
     box-shadow:
         inset 0 3px 0 rgba(255,255,255,.3),
@@ -99,7 +105,8 @@ header {
 }
 
 .header-center nav button:hover {
-    transform: translateY(-3px);
+    transform: translateX(5px);
+}
 
     box-shadow:
         inset 0 3px 0 rgba(255,255,255,.4),
