@@ -59,8 +59,8 @@ header {
 /* Nome da empresa */
 
 .header-center h1 {
-    margin:150px;
-    font-size:3rem;
+    margin:250px;
+    font-size:4rem;
     font-weight:bold;
    
     text-align:center;
@@ -96,7 +96,7 @@ header {
     position:fixed;
 
     top:190px;
-    left:0;
+    left:15;
 
     width:160px;
 
@@ -114,6 +114,8 @@ header {
     font-size:12px;
    
     padding: 12px;
+
+    background:linear-gradient(145deg, #3498db, #2c3e50)
        
 }
 
