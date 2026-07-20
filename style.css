@@ -59,7 +59,7 @@ header {
 /* Nome da empresa */
 
 .header-center h1 {
-    margin:250px;
+    margin:200px;
     font-size:4rem;
     font-weight:bold;
    
@@ -96,7 +96,7 @@ header {
     position:fixed;
 
     top:190px;
-    left:15;
+    left:0;
 
     width:160px;
 
