@@ -25,7 +25,7 @@ body {
 ========================= */
 header {
     display: grid;
-    grid-template-columns: 170px 1fr 100px;
+    grid-template-columns: 100px auto 100px;
     align-items: center;
 
     background: var(--cor-secundaria);
@@ -303,7 +303,7 @@ tr:hover {
 
 /* ===== CÉLULAS ===== */
 #tabelaPrecos td {
-  padding: 8px 8px;
+  padding: 12px 12px;
   border-bottom: 1px solid #e5e7eb;
   font-size: 14px;
   color: #111827;
@@ -311,8 +311,8 @@ tr:hover {
 
 /* ===== INPUTS ===== */
 #tabelaPrecos input[type="number"] {
-  width: 100%;
-  padding: 8px 8px;
+  width: 80%;
+  padding: 8px 10px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
   font-size: 14px;
