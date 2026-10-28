@@ -77,7 +77,7 @@ class TelaLogin:
                         color=AZUL_PRINCIPAL,
                     ),
                     ft.Text(
-                        "ALVES PERSONALIZADOS",
+                        "ALVESPERSONALIZADOS",
                         size=23,
                         weight=ft.FontWeight.BOLD,
                         color=AZUL_ESCURO,
@@ -103,11 +103,6 @@ class TelaLogin:
                             on_click=self.entrar,
                         ),
                         padding=ft.Padding.only(top=10),
-                    ),
-                    ft.Text(
-                        "Versão inicial — Login demonstrativo",
-                        size=11,
-                        color=TEXTO_SECUNDARIO,
                     ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
