@@ -154,12 +154,6 @@ class AlvesPersonalizados:
                         elevation=6,
                         on_click=self.entrar,
                     ),
-
-                    ft.Text(
-                        "Versão de demonstração",
-                        size=11,
-                        color=TEXTO_SECUNDARIO,
-                    ),
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 spacing=15,
@@ -302,19 +296,11 @@ class AlvesPersonalizados:
 
         itens = [
             ft.Text(
-                "ALVES",
-                size=26,
+                "Alvespersonalizados",
+                size=18,
                 weight=ft.FontWeight.BOLD,
                 color=BRANCO,
             ),
-
-            ft.Text(
-                "PERSONALIZADOS",
-                size=12,
-                color="#CBD5E1",
-            ),
-
-            ft.Divider(color="#334155"),
         ]
 
         for nome, icone in botoes:
