@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import flet as ft
 from auth import FirebaseAuth
 from telas.clientes import TelaClientes
@@ -863,8 +864,14 @@ if __name__ == "__main__":
 
     print("Iniciando Alvespersonalizados...")
 
+    # Em hospedagem (ex.: Render), PORT e HOST são definidos pelo ambiente.
+    # No Windows, mantém a porta 8551 utilizada durante o desenvolvimento.
+    porta = int(os.environ.get("PORT", "8551"))
+    host = os.environ.get("HOST", "127.0.0.1")
+
     ft.app(
         target=main,
         view=ft.AppView.WEB_BROWSER,
-        port=8551,
+        host=host,
+        port=porta,
     )
