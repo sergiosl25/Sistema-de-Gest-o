@@ -1,0 +1,15 @@
+CORRECAO DE DEPLOY RENDER - ALVES PERSONALIZADOS
+
+1. No GitHub, atualize na RAIZ do repositorio:
+   - main.py
+   - requirements.txt
+   - .python-version (arquivo com ponto no inicio)
+2. Render > Environment: confira se PYTHON_VERSION nao esta definido como 3.14.x. Se estiver, remova ou ajuste para 3.11.11.
+3. Render > Manual Deploy > Clear build cache & deploy.
+4. Build command: pip install -r requirements.txt
+   Start command: python main.py
+5. Veja os Logs. Se ocorrer erro, copie desde Traceback ate a ultima linha.
+
+Alteracoes: Flet 0.28.3; FastAPI antigo compativel com openapi_prefix; Python 3.11.11; HOST 0.0.0.0 quando PORT existir. Trata-se de correcao proposta, nao validada no Render.
+
+IMPORTANTE: regras atuais do Firestore permitem acesso total a qualquer usuario autenticado. Nao usar com dados reais ou liberar funcionarios antes de corrigir as regras. Verifique tambem segredos no repositorio publico.
