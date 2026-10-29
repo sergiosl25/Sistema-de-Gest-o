@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
-import calendar
 import flet as ft
 from firebase_financeiro import FirebaseFinanceiro
 
 AZUL = '#2563EB'
 VERDE = '#15803D'
 VERMELHO = '#B91C1C'
-
+FUSO_BRASIL = timezone(timedelta(hours=-3))
+MESES_BR = ('', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro')
 
 class TelaFinanceiro:
     """Relatórios de caixa (sem inclusão, alteração ou exclusão)."""
@@ -16,11 +16,11 @@ class TelaFinanceiro:
     def __init__(self, page, sessao):
         self.page = page
         self.api = FirebaseFinanceiro(sessao)
-        hoje = datetime.now(timezone.utc)
+        hoje = datetime.now(FUSO_BRASIL)
         self.registros = []
         self.periodo = ft.Dropdown(
             label='Período', width=205, value='mes',
-            options=[ft.dropdown.Option('hoje', 'Hoje (UTC)'),
+            options=[ft.dropdown.Option('hoje', 'Hoje (Brasília)'),
                      ft.dropdown.Option('mes', 'Mês selecionado'),
                      ft.dropdown.Option('ano', 'Ano selecionado'),
                      ft.dropdown.Option('todos', 'Todo o histórico'),
@@ -28,13 +28,13 @@ class TelaFinanceiro:
             on_change=self.atualizar)
         self.mes = ft.Dropdown(
             label='Mês', width=165, value=str(hoje.month),
-            options=[ft.dropdown.Option(str(i), calendar.month_name[i]) for i in range(1, 13)],
+            options=[ft.dropdown.Option(str(i), MESES_BR[i]) for i in range(1, 13)],
             on_change=self.atualizar)
         self.ano = ft.TextField(label='Ano', value=str(hoje.year), width=105,
                                 on_change=self.atualizar)
-        self.inicio = ft.TextField(label='Início (AAAA-MM-DD)', width=195,
+        self.inicio = ft.TextField(label='Início (DD-MM-AAAA)', width=195,
                                    on_change=self.atualizar)
-        self.fim = ft.TextField(label='Fim (AAAA-MM-DD)', width=195,
+        self.fim = ft.TextField(label='Fim (DD-MM-AAAA)', width=195,
                                 on_change=self.atualizar)
         self.mensagem = ft.Text('')
         self.indicadores = ft.Row(wrap=True, spacing=12)
@@ -43,10 +43,10 @@ class TelaFinanceiro:
         self.categorias = ft.Column(spacing=5)
         self.tabela = ft.DataTable(
             columns=[ft.DataColumn(ft.Text(x)) for x in
-                     ('Data UTC', 'Tipo', 'Origem', 'Descrição', 'Forma', 'Valor')], rows=[])
+                     ('Data / hora (Brasília)', 'Tipo', 'Origem', 'Descrição', 'Forma', 'Valor')], rows=[])
         self.conteudo = ft.Column([
             ft.Text('Financeiro', size=25, weight=ft.FontWeight.BOLD),
-            ft.Text('Consultas e relatórios • dados de caixaMovimentos • datas em UTC'),
+            ft.Text('Consultas e relatórios • dados de caixaMovimentos • datas no horário de Brasília'),
             ft.Row([self.periodo, self.mes, self.ano, self.inicio, self.fim,
                     ft.ElevatedButton('Atualizar dados', on_click=self.carregar)], wrap=True),
             self.mensagem,
@@ -81,13 +81,13 @@ class TelaFinanceiro:
             data = datetime.fromisoformat(valor.replace('Z', '+00:00'))
             if data.tzinfo is None:
                 data = data.replace(tzinfo=timezone.utc)
-            return data.astimezone(timezone.utc)
+            return data.astimezone(FUSO_BRASIL)
         except (TypeError, ValueError):
             return None
 
     def intervalo(self):
         modo = self.periodo.value
-        agora = datetime.now(timezone.utc)
+        agora = datetime.now(FUSO_BRASIL)
         if modo == 'todos':
             return None, None
         if modo == 'hoje':
@@ -95,10 +95,10 @@ class TelaFinanceiro:
             return inicio, inicio + timedelta(days=1)
         if modo == 'personalizado':
             try:
-                a = datetime.strptime(self.inicio.value.strip(), '%Y-%m-%d').replace(tzinfo=timezone.utc)
-                b = datetime.strptime(self.fim.value.strip(), '%Y-%m-%d').replace(tzinfo=timezone.utc)
+                a = datetime.strptime(self.inicio.value.strip(), '%d-%m-%y').replace(tzinfo=FUSO_BRASIL)
+                b = datetime.strptime(self.fim.value.strip(), '%d-%m-%y').replace(tzinfo=FUSO_BRASIL)
             except (ValueError, AttributeError):
-                raise ValueError('Informe início e fim no formato AAAA-MM-DD.')
+                raise ValueError('Informe início e fim no formato DD-MM-AAAA.')
             if b < a:
                 raise ValueError('A data final deve ser igual ou posterior à inicial.')
             return a, b + timedelta(days=1)
@@ -112,9 +112,9 @@ class TelaFinanceiro:
         except (ValueError, TypeError):
             raise ValueError('Informe um ano e mês válidos.')
         if modo == 'ano':
-            return datetime(ano, 1, 1, tzinfo=timezone.utc), datetime(ano + 1, 1, 1, tzinfo=timezone.utc)
-        a = datetime(ano, mes, 1, tzinfo=timezone.utc)
-        b = datetime(ano + 1, 1, 1, tzinfo=timezone.utc) if mes == 12 else datetime(ano, mes + 1, 1, tzinfo=timezone.utc)
+            return datetime(ano, 1, 1, tzinfo=FUSO_BRASIL), datetime(ano + 1, 1, 1, tzinfo=FUSO_BRASIL)
+        a = datetime(ano, mes, 1, tzinfo=FUSO_BRASIL)
+        b = datetime(ano + 1, 1, 1, tzinfo=FUSO_BRASIL) if mes == 12 else datetime(ano, mes + 1, 1, tzinfo=FUSO_BRASIL)
         return a, b
 
     def carregar(self, e=None):
