@@ -118,20 +118,15 @@ class AlvesPersonalizados:
             ),
             content=ft.Column(
                 [
-                    ft.Icon(
-                        ft.icons.STORE,
-                        size=55,
-                        color=AZUL_PRINCIPAL,
+                    ft.Container(
+                        content=ft.Image(
+                            src="logo.png",
+                            width=180,
+                            height=110,
+                            fit=ft.ImageFit.CONTAIN,
+                        ),
+                        alignment=ft.alignment.center,
                     ),
-
-                    ft.Text(
-                        "ALVESPERSONALIZADOS",
-                        size=23,
-                        weight=ft.FontWeight.BOLD,
-                        color=AZUL_ESCURO,
-                        text_align=ft.TextAlign.CENTER,
-                    ),
-
                     ft.Text(
                         "Sistema de Gestão",
                         size=14,
@@ -295,11 +290,15 @@ class AlvesPersonalizados:
         botoes = self.itens_navegacao()
 
         itens = [
-            ft.Text(
-                "Alvespersonalizados",
-                size=18,
-                weight=ft.FontWeight.BOLD,
-                color=BRANCO,
+            ft.Container(
+                content=ft.Image(
+                    src="logo.png",
+                    width=170,
+                    height=100,
+                    fit=ft.ImageFit.CONTAIN,
+                ),
+                alignment=ft.alignment.center,
+                padding=10,
             ),
         ]
 
@@ -888,6 +887,7 @@ if __name__ == "__main__":
     ft.app(
         target=main,
         view=ft.AppView.WEB_BROWSER,
+        assets_dir="assets",
         host=host,
         port=porta,
     )
