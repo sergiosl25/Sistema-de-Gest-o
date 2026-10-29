@@ -71,17 +71,14 @@ class TelaLogin:
             ),
             content=ft.Column(
                 [
-                    ft.Icon(
-                        ft.Icons.STORE,
-                        size=55,
-                        color=AZUL_PRINCIPAL,
-                    ),
-                    ft.Text(
-                        "ALVESPERSONALIZADOS",
-                        size=23,
-                        weight=ft.FontWeight.BOLD,
-                        color=AZUL_ESCURO,
-                        text_align=ft.TextAlign.CENTER,
+                    ft.Container(
+                        content=ft.Image(
+                            src="logo.png",
+                            width=180,
+                            height=110,
+                            fit=ft.ImageFit.CONTAIN,
+                        ),
+                        alignment=ft.Alignment(0, 0),
                     ),
                     ft.Text(
                         "Sistema de Gestão",
