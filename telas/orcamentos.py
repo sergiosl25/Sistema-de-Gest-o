@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Orçamentos para Flet 0.25.x; PDF/WhatsApp e conversão com pagamento integral."""
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from io import BytesIO
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -11,6 +11,19 @@ import re
 import flet as ft
 from firebase_orcamentos import FirebaseOrcamentos, centavos
 
+FUSO_BRASIL = timezone(timedelta(hours=-3))
+
+
+def hoje_brasil():
+    return datetime.now(FUSO_BRASIL).date()
+
+
+def data_br(valor):
+    try:
+        return date.fromisoformat(str(valor)).strftime('%d/%m/%Y')
+    except (ValueError, TypeError):
+        return str(valor or '')
+        
 AZUL = '#2563EB'
 FORMAS = ['Pix', 'Dinheiro', 'Cartão de débito', 'Cartão de crédito', 'Transferência bancária', 'Outros']
 
@@ -49,7 +62,7 @@ class TelaOrcamentos:
         self.origem = ft.Dropdown(label='Origem da arte', width=220, value='Cliente', options=[ft.dropdown.Option('Cliente'), ft.dropdown.Option('Loja')])
         self.obs_item = ft.TextField(label='Instruções da arte', width=520, multiline=True, min_lines=2, max_lines=3)
         self.preco = ft.Text('Preço unitário: R$ 0,00')
-        self.validade = ft.TextField(label='Validade (AAAA-MM-DD)', width=220, value=str(date.today() + timedelta(days=15)))
+        self.validade = ft.TextField(label='Validade (DD/MM/AAAA)', width=220, value=(hoje_brasil() + timedelta(days=15)).strftime('%d/%m/%Y'))
         self.observacoes = ft.TextField(label='Observações e condições', width=540, multiline=True, min_lines=2, max_lines=3)
         self.tabela_itens = ft.DataTable(columns=[ft.DataColumn(ft.Text(x)) for x in ('Produto', 'Personalização', 'Qtd.', 'Total', 'Ação')], rows=[])
         self.total = ft.Text('Total: R$ 0,00', size=18, weight=ft.FontWeight.BOLD)
@@ -156,7 +169,12 @@ class TelaOrcamentos:
             if not cliente or not self.itens:
                 raise ValueError('Selecione cliente e adicione produtos.')
             validade = date.fromisoformat(self.validade.value.strip())
-            if validade < date.today():
+            validade = datetime.strptime(
+                self.validade.value.strip(),
+                '%d/%m/%Y'
+            ).date()
+            
+            if validade < hoje_brasil():
                 raise ValueError('A validade não pode estar no passado.')
             dados = {'clienteId': cliente['id'], 'clienteNome': cliente.get('nome', ''),
                      'clienteTelefone': str(cliente.get('telefone') or cliente.get('celular') or cliente.get('whatsapp') or ''),
@@ -179,7 +197,7 @@ class TelaOrcamentos:
             self.orcamentos = self.api.listar()
             self.tabela.rows = [ft.DataRow(cells=[
                 ft.DataCell(ft.Text(str(o.get('clienteNome', '')))),
-                ft.DataCell(ft.Text(str(o.get('validade', '')))),
+                ft.DataCell(ft.Text(data_br(o.get('validade', '')))),
                 ft.DataCell(ft.Text(moeda(o.get('total', 0)))),
                 ft.DataCell(ft.Text(self.status_exibido(o))),
                 ft.DataCell(ft.TextButton('Abrir', on_click=lambda e, x=o: self.abrir(x)))
@@ -194,7 +212,7 @@ class TelaOrcamentos:
         if o.get('status') in ('Convertido', 'Recusado'):
             return o['status']
         try:
-            if date.fromisoformat(o['validade']) < date.today():
+            if date.fromisoformat(o['validade']) < hoje_brasil():
                 return 'Vencido'
         except (ValueError, KeyError, TypeError):
             pass
@@ -207,7 +225,7 @@ class TelaOrcamentos:
     def abrir(self, o):
         self.atual = o
         controles = [ft.Text('Cliente: ' + str(o.get('clienteNome', ''))),
-                     ft.Text('Validade: ' + str(o.get('validade', ''))),
+                     ft.Text('Validade: ' + data_br(o.get('validade', ''))),
                      ft.Text('Status: ' + self.status_exibido(o)),
                      ft.Text('Total: ' + moeda(o.get('total', 0)), weight=ft.FontWeight.BOLD)]
         for item in o.get('itens', []):
@@ -251,7 +269,7 @@ class TelaOrcamentos:
                     'Valor total: {}\nValidade: {}\n'
                     'Se estiver de acordo, responda confirmando a aprovação.\n'
                     'O PDF deve ser anexado manualmente nesta conversa.').format(
-                        o.get('clienteNome', ''), o['id'][:8].upper(), moeda(o['total']), o.get('validade', ''))
+                        o.get('clienteNome', ''), o['id'][:8].upper(), moeda(o['total']), data_br(o.get('validade', '')))
         self.page.launch_url('https://wa.me/{}?text={}'.format(telefone, quote(mensagem)))
 
     def pdf(self, o):
@@ -273,7 +291,7 @@ class TelaOrcamentos:
                 linhas = [Paragraph('ALVES PERSONALIZADOS — ORÇAMENTO', estilos['Title']), Spacer(1, 16),
                           Paragraph('Orçamento: ' + escape(o['id'][:8].upper()), estilos['Normal']),
                           Paragraph('Cliente: ' + escape(str(o.get('clienteNome', ''))), estilos['Normal']),
-                          Paragraph('Validade: ' + escape(str(o.get('validade', ''))), estilos['Normal']), Spacer(1, 12)]
+                          Paragraph('Validade: ' + escape(data_br(o.get('validade', ''))), estilos['Normal']), Spacer(1, 12)]
                 tabela = [['Produto', 'Personalização', 'Qtd.', 'Valor']]
                 for item in o.get('itens', []):
                     tabela.append([Paragraph(escape(str(item.get('produtoNome', ''))), estilos['Normal']),
