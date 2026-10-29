@@ -13,6 +13,21 @@ import flet as ft
 from firebase_relatorios import FirebaseRelatorios
 
 AZUL = '#2563EB'
+FUSO_BRASIL = timezone(timedelta(hours=-3))
+
+
+def agora_brasil():
+    return datetime.now(FUSO_BRASIL)
+
+
+def data_br(valor):
+    data = data_utc(valor)
+    return data.strftime('%d/%m/%Y %H:%M') if data else ''
+
+
+def mes_br(valor):
+    data = data_utc(valor)
+    return data.strftime('%Y-%m') if data else None
 
 
 def dinheiro(centavos):
@@ -31,7 +46,7 @@ def data_utc(valor):
         data = datetime.fromisoformat(str(valor).replace('Z', '+00:00'))
         if data.tzinfo is None:
             data = data.replace(tzinfo=timezone.utc)
-        return data.astimezone(timezone.utc)
+        return data.astimezone(FUSO_BRASIL)
     except (ValueError, TypeError):
         return None
 
@@ -46,7 +61,7 @@ class TelaRelatorios:
         self.linhas = []
         self.colunas = []
         self.titulo = ''
-        hoje = datetime.now(timezone.utc)
+        hoje = agora_brasil()
         self.tipo = ft.Dropdown(label='Relatório', width=195, value='Vendas',
                                 options=[ft.dropdown.Option(s) for s in self.OPCOES], on_change=self.atualizar)
         self.periodo = ft.Dropdown(label='Período', width=190, value='mes', options=[
@@ -57,15 +72,15 @@ class TelaRelatorios:
                                options=[ft.dropdown.Option(str(i), str(i).zfill(2)) for i in range(1, 13)],
                                on_change=self.atualizar)
         self.ano = ft.TextField(label='Ano', width=95, value=str(hoje.year), on_change=self.atualizar)
-        self.inicio = ft.TextField(label='Início AAAA-MM-DD', width=180, on_change=self.atualizar)
-        self.fim = ft.TextField(label='Fim AAAA-MM-DD', width=180, on_change=self.atualizar)
+        self.inicio = ft.TextField(label='Início DD/MM/AAAA', width=180, on_change=self.atualizar)
+        self.fim = ft.TextField(label='Fim DD/MM/AAAA', width=180, on_change=self.atualizar)
         self.mensagem = ft.Text('')
         self.indicadores = ft.Row(wrap=True, spacing=12)
         self.grafico = ft.Column(spacing=6)
         self.tabela_area = ft.Column()
         self.conteudo = ft.Column([
             ft.Text('Relatórios', size=25, weight=ft.FontWeight.BOLD),
-            ft.Text('Consultas e exportações • datas em UTC • sem alteração no Firebase'),
+            ft.Text('Consultas e exportações • horário de Brasília • sem alteração no Firebase'),
             ft.Row([self.tipo, self.periodo, self.mes, self.ano, self.inicio, self.fim], wrap=True),
             ft.Row([
                 ft.ElevatedButton('Atualizar dados', icon=ft.icons.REFRESH, on_click=self.carregar),
@@ -86,16 +101,15 @@ class TelaRelatorios:
         return self.conteudo
 
     def intervalo(self):
-        agora = datetime.now(timezone.utc)
         modo = self.periodo.value
         if modo == 'todos':
             return None, None
         if modo == 'personalizado':
             try:
-                a = datetime.strptime((self.inicio.value or '').strip(), '%Y-%m-%d').replace(tzinfo=timezone.utc)
-                b = datetime.strptime((self.fim.value or '').strip(), '%Y-%m-%d').replace(tzinfo=timezone.utc)
+                a = datetime.strptime((self.inicio.value or '').strip(), '%d/%m/%Y').replace(tzinfo=FUSO_BRASIL)
+                b = datetime.strptime((self.fim.value or '').strip(), '%d/%m/%Y').replace(tzinfo=FUSO_BRASIL)
             except ValueError:
-                raise ValueError('Informe as duas datas no formato AAAA-MM-DD.')
+                raise ValueError('Informe as duas datas no formato DD/MM/AAAA.')
             if b < a:
                 raise ValueError('A data final deve ser igual ou posterior à inicial.')
             return a, b + timedelta(days=1)
@@ -107,9 +121,9 @@ class TelaRelatorios:
         except (TypeError, ValueError):
             raise ValueError('Informe ano e mês válidos.')
         if modo == 'ano':
-            return datetime(ano, 1, 1, tzinfo=timezone.utc), datetime(ano + 1, 1, 1, tzinfo=timezone.utc)
-        a = datetime(ano, mes, 1, tzinfo=timezone.utc)
-        b = datetime(ano + 1, 1, 1, tzinfo=timezone.utc) if mes == 12 else datetime(ano, mes + 1, 1, tzinfo=timezone.utc)
+            return datetime(ano, 1, 1, tzinfo=FUSO_BRASIL), datetime(ano + 1, 1, 1, tzinfo=FUSO_BRASIL)
+        a = datetime(ano, mes, 1, tzinfo=FUSO_BRASIL)
+        b = datetime(ano + 1, 1, 1, tzinfo=FUSO_BRASIL) if mes == 12 else datetime(ano, mes + 1, 1, tzinfo=FUSO_BRASIL)
         return a, b
 
     def filtrar(self, registros):
@@ -145,9 +159,9 @@ class TelaRelatorios:
             cards = []
             colunas = []
             if tipo == 'Vendas':
-                colunas = ['Data UTC', 'Cliente', 'Pedido', 'Itens', 'Valor', 'Entrega']
+                colunas = ['Data (Brasília)', 'Cliente', 'Pedido', 'Itens', 'Valor', 'Entrega']
                 for p in pedidos:
-                    linhas.append([str(p.get('criadoEm', ''))[:10], p.get('clienteNome', ''), p.get('id', ''),
+                    linhas.append([data_br(p.get('criadoEm')), p.get('clienteNome', ''), p.get('id', ''),
                                    len(p.get('itens') or []), dinheiro(centavos_de(p.get('total', 0))),
                                    p.get('statusEntrega', 'Pendente')])
                 total = sum(centavos_de(p.get('total', 0)) for p in pedidos)
@@ -193,9 +207,9 @@ class TelaRelatorios:
                 linhas = [[k, v] for k, v in sorted(mapa.items())]
                 cards = [('Pedidos', len(pedidos)), ('Entregues', sum(v for k, v in mapa.items() if k in ('Entregue', 'Concluído')))]
             else:
-                colunas = ['Data UTC', 'Tipo', 'Origem', 'Descrição', 'Forma', 'Valor']
+                colunas = ['Data (Brasília)', 'Tipo', 'Origem', 'Descrição', 'Forma', 'Valor']
                 for m in movs:
-                    linhas.append([str(m.get('criadoEm', ''))[:10], m.get('tipo', ''), m.get('origem', ''),
+                    linhas.append([data_br(m.get('criadoEm')), m.get('tipo', ''), m.get('origem', ''),
                                    m.get('descricao', ''), m.get('forma', ''), dinheiro(int(m.get('centavos') or 0))])
                 entradas = sum(int(m.get('centavos') or 0) for m in movs if m.get('tipo') == 'Entrada')
                 saidas = sum(int(m.get('centavos') or 0) for m in movs if m.get('tipo') == 'Saída')
@@ -210,12 +224,16 @@ class TelaRelatorios:
                 if tipo == 'Vendas':
                     por_mes = defaultdict(int)
                     for p in pedidos:
-                        por_mes[str(p.get('criadoEm', ''))[:7]] += centavos_de(p.get('total', 0))
+                        chave = mes_br(p.get('criadoEm'))
+                        if chave:
+                            por_mes[chave] += centavos_de(p.get('total', 0))
                     valores = [(k, dinheiro(v), v) for k, v in sorted(por_mes.items())]
                 elif tipo == 'Financeiro':
                     por_mes = defaultdict(int)
                     for m in movs:
-                        chave = str(m.get('criadoEm', ''))[:7]
+                        chave = mes_br(m.get('criadoEm'))
+                        if not chave:
+                            continue
                         por_mes[chave] += int(m.get('centavos') or 0) * (1 if m.get('tipo') == 'Entrada' else -1)
                     valores = [(k, dinheiro(v), abs(v)) for k, v in sorted(por_mes.items())]
                 elif tipo in ('Produtos', 'Clientes'):
@@ -248,7 +266,7 @@ class TelaRelatorios:
         ws = wb.active
         ws.title = self.titulo[:31]
         ws.append(['ALVES PERSONALIZADOS — ' + self.titulo])
-        ws.append(['Gerado em UTC: ' + datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')])
+        ws.append(['Gerado em (Brasília): ' + agora_brasil().strftime('%d/%m/%Y %H:%M')])
         ws.append([])
         ws.append(self.colunas)
         for linha in self.linhas:
@@ -286,7 +304,7 @@ class TelaRelatorios:
                                 topMargin=30, bottomMargin=30)
         estilos = getSampleStyleSheet()
         elementos = [Paragraph('ALVES PERSONALIZADOS — ' + escape(self.titulo), estilos['Heading1']),
-                     Paragraph('Gerado em UTC: ' + datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M'), estilos['Normal']),
+                     Paragraph('Gerado em (Brasília): ' + agora_brasil().strftime('%d/%m/%Y %H:%M'), estilos['Normal']),
                      Spacer(1, 14)]
         # Quebra texto dentro das células para evitar extrapolar a página.
         estilo = estilos['BodyText']
@@ -321,7 +339,7 @@ class TelaRelatorios:
             conteudo = self.gerar_excel() if formato == 'xlsx' else self.gerar_pdf()
             nome = 'alves_{}_{}.{}'.format(
                 self.titulo.lower().replace('ç', 'c').replace('ã', 'a'),
-                datetime.now().strftime('%Y%m%d_%H%M%S'), formato)
+                agora_brasil().strftime('%Y%m%d_%H%M%S'), formato)
 
             # Flet 0.25.x Web: FilePicker.save_file não recebe src_bytes.
             # Um servidor HTTP local entrega os bytes reais ao navegador.
