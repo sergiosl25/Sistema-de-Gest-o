@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import asyncio
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 import flet as ft
 from firebase_dashboard import FirebaseDashboard
-
+FUSO_BRASIL = timezone(timedelta(hours=-3))
 AZUL = '#2563EB'
 FUNDO = '#FFFFFF'
 TEXTO = '#1E293B'
@@ -14,10 +15,30 @@ def dinheiro(centavos):
 
 def data_utc(valor):
     try:
-        if not valor: return None
-        return datetime.fromisoformat(str(valor).replace('Z', '+00:00')).astimezone(timezone.utc)
+        if not valor:
+            return None
+
+        data = datetime.fromisoformat(
+            str(valor).replace("Z", "+00:00")
+        )
+
+        if data.tzinfo is None:
+            data = data.replace(tzinfo=ZoneInfo("UTC"))
+
+        return data.astimezone(
+            ZoneInfo("America/Sao_Paulo")
+        )
+
     except (ValueError, TypeError):
         return None
+
+def formatar_data_br(valor):
+    data = data_utc(valor)
+
+    if data is None:
+        return ""
+
+    return data.strftime("%d/%m/%Y %H:%M:%S")
 
 class TelaDashboard:
     def __init__(self, page, sessao):
@@ -33,7 +54,7 @@ class TelaDashboard:
         self.conteudo = ft.Column([
             ft.Row([ft.Text('Visão geral da loja', size=23, weight=ft.FontWeight.BOLD),
                     ft.ElevatedButton('Atualizar agora', icon=ft.icons.REFRESH, on_click=self.carregar)], wrap=True),
-            ft.Text('Indicadores e valores de recebimentos em UTC • atualização automática a cada 60 segundos', size=12, color='#64748B'),
+           ft.Text('Indicadores e recebimentos no horário de Brasília • atualização automática a cada 60 segundos', size=12, color='#64748B'),
             self.msg, self.indicadores,
             ft.ResponsiveRow([
                 ft.Container(col={'xs':12,'lg':7}, padding=18, bgcolor=FUNDO, border_radius=12,
@@ -60,7 +81,7 @@ class TelaDashboard:
         try:
             dados = self.api.consultar()
             pedidos = dados['pedidos']; movimentos = dados['movimentos']
-            agora = datetime.now(timezone.utc)
+            agora = datetime.now(FUSO_BRASIL)
             mes_atual = (agora.year, agora.month)
             entradas_vendas = [m for m in movimentos if m.get('tipo') == 'Entrada' and m.get('origem') == 'Venda']
             total_mes = sum(int(m.get('centavos') or 0) for m in entradas_vendas if (lambda d: d and (d.year,d.month)==mes_atual)(data_utc(m.get('criadoEm'))))
@@ -100,7 +121,7 @@ class TelaDashboard:
             self.ranking.controls = [ft.Text(f'{i}. {nome} — {qtd} un.', size=13) for i,(nome,qtd) in enumerate(ranking.most_common(5),1)] or [ft.Text('Sem produtos vendidos.')]
             estados = Counter(str(item.get('statusProducao') or 'Sem status') for p in pedidos for item in p.get('itens', []))
             self.situacoes.controls = [ft.Text(f'{nome}: {qtd}', size=13) for nome,qtd in sorted(estados.items())] or [ft.Text('Nenhum item registrado.')]
-            self.msg.value = 'Atualizado em ' + agora.strftime('%d/%m/%Y %H:%M') + ' UTC'
+            self.msg.value = ('Atualizado em ' + agora.strftime('%d/%m/%Y às %H:%M:%S') + ' (Horário de Brasília)')
         except Exception as erro:
             self.msg.value = 'Não foi possível atualizar o Dashboard: ' + str(erro)
         finally:
